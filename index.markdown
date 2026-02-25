@@ -7,6 +7,4 @@ layout: home
 
 ## Welcome
 
-Hello! I am a software engineer. This site hosts my [Resume]({{ '/resume.html' | relative_url }}) and links to my [Projects]({{ '/projects.html' | relative_url }}).
-
-You can also find me on [GitHub](https://github.com/D3lK1ch1){:target="_blank"}.
+Hello, my name is Delia. To know more about me and what I have done, check out my resume, GitHub projects and volunteering networking gigs seen with above links.
