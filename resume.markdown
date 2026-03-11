@@ -9,4 +9,4 @@ Resume video:
 
 Resume PDF:
 
-{% pdf {{ page.pdf_file }} no_link%}
+{% pdf {{ page.pdf_file | relative_url }} no_link %}
