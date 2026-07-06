@@ -18,14 +18,24 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: My Portfolio
+title: Delia's Portfolio
 email: deliakok@live.com.my # Update this with your actual email
 description: >-
-  My personal portfolio featuring my resume and software engineering projects.
+  Portfolio for software engineering roles and local business automation work,
+  focused on practical full-stack, mobile, desktop, and local-first tools.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  D3lK1ch1
+linkedin_username: delia-kok
 theme: minima
+permalink: pretty
+
+# Collections
+# `projects` holds one file per project (see _projects/). output: false means
+# each project is data rendered as a card, not its own standalone page.
+collections:
+  projects:
+    output: false
 
 # Build settings
 plugins:
