@@ -1,0 +1,68 @@
+{%- comment -%}
+  Renders one project as a card. Usage:
+    {% include project-card.html project=project %}
+
+  Reads these front-matter fields from the project (all optional except name):
+    name, status (live|downloadable|in-progress|archived|open-source),
+    outcome, tech [list], live_url, download_url, download_label, repo_url,
+    image (screenshot path), frame ("phone" -> uses phone-frame include),
+    qr (bool), qr_image (path to QR png).
+
+  CTA follows the "proof ladder": strongest clickable proof is the filled button.
+{%- endcomment -%}
+{%- assign p = include.project -%}
+
+{%- case p.status -%}
+  {%- when "live" -%}{%- assign status_label = "Live" -%}
+  {%- when "downloadable" -%}{%- assign status_label = "Downloadable" -%}
+  {%- when "in-progress" -%}{%- assign status_label = "In progress" -%}
+  {%- when "archived" -%}{%- assign status_label = "Archived" -%}
+  {%- when "open-source" -%}{%- assign status_label = "Open source" -%}
+  {%- else -%}{%- assign status_label = p.status -%}
+{%- endcase -%}
+
+<article class="project-card">
+  <div class="project-card__body">
+    <div class="project-card__head">
+      <h3 class="project-card__name">{{ p.name }}</h3>
+      {%- if p.status %}<span class="status-badge status-badge--{{ p.status }}">{{ status_label }}</span>{% endif -%}
+    </div>
+
+    {%- if p.outcome %}<p class="project-card__outcome">{{ p.outcome }}</p>{% endif -%}
+
+    {%- if p.tech and p.tech.size > 0 -%}
+      <ul class="tech-tags">
+        {%- for t in p.tech %}<li class="tech-tag">{{ t }}</li>{% endfor -%}
+      </ul>
+    {%- endif -%}
+
+    <div class="project-card__cta">
+      {%- if p.live_url -%}
+        <a class="services-cta" href="{{ p.live_url }}" target="_blank" rel="noopener">Try it live →</a>
+      {%- endif -%}
+      {%- if p.download_url -%}
+        {%- assign dl_class = "services-cta" -%}
+        {%- if p.live_url %}{%- assign dl_class = "services-cta services-cta--outline" -%}{%- endif -%}
+        <a class="{{ dl_class }}" href="{{ p.download_url }}" target="_blank" rel="noopener">{{ p.download_label | default: "Download" }} →</a>
+      {%- endif -%}
+      {%- if p.repo_url -%}
+        <a class="services-cta services-cta--outline" href="{{ p.repo_url }}" target="_blank" rel="noopener">View code →</a>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if p.image -%}
+    {%- if p.frame == "phone" -%}
+      {% include phone-frame.html media_type="image" src=p.image name=p.name %}
+    {%- else -%}
+      <img class="project-card__shot" src="{{ p.image | relative_url }}" alt="{{ p.name }} screenshot" loading="lazy">
+    {%- endif -%}
+  {%- endif -%}
+
+  {%- if p.qr and p.qr_image -%}
+    <figure class="project-card__qr">
+      <img src="{{ p.qr_image | relative_url }}" alt="QR code to install {{ p.name }}" loading="lazy">
+      <figcaption>Scan to install</figcaption>
+    </figure>
+  {%- endif -%}
+</article>
