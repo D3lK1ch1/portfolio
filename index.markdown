@@ -1,10 +1,23 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-
 layout: home
 ---
 
-## Welcome
+## Hi, I'm Delia — Software Developer
 
-Hello, my name is Delia. To know more about me and what I have done, check out my resume, GitHub projects and volunteering networking gigs seen with above links.
+I build practical tools across full-stack web, desktop, mobile, and automation — focused on real workflows, not over-engineered systems. Based in Malaysia, available for contract and freelance work.
+
+**Stack:** C#, Python, TypeScript, React, PHP, Rust
+
+---
+
+### A few things I've built
+
+{% assign featured = site.projects | sort: "order" | slice: 0, 3 %}
+<div class="project-grid">
+{% for project in featured %}{% include project-card.html project=project %}{% endfor %}
+</div>
+
+<div class="home-cta">
+  <a href="/services/" class="services-cta">What I can build for you →</a>
+  <a href="/projects/" class="services-cta services-cta--outline">All projects →</a>
+</div>

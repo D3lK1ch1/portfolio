@@ -1,6 +1,8 @@
---- 
+---
 layout: page
 title: Networking
+nav_section: networking
+nav_order: 4
 ---
 
 ## Volunteering Networking Gigs
