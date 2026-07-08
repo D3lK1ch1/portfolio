@@ -18,6 +18,6 @@ I build practical tools across full-stack web, desktop, mobile, and automation �
 </div>
 
 <div class="home-cta">
-  <a href="/services/" class="services-cta">What I can build for you →</a>
-  <a href="/projects/" class="services-cta services-cta--outline">All projects →</a>
+  <a href="{{ '/services/' | relative_url }}" " class="services-cta">What I can build for you →</a>
+  <a href="{{ '/projects/' | relative_url }}"  class="services-cta services-cta--outline">All projects →</a>
 </div>
