@@ -2,9 +2,9 @@
 layout: home
 ---
 
-## Hi, I'm Delia — Software Developer
+## Hi, I'm Delia Kok — Software Developer
 
-I build practical tools across full-stack web, desktop, mobile, and automation — focused on real workflows, not over-engineered systems. Based in Malaysia, available for contract and freelance work.
+I build practical tools across full-stack web, desktop, mobile, and automation — focused on real workflows, not over-engineered systems. Based in Melbourne Australia, available for contract and freelance work.
 
 **Stack:** C#, Python, TypeScript, React, PHP, Rust
 

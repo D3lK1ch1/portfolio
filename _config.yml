@@ -18,13 +18,15 @@
 # You can create any custom variable you would like, and they will be accessible
 # in the templates via {{ site.myvariable }}.
 
-title: Delia's Portfolio
+title: Delia Kok — Software Developer
+tagline: Full-Stack, for Web and Mobile Apps, All-Around Tech Consultant.
 email: deliakok@live.com.my # Update this with your actual email
 description: >-
-  Portfolio for software engineering roles and local business automation work,
-  focused on practical full-stack, mobile, desktop, and local-first tools.
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+  Portfolio for software engineering roles,
+  focused on practical full-stack, mobile, and desktop applications. 
+  Works directly with clients, discussing scope and project management as consultant.
+baseurl: "/portfolio" # the subpath of your site, e.g. /blog
+url: "https://d3lk1ch1.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  D3lK1ch1
 linkedin_username: delia-kok
 theme: minima
@@ -41,6 +43,7 @@ collections:
 plugins:
   - jekyll-feed
   - jekyll-pdf-embed
+  - jekyll-sitemap
 
 sass:
   quiet_deps : true
