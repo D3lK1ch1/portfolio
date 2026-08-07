@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ page.title | escape }}</title>
+{%- if page.description %}
+<meta name="description" content="{{ page.description | escape }}">
+{%- endif %}
+<style>
+  :root {
+    --csb-bg: #f4f5f6;
+    --csb-ink-soft: #6b7178;
+    --csb-border: #dfe2e5;
+    --csb-accent: #2563eb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --csb-bg: #14171a;
+      --csb-ink-soft: #9199a1;
+      --csb-border: #2a2e33;
+      --csb-accent: #7aa2f7;
+    }
+  }
+  .case-study-back-bar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1.1rem;
+    background: var(--csb-bg);
+    border-bottom: 1px solid var(--csb-border);
+    font-family: -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    font-size: 0.82rem;
+  }
+  .case-study-back-bar a {
+    color: var(--csb-ink-soft);
+    text-decoration: none;
+  }
+  .case-study-back-bar a:hover {
+    color: var(--csb-accent);
+  }
+</style>
+</head>
+<body>
+
+<div class="case-study-back-bar">
+  <a href="{{ '/projects/' | relative_url }}">← Back to projects</a>
+</div>
+
+{{ content }}
+
+</body>
+</html>
