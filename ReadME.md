@@ -1,13 +1,14 @@
 ## Portfolio
-A site for my projects, resume and volunteering networking gigs that showcase my technical and soft skills.
+A Jekyll site for selected software projects, resume material, and networking/volunteering work.
 
 ## Features
-* Pages for my resume, GitHub projects and volunteering networking gigs
-* Embedded PDF export for my resume and GitHub projects (because embedded link for GitHub repo does not exist)
-* Embedded LinkedIn posts for my volunteering networking gigs (to show photos and what I have done)
+* Selected project page focused on work I can honestly present as my own
+* Case-study posts for flagship and supporting projects
+* Resume and networking pages
+* Services and contact pages for local business conversations
 
 ----------------------------------
-* Possible header and footer added later on
-* Tentative features for site (chatbot? contact form? etc)
-* Potentially exploring more layout themes later
+* Possible custom layout/theme work later
+* Optional contact form later
+* Optional project screenshots/gallery later
 
