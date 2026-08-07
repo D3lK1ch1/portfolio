@@ -1,0 +1,905 @@
+---
+layout: case-study
+title: NavMelb — Project Log
+---
+<style>
+  :root{
+    --bg:#0a0d13;
+    --surface:#12161f;
+    --surface-2:#171c27;
+    --border:#232838;
+    --text:#e7eaf1;
+    --text-dim:#9aa3b5;
+    --text-faint:#5f6779;
+    --gold:#f0c258;
+    --gold-dim:#8a7238;
+
+    --cat-loop:#5b8dfc;
+    --cat-types:#b18cff;
+    --cat-data:#34c98c;
+    --cat-git:#ff6b6b;
+    --cat-test:#22b8cf;
+    --cat-config:#e0973c;
+    --cat-api:#ec6bab;
+    --cat-ux:#4dd0e1;
+
+    --mono: ui-monospace, "SF Mono", "Cascadia Mono", "Consolas", "Roboto Mono", monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", system-ui, sans-serif;
+  }
+  :root[data-theme="light"]{
+    --bg:#f5f6fa;
+    --surface:#ffffff;
+    --surface-2:#eef0f6;
+    --border:#dde1ec;
+    --text:#171b26;
+    --text-dim:#565f77;
+    --text-faint:#8a92a6;
+    --gold:#a9740f;
+    --gold-dim:#e9d3a0;
+
+    --cat-loop:#2f5fd6;
+    --cat-types:#7a4fd6;
+    --cat-data:#158a58;
+    --cat-git:#d63d3d;
+    --cat-test:#0f8ba3;
+    --cat-config:#b5661a;
+    --cat-api:#c23f83;
+    --cat-ux:#0e8fa8;
+  }
+  @media (prefers-color-scheme: light){
+    :root:not([data-theme="dark"]){
+      --bg:#f5f6fa;
+      --surface:#ffffff;
+      --surface-2:#eef0f6;
+      --border:#dde1ec;
+      --text:#171b26;
+      --text-dim:#565f77;
+      --text-faint:#8a92a6;
+      --gold:#a9740f;
+      --gold-dim:#e9d3a0;
+
+      --cat-loop:#2f5fd6;
+      --cat-types:#7a4fd6;
+      --cat-data:#158a58;
+      --cat-git:#d63d3d;
+      --cat-test:#0f8ba3;
+      --cat-config:#b5661a;
+      --cat-api:#c23f83;
+      --cat-ux:#0e8fa8;
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--sans);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold);color:#1a1204;}
+
+  a{color:var(--gold);}
+
+  .wrap{max-width:920px;margin:0 auto;padding:0 20px;}
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    border-bottom:1px solid var(--border);
+    padding:14px 0;
+    position:sticky;top:0;z-index:20;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:blur(8px);
+  }
+  .topbar .wrap{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .brand{font-family:var(--mono);font-weight:700;letter-spacing:.02em;font-size:14px;}
+  .brand span{color:var(--text-faint);font-weight:400;}
+  .topstats{font-family:var(--mono);font-size:12px;color:var(--text-dim);display:flex;gap:16px;font-variant-numeric:tabular-nums;}
+  .topstats b{color:var(--text);}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:56px 0 36px;border-bottom:1px solid var(--border);}
+  .eyebrow{
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--cat-loop);margin:0 0 14px;
+  }
+  h1{
+    font-family:var(--mono);
+    font-size:clamp(28px,4.4vw,44px);
+    line-height:1.12;
+    margin:0 0 18px;
+    text-wrap:balance;
+    letter-spacing:-0.01em;
+  }
+  .hero p.lede{
+    max-width:62ch;
+    color:var(--text-dim);
+    font-size:16px;
+    margin:0 0 28px;
+  }
+  .stat-row{display:flex;gap:28px;flex-wrap:wrap;margin-bottom:30px;}
+  .stat{font-family:var(--mono);}
+  .stat .n{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;color:var(--text);display:block;}
+  .stat .l{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);}
+
+  /* legend / filters */
+  .legend{display:flex;flex-wrap:wrap;gap:8px;align-items:center;}
+  .legend-label{font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-faint);margin-right:4px;}
+  .chip{
+    font-family:var(--mono);font-size:12px;
+    border:1px solid var(--border);
+    background:var(--surface);
+    color:var(--text-dim);
+    padding:5px 11px 5px 9px;
+    border-radius:100px;
+    cursor:pointer;
+    display:inline-flex;align-items:center;gap:7px;
+    user-select:none;
+    transition:border-color .15s ease, color .15s ease, background .15s ease;
+  }
+  .chip .dot{width:7px;height:7px;border-radius:50%;background:var(--dot);flex:none;}
+  .chip.active{border-color:var(--dot);color:var(--text);background:color-mix(in srgb, var(--dot) 14%, var(--surface));}
+  .chip:hover{color:var(--text);}
+  .chip:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  .toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:22px;}
+  .btnrow{display:flex;gap:8px;}
+  .btn{
+    font-family:var(--mono);font-size:12px;
+    border:1px solid var(--border);background:transparent;color:var(--text-dim);
+    padding:6px 12px;border-radius:6px;cursor:pointer;
+  }
+  .btn:hover{color:var(--text);border-color:var(--text-faint);}
+  .btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+
+  /* ---------- Patterns callout ---------- */
+  .patterns{padding:34px 0;border-bottom:1px solid var(--border);}
+  .patterns h2{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 4px;}
+  .patterns .sub{color:var(--text-faint);font-size:13px;margin:0 0 20px;}
+  .pattern-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
+  .pattern-card{background:var(--surface);padding:16px 18px;}
+  .pattern-card .k{font-family:var(--mono);font-size:11px;color:var(--text-faint);letter-spacing:.06em;}
+  .pattern-card p{margin:6px 0 0;font-size:13.5px;color:var(--text-dim);}
+  .pattern-card p code{color:var(--text);}
+
+  /* ---------- Timeline ---------- */
+  .timeline-section{padding:40px 0 10px;position:relative;}
+  .timeline{position:relative;padding-left:26px;}
+  .timeline::before{
+    content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2px;
+    background:linear-gradient(var(--border), var(--border));
+  }
+  .stop{position:relative;margin-bottom:14px;}
+  .stop::before{
+    content:"";position:absolute;left:-26px;top:22px;width:11px;height:11px;border-radius:50%;
+    background:var(--stopcolor,var(--text-faint));
+    box-shadow:0 0 0 3px var(--bg);
+  }
+  details.card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  details.card[open]{border-color:color-mix(in srgb, var(--stopcolor,var(--border)) 45%, var(--border));}
+  summary.card-head{
+    cursor:pointer;list-style:none;padding:14px 16px;display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;
+  }
+  summary.card-head::-webkit-details-marker{display:none;}
+  summary.card-head .no{font-family:var(--mono);font-size:11px;color:var(--text-faint);min-width:30px;}
+  summary.card-head .date{font-family:var(--mono);font-size:12px;color:var(--text-dim);white-space:nowrap;}
+  summary.card-head .title{font-weight:600;font-size:15px;flex:1;min-width:200px;}
+  summary.card-head .tags{display:flex;gap:6px;flex-wrap:wrap;}
+  summary.card-head .caret{font-family:var(--mono);color:var(--text-faint);font-size:12px;transition:transform .15s ease;}
+  details[open] summary.card-head .caret{transform:rotate(90deg);}
+
+  .tagpill{
+    font-family:var(--mono);font-size:10px;letter-spacing:.05em;text-transform:uppercase;
+    padding:2px 8px;border-radius:100px;border:1px solid var(--tagcolor);color:var(--tagcolor);
+  }
+
+  .card-body{padding:2px 16px 20px 60px;}
+  .card-body h4{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--text-faint);margin:16px 0 8px;
+  }
+  .card-body ul{margin:0;padding-left:18px;}
+  .card-body li{margin-bottom:4px;font-size:14px;color:var(--text-dim);}
+  .card-body p.text{margin:0;font-size:14px;color:var(--text-dim);}
+  .card-body code, .card-body pre code{
+    font-family:var(--mono);font-size:.92em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--text);
+  }
+  pre.snippet{
+    background:var(--surface-2);border:1px solid var(--border);border-radius:8px;
+    padding:12px 14px;overflow-x:auto;margin:8px 0 0;
+  }
+  pre.snippet code{background:none;padding:0;font-size:12.5px;line-height:1.6;color:var(--text-dim);}
+  .lesson{
+    margin-top:16px;border-left:3px solid var(--gold);padding:8px 8px 8px 14px;
+    background:color-mix(in srgb, var(--gold) 8%, transparent);border-radius:0 6px 6px 0;
+  }
+  .lesson .k{font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);}
+  .lesson p{margin:4px 0 0;font-size:14px;color:var(--text);font-weight:500;}
+
+  .stop.hidden{display:none;}
+
+  .empty-msg{font-family:var(--mono);font-size:13px;color:var(--text-faint);padding:24px 0;display:none;}
+
+  /* ---------- Architecture story (plain-language layer) ---------- */
+  .story{padding:50px 0 10px;border-top:1px solid var(--border);margin-top:30px;}
+  .story h2{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 4px;}
+  .story .sub{color:var(--text-faint);font-size:13px;margin:0 0 26px;max-width:62ch;}
+  .story-list{display:flex;flex-direction:column;gap:14px;}
+  .story-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:18px 20px;}
+  .story-card .when{font-family:var(--mono);font-size:11px;letter-spacing:.04em;color:var(--text-faint);margin:0 0 6px;text-transform:uppercase;}
+  .story-card h3{font-size:16px;margin:0 0 10px;line-height:1.35;}
+  .story-card p.plain{font-size:14.5px;color:var(--text);margin:0 0 8px;line-height:1.62;}
+  .story-card p.plain:last-of-type{margin-bottom:0;}
+  .story-card details{margin-top:10px;}
+  .story-card details > summary{
+    cursor:pointer;list-style:none;font-family:var(--mono);font-size:12px;color:var(--gold);
+    user-select:none;display:flex;align-items:center;gap:6px;
+  }
+  .story-card details > summary::-webkit-details-marker{display:none;}
+  .story-card details > summary .caret{display:inline-block;transition:transform .15s ease;}
+  .story-card details[open] > summary .caret{transform:rotate(90deg);}
+  .story-card .techbody{margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);}
+  .story-card .techbody p{font-size:13.5px;color:var(--text-dim);margin:0 0 8px;line-height:1.55;}
+  .story-card .techbody p:last-child{margin-bottom:0;}
+
+  /* ---------- Architecture / system map ---------- */
+  .arch{padding:50px 0 20px;border-top:1px solid var(--border);margin-top:30px;}
+  .arch h2{font-family:var(--mono);font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin:0 0 4px;}
+  .arch .sub{color:var(--text-faint);font-size:13px;margin:0 0 24px;max-width:62ch;}
+  .arch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;}
+  .arch-card{border:1px solid var(--border);border-radius:10px;background:var(--surface);padding:16px 18px;}
+  .arch-card .num{font-family:var(--mono);font-size:11px;color:var(--text-faint);}
+  .arch-card h3{font-size:14.5px;margin:4px 0 8px;}
+  .arch-card p{font-size:13.5px;color:var(--text-dim);margin:0;}
+  .arch-card code{font-family:var(--mono);font-size:.9em;background:var(--surface-2);padding:1px 5px;border-radius:4px;color:var(--text);}
+
+  /* ---------- Footer ---------- */
+  footer{padding:40px 0 60px;color:var(--text-faint);font-size:12.5px;}
+  footer .quote{
+    font-family:var(--mono);font-size:13.5px;color:var(--text-dim);border-left:2px solid var(--border);
+    padding-left:14px;margin:0 0 20px;max-width:62ch;
+  }
+
+  @media (max-width:600px){
+    .card-body{padding-left:16px;}
+    summary.card-head{padding:12px;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{transition:none !important;animation:none !important;}
+  }
+</style>
+
+<div class="topbar">
+  <div class="wrap">
+    <div class="brand">NAVMELB <span>/ build log</span></div>
+    <div class="topstats"><span><b>36</b> sessions</span><span><b>107</b> days</span><span><b>2026-02-28 → 2026-06-14</b></span></div>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="wrap">
+    <p class="eyebrow">A route-planning app, built one debugging session at a time</p>
+    <h1>36 sessions. 1 app that finally routes home.</h1>
+    <p class="lede">
+      NavMelb chains car, train, tram and bus legs across Melbourne's transit network. This page is the unedited
+      build log documented through markdown notes on what shipped, what broke, why it broke, and the rule each 
+      break turned into after every session now compiled into this html file via AI-assisted development. Every 
+      card below is a real session, in order. They were mostly
+      <code style="font-family:var(--mono);background:var(--surface-2);padding:1px 6px;border-radius:4px;">||</code>
+      where it should have said <code style="font-family:var(--mono);background:var(--surface-2);padding:1px 6px;border-radius:4px;">!== undefined</code>.
+    </p>
+    <div class="stat-row">
+      <div class="stat"><span class="n">14</span><span class="l">Named Bugs Fixed</span></div>
+      <div class="stat"><span class="n">3×</span><span class="l">Same Falsy-Zero Bug</span></div>
+      <div class="stat"><span class="n">263→11 MB</span><span class="l">Git History Rewrite</span></div>
+      <div class="stat"><span class="n">2</span><span class="l">Routing Engines Replaced</span></div>
+    </div>
+    <div class="legend" id="legend">
+      <span class="legend-label">Filter by lesson type —</span>
+    </div>
+    <div class="toolbar">
+      <span class="legend-label" id="countLabel">showing 36 of 36</span>
+      <div class="btnrow">
+        <button class="btn" id="expandAll">Expand all</button>
+        <button class="btn" id="collapseAll">Collapse all</button>
+        <button class="btn" id="resetFilter">Reset filters</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="story" id="why-this-exists">
+  <div class="wrap">
+    <h2>Why this exists</h2>
+    <p class="sub">Where the idea actually came from, before any of the sessions below.</p>
+    <div class="story-list">
+      <div class="story-card">
+        <p class="when">The origin</p>
+        <h3>A conversation, discussing potential problems and gaps turned into solution</h3>
+        <p class="plain">The idea came out of a conversation with a friend, comparing where Apple Maps and Google Maps each fall short — lane guidance, how traffic renders, small stuff neither one gets fully right — and somewhere in that conversation the question became "why not both."</p>
+        <p class="plain">What I actually chased was narrower than that. Both apps make you commit to a mode before they'll plan anything — driving, or public transport, never mixed — even though a lot of real trips are neither. Drive to a station, train partway, maybe walk the rest. NavMelb started as an attempt to answer that one gap directly: let a route explicitly chain car and PTV legs together instead of forcing an either/or pick. (I later found out Google Maps do some auto-connecting here already, but at least not manually and continued on the project that was primarily my first time building something full-stack with AI as a collaborator.)</p>
+        <p class="plain">Because it was my first time working with AI like this, I made a point of AI-assisted documenting after each session on what worked and what didn't as I went — partly so I wouldn't repeat the same mistake twice, partly so I could actually explain afterward what happened, not just that it eventually worked. This build log is what that habit turned into.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="story" id="how-it-works">
+  <div class="wrap">
+    <h2>How it works</h2>
+    <p class="sub">Start here. This is the same eight decisions the "System map" further down documents for developers — told as the problem each one actually solved, no code required to follow along. Open "show the technical version" under any of them for the implementation.</p>
+    <div class="story-list">
+
+      <div class="story-card dataflow">
+        <p class="when">The big picture — every request follows this path</p>
+        <h3>What happens when you search for a place and hit "Route"</h3>
+        <p class="plain">The app is really two pieces talking to each other: the screen on your phone (the frontend) and a small server (the backend) that knows Melbourne's transit stops, real-time PTV departures, and street-level driving directions. Nothing routing-related is figured out on the phone itself — it always asks the backend, and the backend decides what to do.</p>
+        <p class="plain">Typing a place name asks the backend to search its station index. Picking a destination asks a separate service (Nominatim) to turn a place name into map coordinates. Hitting "Route" is where the real decision-making happens: the backend walks through your stops two at a time, and for each pair decides "is this a train leg or a car leg?" — train legs go to the PTV logic below, car legs go to a self-hosted driving-directions service called OSRM. Every leg's outcome, success or failure, gets collected, and the whole trip comes back as one response the map can draw.</p>
+        <pre class="snippet"><code>Frontend (Expo Go / React Native)
+  └─ MapExplorationScreen
+       ├─ searchStations()       → GET /api/map/stations/search    → GTFS stop index
+       ├─ lookupDestination()    → GET /api/map/destination/lookup → Nominatim (place → coordinates)
+       └─ calculateRoute()       → POST /api/map/route/calculate
+            │
+            ├─ strategy "car"   → osrmRoute(origin, dest) → OSRM API    (driving directions)
+            │
+            └─ strategy "ptv"   → pairwise loop over [origin, ...waypoints, dest]:
+                 ├─ station → station  → getPTVRoute()
+                 │    ├─ queryStreamingRaptor()        [tries first, 800ms budget]
+                 │    └─ getTripBetweenStations()       [falls back if Raptor comes up empty]
+                 └─ anything else → osrmRoute()         [treated as a car leg]
+                 │
+                 └─ each leg: recorded as a success (RouteSegment) or a FailedLeg
+                      └─ once every leg is tried: HTTP 200 (all worked) or HTTP 207 (some didn't)</code></pre>
+        <p class="plain" style="margin-top:10px;font-size:13px;color:var(--text-faint);">Read top to bottom: the frontend only ever calls three functions. Everything under <code>calculateRoute()</code> is a decision the backend makes on your behalf, one stop-pair at a time — that decision loop is the subject of the next card.</p>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Mar 20 – Mar 29, 2026</p>
+        <h3>Teaching the app what a "stop" actually is</h3>
+        <p class="plain">Melbourne's public transport data doesn't agree with itself. The same physical station shows up under different names depending on which data feed you ask — "Clayton Station" in one, "Clayton Rd Station" in another. Worse, a train station is really <em>two</em> different records in the data: a general entry with no trains attached to it, and a separate "platform" entry that's the one trains actually use. Early on, the app kept finding the wrong one, so it looked like routing was broken when really it was just asking about a place that, as far as the timetable was concerned, had no trains.</p>
+        <p class="plain">The fix wasn't cleverer searching — it was building one address book, once, that every part of the app reads from. Every stop gets a clean "filing name" so near-duplicates land in the same drawer, a separate polite name for what the user actually sees, and a hard rule that routing always resolves to the platform that has real trains, never the parent record that just groups platforms together.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <p>Stop keys are normalized (lowercase, suffix-stripped) at storage time, with the original casing kept separately as <code>displayName</code> — so every downstream caller inherits one consistent key for free rather than re-normalizing inconsistently at query time.</p>
+            <p>Melbourne GTFS is two-level: <code>location_type = 1</code> parent stations group platforms but carry no trips; <code>location_type = 0</code> platform/child stops are the ones present in <code>stop_times</code>. <code>findStopByName()</code> does a two-pass search — trips-indexed stops first, any-name match second — so it never resolves to a tripless parent.</p>
+            <p>Stops from different feeds that normalize to different keys but sit within 150m are merged under one canonical name, since string normalization alone can't tell "Clayton" and "Clayton Rd" are the same physical place — and stripping road suffixes outright would also rename "Flinders Street Station" down to an unsearchable "flinders".</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Mar 5, 2026 → generalized Mar 29, 2026</p>
+        <h3>One journey can zig-zag between car and train, and that's fine</h3>
+        <p class="plain">A real trip across Melbourne is rarely just "drive" or just "get the train" — it's drive to a station, train partway, maybe another train, maybe drive again at the end. The first version of the app tried to handle this with one fixed pattern: car, then train, then car, always in that order. It broke the moment anyone wanted two train legs in a row, or train-car-train.</p>
+        <p class="plain">Instead of one rigid pattern, the app now looks at each consecutive pair of stops on its own. Station-to-station becomes a train leg; anything else becomes a car leg. String together as many stops as you like, in any order — each pair decides its own leg type independently, so new combinations just work without anyone having to add a special case for them.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <p>The old <code>park-and-ride</code> strategy was hardcoded <code>car → PTV → car</code>. It's replaced by a pairwise loop over consecutive waypoints:</p>
+            <pre class="snippet"><code>for (let i = 0; i < allPoints.length - 1; i++) {
+  const from = allPoints[i], to = allPoints[i + 1];
+  if (from.type === "station" && to.type === "station") { /* PTV leg */ }
+  else { /* car leg */ }
+}</code></pre>
+            <p>Park-and-ride is now just a pattern the user creates naturally by choosing stations — not a strategy the code has to know about by name.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Formalized through Apr–May 2026</p>
+        <h3>When one leg breaks, the trip doesn't have to</h3>
+        <p class="plain">If you plan a four-stop trip and one leg genuinely has no route between it, the old behavior would be to reject the whole request — no map, no information, just an error. That's frustrating when three of the four legs are perfectly fine and could have been shown.</p>
+        <p class="plain">The server now returns every leg it could actually solve, and clearly flags the one it couldn't, instead of throwing the whole trip away over a single broken segment. The map draws what worked and shows a plain-language note on what didn't.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <p>A dedicated <code>FailedLeg</code> type sits alongside <code>RouteSegment</code> in a discriminated union, and the endpoint reports the outcome with HTTP 207 (Multi-Status) rather than 400:</p>
+            <pre class="snippet"><code>segments: (RouteSegment | FailedLeg)[]
+const hasFailures = segments.some(s => s.type === "failed");
+res.status(hasFailures ? 207 : 200).json(response);</code></pre>
+            <p><code>"failed"</code> belongs only to <code>FailedLeg</code>, never to <code>RouteSegment</code> — keeping the discriminant unique per type is what lets TypeScript narrow automatically without unsafe casts.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Mar 24 – Mar 25, 2026</p>
+        <h3>The server that couldn't say hello</h3>
+        <p class="plain">Twice, the entire app appeared to be down — every request timed out, even simple ones like searching for a station name. Both times, the actual problem had nothing to do with the network: the server was doing a huge amount of work first — loading millions of timetable rows, or searching a giant nested list of possible train transfers — before it ever got around to accepting a single connection. It's the equivalent of a receptionist who won't pick up the phone until an entire filing cabinet is done.</p>
+        <p class="plain">The fix was splitting "what must happen before we answer the phone" from "what can keep happening quietly in the background." The server now starts accepting requests immediately, and slower background work finishes on its own — with a hard cutoff so no single search can hold up the whole app indefinitely.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <p>Only what's strictly required is <code>await</code>-ed before <code>app.listen()</code>; everything else loads in the background with <code>.catch()</code>:</p>
+            <pre class="snippet"><code>await loadGtfsTimetables();
+await loadGtfsStops();
+app.listen(PORT);              // server starts HERE
+loadRaptorStreaming().catch(); // background</code></pre>
+            <p>Separately, <code>findTransferJourney()</code> is a triple-nested <em>synchronous</em> loop — and since Node is single-threaded, that loop holds the event loop exclusively while it runs. An 800ms deadline check inside it returns <code>null</code> early enough for the proven timetable fallback to still answer within the client's 10s timeout. <code>async</code>/<code>await</code> does not protect the event loop from synchronous CPU work sitting inside it.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Mar 27, 2026</p>
+        <h3>Labeled boxes, instead of guessing what's inside</h3>
+        <p class="plain">Some data in the app can be one of two different shapes — a direct trip versus one with a transfer, for instance. The early code stored both in boxes that looked identical from the outside, and just trusted that whoever opened the box already knew which one it was. That trust broke at least once, and needed an unsafe workaround to paper over it.</p>
+        <p class="plain">Every such box now carries its own label built into its type — "this is a direct trip" versus "this is a multi-leg trip." The rest of the code is required, by the compiler, to check the label before it's allowed to assume what's inside.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <pre class="snippet"><code>type TripResult =
+  | { kind: "direct";    tripId: string; stops: StopTime[] }
+  | { kind: "multi-leg"; legs: DirectTrip[] }</code></pre>
+            <p>With a <code>kind</code> discriminant, TypeScript narrows automatically inside a <code>switch</code> or <code>if</code> — no <code>as unknown as {...}</code> casts required, and the caller cannot reach the wrong branch's fields without the compiler stopping them first.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Mar 27, 2026</p>
+        <h3>One ruler, not four that might quietly disagree</h3>
+        <p class="plain">Distance between two map points is simple math, but four different parts of the app had each grown their own copy of that calculation independently — and one of the four copies had a small, real bug in it (mixing up latitude and longitude on one line). Whoever hit that one code path got a subtly wrong answer, with no error to flag it.</p>
+        <p class="plain">One shared function now does that calculation everywhere. Fixing or improving it fixes it everywhere at once, instead of relying on someone remembering there are four separate places to check.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <pre class="snippet"><code>// utils/geo.ts — the one copy that survived
+export function distanceMeters(coord1, coord2) { /* Haversine */ }</code></pre>
+            <p>The bug that prompted the consolidation: <code>const dLng = toRad(coord2.lng - coord1.lat)</code> — <code>.lat</code> used where a longitude diff was required, in exactly one of the four duplicates.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Apr 23 – Apr 25, 2026</p>
+        <h3>Keeping the clock honest across a multi-leg trip</h3>
+        <p class="plain">For a trip with three legs, the arrival time of leg one should become the departure time assumed for leg two — otherwise you get three separate, disconnected time guesses instead of one trustworthy "you'll arrive at 5:40pm." A related bug meant the app was also picking the <em>first</em> train it found in the timetable rather than the <em>soonest</em> one — showing a 40-minute wait when the real next train was 8 minutes away. That one took two attempts: the first fix moved the bug to a different loop instead of removing it.</p>
+        <p class="plain">Each leg's calculated arrival time is now threaded forward as the next leg's assumed departure time, so the whole journey tells one coherent time story instead of three unrelated ones.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <pre class="snippet"><code>let currentTime = initialDeparture;
+for each [from, to] pair:
+  const result = query(from, to, currentTime);
+  currentTime = result.arrivalTime;  // thread into next leg</code></pre>
+            <p>The departure-time bug itself was an early-return inside a loop: it answered "first match" when the code needed "best match." The fix replaced the early return with a best-so-far accumulator, updated whenever a smaller wait was found, and returned only once every candidate had been checked.</p>
+          </div>
+        </details>
+      </div>
+
+      <div class="story-card">
+        <p class="when">Apr 7, 2026</p>
+        <h3>Quiet in production, loud when something's actually wrong</h3>
+        <p class="plain">While building the app, there's a lot of debug chatter that's genuinely useful during development — but noisy, or in the worst case embarrassing, in a live build a stranger might inspect. At the same time, real errors still need to stay visible, because those are exactly what you'd need if something broke for a real user in production.</p>
+        <p class="plain">Ordinary debug logs now switch themselves off automatically outside development. Errors and warnings are deliberately left alone, since incident investigation depends on them.</p>
+        <details>
+          <summary><span class="caret">▸</span> Show the technical version</summary>
+          <div class="techbody">
+            <pre class="snippet"><code>const log = process.env.NODE_ENV !== "production" ? console.log : () => {};</code></pre>
+            <p>A no-op function is a drop-in replacement for <code>console.log</code>, so existing call sites across nine backend files didn't need to change shape — only the one definition of <code>log</code> did.</p>
+          </div>
+        </details>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="patterns">
+  <div class="wrap">
+    <h2>Recurring patterns</h2>
+    <p class="sub">Five things that didn't happen once — they happened across weeks, to the same codebase, until they became rules.</p>
+    <div class="pattern-grid">
+      <div class="pattern-card">
+        <div class="k">01 · SPANS 3 SESSIONS</div>
+        <p>The <code>Number(x) || default</code> bug recurred at least three times (PR #4, the pr-9 contract fix, and again in the 06-11/06-14 diagnosis) — <code>0</code> is falsy in JS, so a legitimate zero silently becomes the default. House rule now: check <code>!== undefined</code>, never <code>||</code>, for any numeric param that can validly be zero.</p>
+      </div>
+      <div class="pattern-card">
+        <div class="k">02 · 05-12 → 05-21</div>
+        <p>"Accept both" in a merge conflict is concatenation, not reconciliation — it broke <code>main</code> on 05-12 (duplicate declarations, a 5-arg call to a 3-arg function). Nine days later the same class of conflict was resolved correctly by reading what each side <em>added</em> and hand-writing the merged result.</p>
+      </div>
+      <div class="pattern-card">
+        <div class="k">03 · 04-25 → 05-31, THE BIG ONE</div>
+        <p>Migrating off GTFS/Raptor onto the live PTV API was the single largest arc of the project — six sequential bugs (HMAC signing, wrong endpoint shape, wrong response shape, mismatched stop IDs, discarded geometry, a wrong dwell-time constant) before the new engine matched the old one's behaviour.</p>
+      </div>
+      <div class="pattern-card">
+        <div class="k">04 · 06-11 → 06-14</div>
+        <p>"Config that looks like code but behaves like infrastructure" — an EAS build silently shipped with <code>undefined</code> as its API URL because <code>.env</code> is (correctly) gitignored, and a <code>tsconfig.json</code> mismatch broke the Docker build for a week before anyone tried a clean local build.</p>
+      </div>
+      <div class="pattern-card">
+        <div class="k">05 · 05-24, THE CHECKPOINT</div>
+        <p>One session was spent asking whether the project was still worth continuing at all — not shipping anything. The answer was yes, because it had surfaced a real architectural insight (explicit car+PTV chaining) rather than just approximating what Google Maps already does.</p>
+      </div>
+      <div class="pattern-card">
+        <div class="k">06 · DRAFT — 04-15 → 06-14</div>
+        <p>DRAFT: The same root confusion kept costing time — forgetting to swap IP addresses / base URLs when testing from a different location, which then bled into not being sure whether I was hitting local or production. Ties together the 04-15 CORS whitelist, 04-18 cached bundle, 06-11 EAS env var, and 06-14 redeploy sessions — confirm this framing is accurate, then write the real version.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="timeline-section">
+  <div class="wrap">
+    <div class="timeline" id="timeline"></div>
+    <p class="empty-msg" id="emptyMsg">No sessions match the selected filters.</p>
+  </div>
+</div>
+
+<div class="arch">
+  <div class="wrap">
+    <h2>System map</h2>
+    <p class="sub">Ten decisions that came out of the sessions above and are now just how the backend works — pulled from the project's living architecture notes.</p>
+    <div class="arch-grid" id="archGrid"></div>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <p class="quote">"The project surfaced a genuine routing-architecture insight — explicit chained car+PTV routing is a distinct concept from what Google Maps does — that the user hadn't previously recognized. That's the reasonable closing point: not a finished product, a proven idea." — session notes, 2026-05-24</p>
+    <p>Built from <code style="font-family:var(--mono);">notes/sessions/*.md</code> and <code style="font-family:var(--mono);">notes/architecture.md</code>. Backend: Node/Express/TypeScript, GTFS → PTV Timetable API, self-hosted OSRM. Frontend: React Native / Expo.</p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var CATS = {
+    loop:   {label:"Event Loop & Async", color:"var(--cat-loop)"},
+    types:  {label:"Type Safety",        color:"var(--cat-types)"},
+    data:   {label:"Data & Algorithms",  color:"var(--cat-data)"},
+    git:    {label:"Git & Merges",       color:"var(--cat-git)"},
+    test:   {label:"Testing",            color:"var(--cat-test)"},
+    config: {label:"Config & Deploy",    color:"var(--cat-config)"},
+    api:    {label:"API Migration",      color:"var(--cat-api)"},
+    ux:     {label:"Frontend & UX",      color:"var(--cat-ux)"}
+  };
+
+  var SESSIONS = [
+    {date:"2026-02-28", title:"GTFS transport type + real-time routing", tags:["data"],
+      built:["Added TransportType (tram/train/bus) to the GTFS stop index, derived from the GTFS feed folder at load time.","/stations/search gained a transportType filter; /route/calculate gained finalByTrain.","Route preview auto-recalculates on place selection, station add, or toggle change."],
+      mistake:"The search bar couldn't filter to “stations”, “trams”, “trains” or “buses” — only addresses ever showed up, because stops were loaded from GTFS with no notion of which transport type they belonged to.",
+      fix:"Classified every stop by transport type at load time, from the GTFS feed folder it came from (1/2 = train, 3 = tram, 4/5/6/11 = bus), instead of trying to work it out later.",
+      lesson:"Classify data at ingestion time, not query time — every downstream consumer inherits the classification for free."},
+
+    {date:"2026-03-05", title:"Strategy-based routing refactor", tags:["types"],
+      built:["Replaced flag soup (combined, routeType, finalByTrain) with a single RouteStrategy = “car” | “pt” | “park-and-ride”.","New gtfs-timetable.service.ts loading trips.txt + stop_times.txt into memory.","/route/calculate rewritten around origin/destination/waypoints/strategy."],
+      mistake:"No bug here — this was a pre-emptive refactor. The flags had started combining (<code>combined && finalByTrain && routeType===\"x\"</code>) to the point where adding one more feature meant adding one more branch to an already-illegible condition.",
+      fix:"Replaced the flags with a single enum-like strategy field and a proper Waypoint/RouteResult shape before the condition count got any worse.",
+      lesson:"When boolean flags start combining with each other, that's the signal to replace them with one enum — before you add the feature that needs a fifth flag."},
+
+    {date:"2026-03-16", title:"Revamping NavMelb — observations & issues", tags:["ux"],
+      built:["A pure testing/validation session — no new code, just a list of what was actually broken after the strategy refactor."],
+      mistake:"PTV and Park &amp; Ride previews returned HTTP 400 while car worked; searching “Clayton” returned only bus stops while Southern Cross showed all three modes; and PTV drew a straight line with a <em>shorter</em> time than the equivalent car trip, despite trains needing real stops along the way.",
+      fix:"Logged everything rather than patching blind. The straight-line-but-faster result was the tell: it meant GTFS geometry wasn't wired up yet, not that PTV was actually quicker.",
+      lesson:"A straight-line route with an implausibly short duration is a symptom of missing geometry, not a real result — sanity-check output against real-world travel time before trusting it."},
+
+    {date:"2026-03-19", title:"Git history rewrite + .gitignore cleanup", tags:["git"],
+      built:["Rewrote git history with filter-branch to strip committed GTFS zip files from all 49 commits.","Added .gitignore entries for dist/, build/, .expo/, .env, .env.*."],
+      mistake:"The .git folder had ballooned to 263MB — too large for comfortable GitHub use — because ~200MB of GTFS zip files and node_modules were committed early, before .gitignore existed to stop them.",
+      fix:"git filter-branch --index-filter to strip the zip files from every commit, then expire the reflog and git gc --aggressive. 263MB → 11MB.",
+      lesson:".gitignore only stops tracking new files. Already-tracked large files need an explicit history rewrite — never commit generated files or archives in the first place."},
+
+    {date:"2026-03-20", title:"PTV route geometry fix", tags:["data"],
+      built:["Added a stopIdToTrips reverse index for O(1) stop-to-trips lookup.","Wired getPTVRoute() to actually call getTripBetweenStations() for real GTFS geometry."],
+      mistake:"PTV routes still showed straight lines with fake durations — 22 minutes for a trip that takes over an hour. getTripBetweenStations() existed and worked, but getPTVRoute() took params named <code>_fromName</code>, <code>_toName</code> and never read them, always falling back to a straight line.",
+      fix:"Wired the discarded names through to the real lookup function.",
+      lesson:"An underscore-prefixed param (<code>_fromName</code>) means an argument is being actively discarded — treat that as a red flag to double-check, not a stylistic no-op."},
+
+    {date:"2026-03-22", title:"GTFS shapes + Raptor + platform ID fix", tags:["data"],
+      built:["Fixed platform-vs-parent-station ID mismatch in the timetable service.","Added “railway” to name normalization so “clayton” matches “clayton railway station”.","Restricted GTFS loading to train-only feeds (1, 2, 10) to stay within memory limits."],
+      mistake:"PTV routing still returned straight lines everywhere, for three compounding reasons: platform IDs were stored instead of parent-station IDs; GTFS feeds weren't merged, so a station in feed 2 was invisible to code that only checked feed 1; and loading every feed exhausted memory (the bus feed alone has 9.4 million stop_times rows).",
+      fix:"Only store stop IDs verified present in the trip index; prefer a parent station only if it actually has trips; load train feeds only.",
+      lesson:"Always verify a lookup key actually exists in the index you're about to query it against — a plausible-looking ID that isn't there fails silently, not loudly."},
+
+    {date:"2026-03-23", title:"PTV final leg missing toName fix", tags:["data"],
+      built:["Exported distanceMeters() and added findNearestStation(coord, maxDistanceMeters = 1500).","Updated the final PTV leg to reverse-geocode destination coordinates into a station name before routing."],
+      mistake:"The final leg of every PTV journey fell back to a straight line. The debug trace showed <code>toName=\"undefined\"</code> — literally the string “undefined” — because the destination was raw coordinates with no station name attached, and JavaScript happily stringified the missing value instead of erroring.",
+      fix:"Resolve the nearest GTFS station name from coordinates before calling the route function, instead of passing a name that was never going to exist.",
+      lesson:"When a function needs a name but only has coordinates, resolve the name explicitly — an unguarded undefined becomes a real, silently-wrong string in JS.",
+      code:{label:"Also found in the same investigation — a copy-paste bug in distanceMeters()",text:"// BUG:   const dLng = toRad(coord2.lng - coord1.lat);  // .lat used for a longitude diff\n// FIXED:  const dLng = toRad(coord2.lng - coord1.lng);"}},
+
+    {date:"2026-03-24", title:"Raptor streaming timeout + name lookup fix", tags:["loop","data"],
+      built:["Moved app.listen() to fire right after the fast-loading GTFS data, making Raptor's slow load fire-and-forget.","Added findStopByName() with a two-pass strategy: exact-name-with-trips first, then any-name-match fallback."],
+      mistake:"Every request timed out at 10s even though the backend was “running” — for two compounding reasons: the server awaited Raptor's multi-million-row load before calling app.listen(), so it never accepted a single connection for 10+ seconds; and separately, the code called a raw-ID lookup (expecting <code>\"19822\"</code>) with a human name (<code>\"flinders street\"</code>), which always returned undefined.",
+      fix:"Only await what's strictly required before app.listen(); let Raptor load in the background with .catch(). Added a name-aware lookup method instead of overloading the ID lookup.",
+      lesson:"A timeout on simple endpoints (station search, geocoding) means the server isn't listening yet — not that the query is slow. async/await does not make a slow await before app.listen() any less blocking."},
+
+    {date:"2026-03-25", title:"Raptor transfer search blocking the event loop", tags:["loop"],
+      built:["Added an 800ms wall-clock deadline inside Raptor's transfer-search loop."],
+      mistake:"A route request from Clayton to Flinders Street simply never came back. findTransferJourney() is a triple-nested <em>synchronous</em> loop, and because Node is single-threaded, that loop held the event loop exclusively — no response could be written while it ran, so the proven timetable fallback downstream never got a chance to run.",
+      fix:"Added a deadline check inside the loop: if it's not done in 800ms, return null immediately and let the existing fallback chain handle it. The goal isn't to make Raptor correct — it's to make it fail fast enough for the fallback to matter.",
+      lesson:"Any loop over large data in a request handler must be capped or moved off-thread — async/await does not protect the event loop from synchronous CPU work inside it.",
+      code:{label:"The fix",text:"const deadline = Date.now() + 800;\nfor (const trip1Idx of fromTripIdxs) {\n  if (Date.now() > deadline) return null; // defer to fallback\n  // ...\n}"}},
+
+    {date:"2026-03-27", title:"Code quality refactor — removing the AI fingerprints", tags:["types"],
+      built:["Centralized four separate Haversine implementations into one utils/geo.ts.","Replaced two unsafe “as unknown as {...}” double-casts with a discriminated union (DirectTrip | MultiLegTrip).","Renamed createLRUCache to createBoundedCache — the eviction was FIFO, not actually LRU."],
+      mistake:"A senior-dev review flagged three classic tells of AI-assisted code that nobody had cross-checked: the same distance formula duplicated four times (one copy had a real bug), unsafe type casts standing in for a proper discriminated union, and a cache confidently named “LRU” that was really FIFO.",
+      fix:"One canonical distanceMeters(); a kind-tagged union so TypeScript narrows automatically instead of needing casts; a rename to match what the cache actually does.",
+      lesson:"Duplicated utility functions are a sign nobody reviewed across modules — and naming something “LRU” because that's what you meant to build, not what you built, misleads every future reader."},
+
+    {date:"2026-03-28", title:"Waypoint chaining & TypeScript patterns", tags:["types","ux","data"],
+      built:["Changed getPTVRoute()'s return type to include | null, which forced 12 compile errors at every call site until failure was handled explicitly.","Added a requestGenRef generation-counter (via useRef) to discard stale async responses from overlapping requests.","Implemented 150m proximity merge across GTFS feeds so the same physical station isn't indexed twice under two names."],
+      mistake:"A frontend race condition: rapid useEffect triggers (strategy change, stop added) fired overlapping API calls, and “last to resolve” silently won even when it wasn't “last to start” — stale data could overwrite fresh data on the map. Separately, the tempting fix for duplicate station names (“Clayton Station” vs “Clayton Rd Station”) — stripping road suffixes — was tried and rejected because it also renamed “Flinders Street Station” down to an unsearchable “flinders”.",
+      fix:"A generation-counter ref that tags each request and ignores any response whose tag isn't the latest. For the naming clash, merge by GPS proximity (150m) instead of mangling strings.",
+      lesson:"Normalise at the source — the stored key is the single source of truth everything downstream inherits — and if a function can genuinely fail, returning null beats returning a plausible-looking wrong answer."},
+
+    {date:"2026-03-29", title:"Beta prep — free waypoint chaining + station search UX", tags:["ux"],
+      built:["Removed the hardcoded “park-and-ride” strategy entirely, replacing it with a pairwise loop: any station→station pair is a PTV leg, anything else is a car leg — so any chain of stops just works.","Separated displayName from the normalized index key so search results show “Flinders Street” instead of the internal lookup key.","Added route-name context to search results (capped at 5 routes per stop)."],
+      mistake:"Search results were showing raw internal keys like “bus: clayton /bodley rd” — lowercase, prefixed, with no context — because the normalized index key was being reused directly as the display value.",
+      fix:"Store the original-cased display name as its own field, separate from the lookup key it happens to have started out equal to.",
+      lesson:"Never conflate an internal lookup key with a user-facing display value, even when they start out identical — the moment one needs to change independently, a shared field breaks."},
+
+    {date:"2026-03-30", title:"Debug logging + a tech-debt marker", tags:["config"],
+      built:["Added a temporary debug console.log before route calculation requests.","Left an explicit comment flagging timeToSeconds's return value as possibly unused."],
+      mistake:"No bug fixed — a deliberate “leave a marker” session. The debug log was known, on the spot, to be tech debt that needed removing or gating before beta.",
+      fix:"Wrote the TODO down immediately instead of trusting memory to catch it later (it was resolved three weeks later, on 2026-04-18).",
+      lesson:"Debug logging is tech debt the moment it's written — mark it for removal at the same time you add it, not “later.”"},
+
+    {date:"2026-04-03", title:"UX decisions resolved + beta security review", tags:["ux","config"],
+      built:["Locked in: map clicks use exact coordinates with an OSRM fallback; a failed leg shows the successful legs and flags the broken one inline instead of blocking the whole journey; waypoints are fully mutable.","Restricted CORS from wide-open to an explicit origin allowlist.","Adopted a rule for all future API keys: they live in backend/.env only — the frontend calls its own backend proxy, never the third-party API directly."],
+      mistake:"Two of three planned “fixes” turned out to target the wrong code once actually investigated — one was already implemented, another (chainJourneyLegs) was dead code the endpoint didn't even import. Separately, a TypeScript union was written as <code>RouteSegment[] | FailedLeg[]</code> (meaning “all of one type or all of the other”) instead of <code>(RouteSegment | FailedLeg)[]</code> (meaning “each slot can be either”) — every downstream <code>.type</code> access broke.",
+      fix:"Verified existing code before planning around it, rather than trusting the plan. Wrapped the union in parentheses before applying the array — the fix was one pair of brackets.",
+      lesson:"When four or five compile errors all point at the same variable, check its declaration first — not each usage site."},
+
+    {date:"2026-04-07", title:"Beta hardening — logging, FailedLeg, type fixes", tags:["config","loop"],
+      built:["Gated console.log behind NODE_ENV !== \"production\" across nine backend files, leaving console.error/warn untouched since they matter for incident investigation.","Removed a dead duplicate parseGtfsTime."],
+      mistake:"A real crash, found and fixed by the developer directly: <code>res.status(...).json(response)</code> had been pasted <em>inside</em> the routing for-loop, so it fired after the first successful leg and threw ERR_HTTP_HEADERS_SENT on any multi-leg journey.",
+      fix:"Moved the response send to after the loop closes — same indentation level as the for, not one level deeper.",
+      lesson:"A loop that builds an array and code that sends the response are two separate responsibilities. If a diff shows the response line indented one level inside the loop, that's the bug — check indentation, not just logic."},
+
+    {date:"2026-04-15", title:"Debugging + auto-strategy UI design", tags:["config","ux"],
+      built:["Clarified that CORS is browser-enforced (the server always responds; the browser decides whether to expose it to JS) — meaning the current localhost-only whitelist would silently block a real phone.","Designed (for the next session) an auto-strategy rule: derive car vs PTV from the waypoint list itself, instead of a separate toggle state that can drift out of sync with it."],
+      mistake:"Every API call failed the moment you searched “Clayton” or “Southern Cross.” Root cause was almost embarrassingly small: <code>frontend/.env</code> pointed at <code>/api/maps</code> (an extra “s”) while the backend mounted its router at <code>/api/map</code>.",
+      fix:"Removed the stray letter. Adopted a diagnostic rule: a fast-failing Axios error suggests a path/404 mismatch; a slow one that hits the 10s timeout suggests connectivity.",
+      lesson:"If Axios fails fast, suspect a path typo before an IP or connectivity issue — a 404 returns instantly, a real timeout doesn't."},
+
+    {date:"2026-04-18", title:"Bug fixes, UI improvements + beta planning", tags:["config","ux"],
+      built:["Wrapped the main screen in KeyboardAvoidingView so the keyboard stops covering the search bar.","Added dynamic CORS: a CORS_ORIGIN env var merged with localhost defaults, split and trimmed.","Deleted the dead timeToSeconds flagged back on 2026-03-30, replacing its inline logic with the already-used, NaN-guarded parseGtfsTime."],
+      mistake:"Axios failures recurred despite a correct IP in .env. The actual cause: <code>npx expo start</code> re-reads .env but serves the device a cached JS bundle, so the old base URL kept being used regardless of what the file said.",
+      fix:"<code>npx expo start --lan --clear</code> — a plain restart wasn't enough, the bundle cache needed clearing explicitly.",
+      lesson:"If two unrelated screens fail identically, suspect the one thing they share (the API client / base URL), not screen-level code. And accidental spaces around .env commas silently break exact-string CORS matching — always .trim()."},
+
+    {date:"2026-04-19", title:"findStopByName fix + Richmond diagnosis", tags:["data"],
+      built:["Fixed findStopByName to sort all name-matching candidates by distance to the Melbourne CBD and return the closest, instead of whichever GTFS happened to insert first."],
+      mistake:"Melbourne Central (and similar stations) has one stop record per platform; the old lookup returned whichever was inserted first, often the wrong platform, so no route was found. The proximity fix improved the general case — but Richmond → Melbourne Central still failed, because the nearest-by-distance platforms actually served different lines (Sandringham, Frankston), not the City Loop. That's a data-quality gap, not a logic bug, and proximity sorting can't fix it.",
+      fix:"Shipped the general fix; documented the Richmond case as unresolved pending a real fix: swapping to the PTV API's own ranked stop search, which returns canonical IDs directly.",
+      lesson:"A heuristic can fix the general case while leaving a specific, deeper problem untouched — know the difference between “improved” and “fixed,” and say so explicitly instead of declaring victory."},
+
+    {date:"2026-04-22", title:"Self-hosted OSRM + stop resolution analysis", tags:["config"],
+      built:["Replaced the public OSRM demo server with a self-hosted Docker instance, pre-processed with osrm-extract → osrm-partition → osrm-customize using the MLD algorithm.","route-map.service.ts now reads OSRM_URL from env instead of hardcoding the public demo host."],
+      mistake:"Historically, a route through Clayton → Southern Cross had drawn a car line detouring into regional Victoria — findStopByName had matched a regional V/Line platform instead of the metro one, and the failed PTV leg fell back to car routing against the wrong coordinate entirely.",
+      fix:"Considered several targeted fixes (bounding box, agency filter, trip-density sort) and deliberately implemented none of them — the incoming PTV API migration would make this whole lookup obsolete.",
+      lesson:"Don't invest engineering effort hardening a component you already know is about to be replaced — confirm the replacement's timeline before polishing what it's replacing."},
+
+    {date:"2026-04-23", title:"Sprint 3 — the departure time bug", tags:["data"],
+      built:["Targeted, hand-written fix for getNextDepartureTime() — deliberately done without AI-authored code, as a “write it yourself, explain the logic aloud first” exercise."],
+      mistake:"The app showed a 40-minute wait at Flinders Street when the real next train was 8 minutes away. getNextDepartureTime() returned on the <em>first</em> departure found while iterating a Map, not the nearest one — a classic early-return-inside-a-loop bug.",
+      fix:"Replaced the early return with a “best so far” accumulator, updated whenever a smaller wait is found, returned only after every candidate has been checked.",
+      lesson:"An early return inside a loop answers “first match,” not “best match” — whenever a loop has a return inside it, ask explicitly which one you actually need."},
+
+    {date:"2026-04-25", title:"Beta prep + distribution planning", tags:["config"],
+      built:["Fixed OSM tile attribution to a proper linked credit (legal requirement for public distribution).","Removed unused pg and redis dependencies (23 packages).","Drafted the distribution plan: Android via APK/Play Internal Testing, iOS via TestFlight/EAS, a Victoria-only OSM extract to cut hosting cost, Oracle Cloud Free Tier as host."],
+      mistake:"The departure-time fix from two sessions earlier turned out to be only <em>partially</em> applied — the “best so far” return had been moved out of the innermost loop but was still nested inside the middle one, so it still wasn't correct. Explicit note in the session: “Do not commit until this is correct.”",
+      fix:"Traced exactly which loop level the return sat at, rather than assuming a fix that compiles is a fix that's complete.",
+      lesson:"A partially-applied fix is not a fix — track precisely which loop level a return sits at before calling a bug closed."},
+
+    {date:"2026-04-25", title:"PTV API refactor planning", tags:["api"],
+      built:["Explored the PTV Swagger UI and manually tested endpoints: stop search, route types, departures, and geopath geometry.","Drafted a six-step migration plan off GTFS/Raptor and onto the live PTV Timetable API."],
+      mistake:"No bug — a planning session. But it surfaced why the migration mattered beyond freshness: GTFS static data was missing Metro Tunnel stations (Town Hall, Arden) entirely, so a live API wasn't just nicer, it was necessary for basic network completeness.",
+      fix:"Scoped the migration in writing before touching code: add credentials, build a client, wire search, wire departures, wire geometry, keep GTFS only as an optional fallback.",
+      lesson:"When static data is missing entities the live source has, that's not a freshness problem you can work around — it's a completeness problem that forces the migration."},
+
+    {date:"2026-04-28", title:"PTV direct swap", tags:["api"],
+      built:["Swapped GTFS-based stop search and departures for PTV-backed equivalents.","Began converting getPTVRoute() from Raptor/GTFS geometry to PTV pattern-geometry (left incomplete this session)."],
+      mistake:"Not a bug — a deliberately risky, untested architectural swap. The real risk was doing it with no way back if PTV integration failed outright.",
+      fix:"Archived the original GTFS code blocks directly in the session notes before touching anything, so a revert wouldn't mean digging through git history under pressure.",
+      lesson:"Before a risky swap, write down exactly how to undo it — a revert plan you read calmly beats one you improvise while something's on fire."},
+
+    {date:"2026-04-29", title:"PTV API authentication — HMAC-SHA1 signing", tags:["api"],
+      built:["Added an HMAC-SHA1 request-signing interceptor to the PTV client.","Got the first successful 200 response from the PTV API."],
+      mistake:"PTV requests were timing out silently with no response at all, not returning an auth error. It turned out PTV v3 doesn't use headers for auth — every request URL needs its own ?devid=&signature= computed per-request, and without it PTV times out instead of rejecting cleanly. A second bug appeared mid-fix: assigning <code>config.params = signature</code> replaced the whole params object with a bare string instead of adding a key to it.",
+      fix:"Built the signature per request from the path and devid, HMAC-SHA1'd against the API key, and spread it into the existing params object rather than replacing it. Cracked the auth question by pasting the raw constructed URL into a browser, which returned an honest 400 “no signature parameter supplied”.",
+      lesson:"When an API call times out with zero response — not an error status, nothing — suspect silent auth rejection before suspecting the network.",
+      code:{label:"The signing interceptor",text:"client.interceptors.request.use((config) => {\n  const pathWithParams = `${basePath}${config.url}?devid=${devid}`;\n  const signature = crypto.createHmac(\"sha1\", apiKey)\n    .update(pathWithParams).digest(\"hex\").toUpperCase();\n  config.params = { ...config.params, signature };\n  return config;\n});"}},
+
+    {date:"2026-04-30", title:"PTV-only architecture — deprecating GTFS/Raptor", tags:["api","loop"],
+      built:["Removed Raptor + GTFS entirely from server startup.","Rewrote the PTV client with pickBestStop(), pattern-fetching, and stop-matching by ID; bumped the request timeout to 30s."],
+      mistake:"Raptor's startup load (~836K stop_times rows, ~750MB RAM) was starving the event loop badly enough that even unrelated PTV API calls were timing out — a resourcing problem that looked exactly like a network problem.",
+      fix:"Considered keeping Raptor with a longer timeout, or lazy-loading it on first use — chose to remove it entirely instead, since it was architecturally incompatible with a live API anyway (Raptor needs a fully pre-loaded timetable; PTV only exposes a rolling ~2-hour window) and was already stale (no Metro Tunnel support).",
+      lesson:"Don't run two competing data architectures side by side “just in case” — the fallback you kept for safety can become the actual cause of the failures you're chasing. Startup time dropped from ~60s to instant; ~750MB of RAM came back. DRAFT: RAPTOR itself is gone, but the way it forced me to think about routing — each leg resolved on its own, not one big combined query — is still the shape the pairwise loop follows today. Swapping the data source didn't erase the thinking that came from building on top of it first."},
+
+    {date:"2026-05-01", title:"PTV pattern endpoint fix + frontend race condition", tags:["api","ux"],
+      built:["Fixed four distinct bugs found while getting PTV routing to actually render end-to-end.","Added an onLoadEnd callback to the map's WebView."],
+      mistake:"1) The pattern endpoint URL used a query param where PTV actually requires path params. 2) The response shape didn't match what the code expected at all — no geopath field on this endpoint. 3) The map's WebView reloaded on every render because getMarkers() returned a new array reference each time, so postMessages sent while it was still loading were lost, and the eventual render ran against stale, empty route data. 4) With no geopath available, geometry defaulted to an empty array and no line drew at all.",
+      fix:"Corrected the URL shape; rewrote the response parser for the real shape; added onLoadEnd so messages are only sent once the WebView is actually ready to receive them; added a straight-line fallback for when geometry genuinely has fewer than two points.",
+      lesson:"When a UI component re-renders based on a new array/object reference rather than changed data, treat that as a bug class of its own — it silently breaks anything timing-sensitive downstream, like a WebView reload."},
+
+    {date:"2026-05-02", title:"Test infrastructure — PTV mock + station search filter", tags:["test"],
+      built:["Added vi.mock for the PTV service in both acceptance test files.","Fixed the transportType filter on /stations/search, which had been destructured from the query and then never used.","Fixed an inverted routeType number mapping (train and tram were swapped)."],
+      mistake:"Eight tests failed after the PTV rewrite — every PTV-touching endpoint now called a client that throws if PTV credentials aren't configured, and neither test file mocked it, so every test hit a real 500. A second, sneakier bug: a test fixture used the field name <code>name</code> instead of <code>displayName</code> — but JSON.stringify silently drops undefined fields, so the mismatch didn't show up as undefined, it showed up as the property missing entirely.",
+      fix:"Mocked the PTV service with realistic fixtures in both test files; fixed the fixture's field name once the missing-property failure was traced back to it.",
+      lesson:"JSON.stringify drops undefined fields silently — a wrong field name in test data won't show up as undefined, it'll show up as a property that simply isn't there, which is a more confusing failure to debug."},
+
+    {date:"2026-05-10", title:"PR review — RaggedR batch (#4, #7, #8, #10)", tags:["test","config"],
+      built:["Live-tested four of sixteen open collaborator PRs before merging any of them.","PR #8 added a 60 req/min rate limit and a 16kb body size cap, verified live: requests 1–60 returned 200, request 61 returned 429."],
+      mistake:"PR #4 fixed the falsy-zero bug (<code>Number(x) || default</code> treating 0 as missing) across every endpoint with 41 new tests — but npm test failed immediately with a missing package, because #4 had actually been built against PR #8's branch state, not against main.",
+      fix:"Ran npm install before trusting the test failure as a real regression; documented a recommended 14-PR merge order so dependency ordering wouldn't have to be re-derived each time.",
+      lesson:"A refactor's biggest risk is silent behavior change — the way to verify a “pure” refactor claim is to live-test the exact same scenarios before and after, not just check that the existing tests still pass."},
+
+    {date:"2026-05-11", title:"PR batch deep dive — merge sequencing & GTFS/PTV decision", tags:["test"],
+      built:["A pure planning session: clarified which open PRs depended on each other, and decided PR #11 (a GTFS load-safety guard) should be held pending review, since GTFS was already being removed."],
+      mistake:"Documented, not yet fixed: station-search.test.ts called vi.mock for the same module twice — the second call silently overwrites the first, corrupting six tests without ever throwing an error.",
+      fix:"Set a test-fixing priority order for next time: the double-mock bug first (small, and it teaches real Vitest mock-hoisting semantics), then HMAC signing unit tests (zero coverage on the app's primary data source), then a vacuous conditional assertion.",
+      lesson:"A conditional assertion — <code>if (x) { expect(...) }</code> — that silently skips when x is falsy can pass forever without ever actually checking anything. That's not a passing test, it's an untested path wearing a passing test's clothes."},
+
+    {date:"2026-05-12", title:"Merge conflict — a broken commit on main", tags:["git"],
+      built:["Manually reconciled a broken merge, line by line, instead of re-doing it.","Added the missing failedLegs?: number field to RouteResult, found out of sync during the reconciliation."],
+      mistake:"Merging PR #10 against three already-merged PRs produced conflicts in route.ts. “Accept both” was used in the merge tool and committed straight to main — it concatenated both sides verbatim rather than reconciling them, leaving a duplicated declaration, an incomplete statement, and a 5-argument call to a 3-argument function.",
+      fix:"Read what each side had actually <em>added</em>, then hand-wrote the combined version — none of the changes needed discarding, they just needed merging by hand instead of by button.",
+      lesson:"“Accept both” in a merge tool means concatenation, not reconciliation. It's only safe for genuinely independent additions — when both sides touch the same lines, read what each side adds and hand-write the result."},
+
+    {date:"2026-05-21", title:"Merge conflicts pr-9/pr-12 + a test-contract fix", tags:["git","test"],
+      built:["Merged two PRs into main sequentially, resolving eight conflict blocks in route.ts by hand.","Fixed the falsy-zero bug directly: Number(limit) || default became an explicit undefined/NaN check."],
+      mistake:"After resolving conflicts, five tests still failed — not from a merge mistake, but from a genuine design disagreement: one PR implemented a strict validation contract (reject limit=0 or a 256-char query with a 400), while the reviewer's tests encoded a lenient one (return 200 with sensible fallback behavior instead).",
+      fix:"Chose the reviewer's lenient contract deliberately, rather than editing code until the strict tests passed — because the strict tests passing would have meant quietly overriding a design decision the reviewer had already made explicit in test form.",
+      lesson:"When a reviewer writes tests as contract definitions, those tests define the intended behaviour. Changing code to make different, stricter tests pass instead is not a fix — it's burying a design disagreement."},
+
+    {date:"2026-05-23", title:"PTV geopath fix + OSRM connectivity + duplicate leg fix", tags:["api","config"],
+      built:["Fixed the return statement that had been discarding correctly-fetched geopath geometry.","Forced Docker to recreate the OSRM container so a 13-day-old ports: change actually took effect.","Fixed a real duplicate-leg bug in PtvStrategy that was re-wrapping origin/destination around a waypoints array that already contained them."],
+      mistake:"Backend logs showed OSRM connection refused, with localhost:5000 in the URL instead of the Docker Compose service name — because the backend was running via npm run dev locally, not inside Compose, so the container's env var never applied. Separately, docker compose up does not recreate an already-running container, so a ports: change made 13 days earlier in docker-compose.yml had silently never taken effect.",
+      fix:"docker compose up osrm -d --force-recreate. And for the duplicate leg: used the frontend's waypoints array directly instead of re-wrapping origin/destination around something that already contained them.",
+      lesson:"docker compose up does not recreate already-running containers. If you change a service's ports or environment in docker-compose.yml, you need --force-recreate for that change to actually apply.",
+      code:{label:"Bug 1 — the one-line fix that was later found incomplete (see 05-24)",text:"// Before: return { geometry: [], durationSeconds, platformNumber };\n// After:  return { geometry: pattern.geometry, durationSeconds, platformNumber };"}},
+
+    {date:"2026-05-24", title:"Geopath follow-up — an interrupted checkpoint", tags:["api"],
+      built:["Traced the previous day's “fixed” geopath bug all the way back to its actual source, rather than trusting that the return statement fix had been sufficient.","Paused to explicitly ask whether the project should still be pushed toward a beta, or brought to a deliberate close instead."],
+      mistake:"PTV legs were still returning only 2 geometry points after yesterday's fix. The return statement had been fixed correctly — but the request itself was asking for geopath data with the wrong parameter name (expand instead of include_geopath), so there was nothing for the fixed return statement to actually return.",
+      fix:"Left the fix in progress rather than declaring it done, with exact next steps written down: change the request param, complete the coordinate-flattening logic, rebuild, retest, and confirm more than 2 points in the log before moving on.",
+      lesson:"A fix that changes where the symptom shows up (the return statement) without checking where the data actually originates (the request itself) can look complete while still failing at runtime — trace a fix all the way back to its source, not just to where it's consumed."},
+
+    {date:"2026-05-31", title:"Portfolio closeout — route contract, env hygiene, map errors", tags:["config","ux"],
+      built:["Fixed the ambiguous /route/calculate contract: first/last stops now only ever appear once, as origin/destination, not duplicated into waypoints too.","Added a visible failure state to the map's WebView — previously a Leaflet load failure looked identical to a blank, broken app.","Fixed .gitignore so real .env stays ignored while .env.example templates can actually be committed — they'd been backwards."],
+      mistake:"A senior-engineer-style closeout review, not a single bug — looking specifically for what would embarrass or confuse someone viewing the repo cold: tracked secrets, a blank-screen failure mode with no error shown, and stale documentation.",
+      fix:"Sanitized both .env.example files, removed the real frontend .env from tracking, wired onError/onHttpError into the map WebView, and documented the still-open GTFS/Raptor deletion list explicitly rather than leaving it implicit.",
+      lesson:"A demo-readiness review is a different pass from feature work — it looks for what makes a stranger trust the repo, not for what makes the app do more."},
+
+    {date:"2026-06-11", title:"Android/BlueStacks production testing", tags:["config","ux"],
+      built:["Diagnosed why a built APK's station search failed with “Network error” in every configuration.","Created a real EAS environment variable for the API base URL, rather than relying on the local .env file.","Fixed the routing-strategy check to look at the entire stop list, not just the intermediate waypoints."],
+      mistake:"frontend/.env is (correctly) gitignored — which meant eas build never uploaded it at all, so EXPO_PUBLIC_API_BASE_URL was undefined in every standalone build regardless of what the local file said. Editing .env and rebuilding did nothing, because the value never reached the build in the first place. Separately: <code>stops.slice(1, -1).some(s =&gt; s.type === \"station\")</code> only checked intermediate waypoints, so a direct station→station trip with zero intermediates always fell through to the car strategy.",
+      fix:"eas env:create for the preview environment — the actual fix, since it makes the value reach the cloud build regardless of what's gitignored locally. Changed the strategy check to stops.some(...) over the whole array.",
+      lesson:"Compile-time environment variables baked into a mobile build are a different failure category from runtime config — a correctly-gitignored .env silently breaks a cloud build unless the build platform's own environment store is used instead."},
+
+    {date:"2026-06-14", title:"PTV strategy validation bug, tsconfig fix, prod redeploy", tags:["config","data"],
+      built:["Fixed a validation guard that rejected legitimate direct station-to-station trips.","Reverted a tsconfig.json regression that had silently broken the Docker build for over a week.","Redeployed production."],
+      mistake:"Testing “Town Hall → Clayton” (zero intermediate waypoints) now returned a 400 — a bug the previous day's frontend fix had accidentally <em>exposed</em>, because the old buggy frontend never even sent this request shape. The validation guard only checked intermediate waypoints for a station, missing the origin/destination entirely. Separately and unrelated: a commit from over a week earlier had changed moduleResolution to \"node16\" without updating module to match, breaking every fresh Docker build silently until someone tried one.",
+      fix:"First attempt at the guard fix was too strict (required an <em>adjacent</em> station pair) and broke a legitimate Place→Station case — corrected to “at least one station anywhere in the chain,” matching the original design intent. Reverted moduleResolution to match module: \"commonjs\".",
+      lesson:"A frontend fix that changes what requests get sent can silently unlock a dormant backend bug that was never exercised before — when a fix changes the shape of traffic, retest the newly-reachable paths, not just the original symptom. And two “stricter” fixes to the same guard can be very different conditions that look almost identical while you're writing them."}
+  ];
+
+  var ARCH = [
+    {title:"Pairwise routing loop, not a fixed strategy tree", body:"The old park-and-ride strategy was hardcoded car→PTV→car and broke for any other shape. The pairwise loop resolves each consecutive waypoint pair independently — station→station is PTV, anything else is car — so any chain works without special-casing."},
+    {title:"Partial failure via FailedLeg + HTTP 207", body:"One broken leg in a multi-stop journey no longer discards the ones that worked. 207 (Multi-Status) signals partial success; the frontend renders good legs and flags the broken one inline."},
+    {title:"Stop index keyed by normalized name", body:"Every GTFS stop is stored under a lowercase, suffix-stripped key, with the original casing kept separately as displayName — so every downstream caller gets the same key form for free."},
+    {title:"150m proximity merge across feeds", body:"Two stops from different feeds that normalize to different strings but sit within 150m are merged under one canonical name — because string normalization alone can't tell “Clayton” and “Clayton Rd” are the same physical place."},
+    {title:"Platforms vs parent stations", body:"Melbourne GTFS has parent station nodes (no trips) and platform children (the actual trips). Routing always resolves to a platform-level stop — the one that's actually in stop_times — never the parent."},
+    {title:"Raptor's 800ms deadline", body:"A synchronous nested loop blocks Node's single thread entirely. The deadline's job isn't correctness — it's returning null fast enough for the proven fallback to run inside the client's timeout window."},
+    {title:"Discriminated unions over boolean flags", body:"kind: \"direct\" / kind: \"multi-leg\" lets TypeScript narrow automatically in a switch. A boolean flag plus a cast requires the reader to trust the cast is still true."},
+    {title:"One shared Haversine utility", body:"Distance math was duplicated four times before being centralized — one of the four copies had a real bug. A shared utility means a fix propagates everywhere at once."},
+    {title:"Departure time threading", body:"Each leg's departure time is the previous leg's arrival time, threaded through the chain — without it, a 3-leg journey produces three unrelated ETAs instead of one coherent arrival."},
+    {title:"Environment-gated logging", body:"console.log is a no-op in production; console.error and console.warn are deliberately left alone, since they matter for real incident investigation."}
+  ];
+
+  // ---------- render legend ----------
+  var legend = document.getElementById("legend");
+  var active = new Set();
+  Object.keys(CATS).forEach(function(key){
+    var c = CATS[key];
+    var chip = document.createElement("button");
+    chip.className = "chip";
+    chip.style.setProperty("--dot", c.color);
+    chip.setAttribute("data-cat", key);
+    chip.innerHTML = '<span class="dot"></span>' + c.label;
+    chip.addEventListener("click", function(){
+      if (active.has(key)) { active.delete(key); chip.classList.remove("active"); }
+      else { active.add(key); chip.classList.add("active"); }
+      render();
+    });
+    legend.appendChild(chip);
+  });
+
+  // ---------- render timeline ----------
+  var timeline = document.getElementById("timeline");
+  var countLabel = document.getElementById("countLabel");
+  var emptyMsg = document.getElementById("emptyMsg");
+
+  function fmtDate(d){
+    var parts = d.split("-");
+    var months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+    return parts[2] + " " + months[parseInt(parts[1],10)-1] + " " + parts[0].slice(2);
+  }
+
+  SESSIONS.forEach(function(s, i){
+    var stop = document.createElement("div");
+    stop.className = "stop";
+    stop.setAttribute("data-tags", s.tags.join(","));
+    var primary = CATS[s.tags[0]];
+    stop.style.setProperty("--stopcolor", primary.color);
+
+    var tagsHtml = s.tags.map(function(t){
+      return '<span class="tagpill" style="--tagcolor:' + CATS[t].color + '">' + CATS[t].label + '</span>';
+    }).join("");
+
+    var builtHtml = s.built.map(function(b){ return "<li>" + b + "</li>"; }).join("");
+
+    var codeHtml = s.code ? (
+      '<h4>' + s.code.label + '</h4><pre class="snippet"><code>' + s.code.text
+        .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;") + '</code></pre>'
+    ) : "";
+
+    stop.innerHTML =
+      '<details class="card">' +
+        '<summary class="card-head">' +
+          '<span class="no">S' + String(i+1).padStart(2,"0") + '</span>' +
+          '<span class="date">' + fmtDate(s.date) + '</span>' +
+          '<span class="title">' + s.title + '</span>' +
+          '<span class="tags">' + tagsHtml + '</span>' +
+          '<span class="caret">▸</span>' +
+        '</summary>' +
+        '<div class="card-body">' +
+          '<h4>What happened</h4><ul>' + builtHtml + '</ul>' +
+          '<h4>The mistake</h4><p class="text">' + s.mistake + '</p>' +
+          '<h4>The fix</h4><p class="text">' + s.fix + '</p>' +
+          codeHtml +
+          '<div class="lesson"><div class="k">Lesson</div><p>' + s.lesson + '</p></div>' +
+        '</div>' +
+      '</details>';
+
+    timeline.appendChild(stop);
+  });
+
+  function render(){
+    var stops = timeline.querySelectorAll(".stop");
+    var shown = 0;
+    stops.forEach(function(stop){
+      var tags = stop.getAttribute("data-tags").split(",");
+      var visible = active.size === 0 || tags.some(function(t){ return active.has(t); });
+      stop.classList.toggle("hidden", !visible);
+      if (visible) shown++;
+    });
+    countLabel.textContent = "showing " + shown + " of " + stops.length;
+    emptyMsg.style.display = shown === 0 ? "block" : "none";
+  }
+  render();
+
+  document.getElementById("resetFilter").addEventListener("click", function(){
+    active.clear();
+    legend.querySelectorAll(".chip").forEach(function(c){ c.classList.remove("active"); });
+    render();
+  });
+  document.getElementById("expandAll").addEventListener("click", function(){
+    timeline.querySelectorAll("details.card").forEach(function(d){ d.open = true; });
+  });
+  document.getElementById("collapseAll").addEventListener("click", function(){
+    timeline.querySelectorAll("details.card").forEach(function(d){ d.open = false; });
+  });
+
+  // ---------- render architecture grid ----------
+  var archGrid = document.getElementById("archGrid");
+  ARCH.forEach(function(a, i){
+    var card = document.createElement("div");
+    card.className = "arch-card";
+    card.innerHTML = '<div class="num">' + String(i+1).padStart(2,"0") + '</div><h3>' + a.title + '</h3><p>' + a.body + '</p>';
+    archGrid.appendChild(card);
+  });
+})();
+</script>

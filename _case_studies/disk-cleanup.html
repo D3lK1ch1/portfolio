@@ -1,0 +1,1063 @@
+---
+layout: case-study
+title: disk-cleanup
+---
+<style>
+  :root {
+    --ink: #161a1d;
+    --ink-soft: #495056;
+    --paper: #eef1f0;
+    --surface: #ffffff;
+    --surface-raised: #ffffff;
+    --border: #d7dedc;
+    --border-soft: #e4e9e7;
+    --accent: #1f6e73;
+    --accent-ink: #ffffff;
+    --accent-soft: #d9ecea;
+    --tier1: #1f6e73;
+    --tier2: #3d6fa5;
+    --tier2b: #8a6f2e;
+    --tier3: #c07a2b;
+    --tier4: #a6462f;
+    --safe: #3f7d4a;
+    --review: #b8862e;
+    --info: #4a6fa5;
+    --safe-soft: #e3efe4;
+    --review-soft: #f5ecda;
+    --info-soft: #e4eaf3;
+    --shadow: 0 1px 2px rgba(20, 26, 28, 0.06), 0 6px 20px rgba(20, 26, 28, 0.06);
+    --font-display: "Iowan Old Style", "Sitka Text", "Palatino Linotype", Georgia, serif;
+    --font-body: "Segoe UI", system-ui, -apple-system, "Helvetica Neue", sans-serif;
+    --font-mono: "Cascadia Code", Consolas, "SFMono-Regular", ui-monospace, monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #e7ecea;
+      --ink-soft: #a9b3b1;
+      --paper: #121617;
+      --surface: #1a2022;
+      --surface-raised: #202729;
+      --border: #313a3c;
+      --border-soft: #262e30;
+      --accent: #57bcc1;
+      --accent-ink: #0c1516;
+      --accent-soft: #17383a;
+      --tier1: #57bcc1;
+      --tier2: #7ea6d6;
+      --tier2b: #c7ac5c;
+      --tier3: #e0a45a;
+      --tier4: #e08066;
+      --safe: #6fbb7c;
+      --review: #d4ac5c;
+      --info: #7ea6d6;
+      --safe-soft: #1c2c1f;
+      --review-soft: #2e2717;
+      --info-soft: #1b2532;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 6px 24px rgba(0, 0, 0, 0.35);
+    }
+  }
+  :root[data-theme="dark"] {
+    --ink: #e7ecea; --ink-soft: #a9b3b1; --paper: #121617; --surface: #1a2022;
+    --surface-raised: #202729; --border: #313a3c; --border-soft: #262e30;
+    --accent: #57bcc1; --accent-ink: #0c1516; --accent-soft: #17383a;
+    --tier1: #57bcc1; --tier2: #7ea6d6; --tier2b: #c7ac5c; --tier3: #e0a45a; --tier4: #e08066;
+    --safe: #6fbb7c; --review: #d4ac5c; --info: #7ea6d6;
+    --safe-soft: #1c2c1f; --review-soft: #2e2717; --info-soft: #1b2532;
+    --shadow: 0 1px 2px rgba(0,0,0,0.3), 0 6px 24px rgba(0,0,0,0.35);
+  }
+  :root[data-theme="light"] {
+    --ink: #161a1d; --ink-soft: #495056; --paper: #eef1f0; --surface: #ffffff;
+    --surface-raised: #ffffff; --border: #d7dedc; --border-soft: #e4e9e7;
+    --accent: #1f6e73; --accent-ink: #ffffff; --accent-soft: #d9ecea;
+    --tier1: #1f6e73; --tier2: #3d6fa5; --tier2b: #8a6f2e; --tier3: #c07a2b; --tier4: #a6462f;
+    --safe: #3f7d4a; --review: #b8862e; --info: #4a6fa5;
+    --safe-soft: #e3efe4; --review-soft: #f5ecda; --info-soft: #e4eaf3;
+    --shadow: 0 1px 2px rgba(20,26,28,0.06), 0 6px 20px rgba(20,26,28,0.06);
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  a { color: var(--tier2); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:hover { color: var(--accent); }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 3px;
+  }
+
+  code, .mono { font-family: var(--font-mono); font-size: 0.88em; }
+  code {
+    background: var(--surface-raised);
+    border: 1px solid var(--border-soft);
+    padding: 0.08em 0.4em;
+    border-radius: 4px;
+    color: var(--ink);
+  }
+  pre {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1rem 1.1rem;
+    overflow-x: auto;
+    font-family: var(--font-mono);
+    font-size: 0.86rem;
+    line-height: 1.6;
+  }
+  pre code { border: none; background: none; padding: 0; }
+
+  /* ---------- Header ---------- */
+  header.site {
+    position: sticky; top: 0; z-index: 20;
+    background: var(--paper);
+    border-bottom: 1px solid var(--border);
+    backdrop-filter: saturate(1.1) blur(6px);
+  }
+  .header-inner {
+    max-width: 1180px; margin: 0 auto;
+    display: flex; align-items: center; gap: 1.5rem;
+    padding: 0.85rem 1.5rem;
+  }
+  .mark {
+    display: flex; align-items: center; gap: 0.65rem;
+    font-family: var(--font-display); font-size: 1.05rem; font-weight: 600;
+    color: var(--ink); white-space: nowrap;
+  }
+  .mark .glyph {
+    width: 30px; height: 30px; border-radius: 7px;
+    background: var(--accent); color: var(--accent-ink);
+    display: grid; place-items: center;
+    font-family: var(--font-mono); font-weight: 700; font-size: 0.78rem;
+    flex-shrink: 0;
+  }
+  .mark .sub { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-soft); font-weight: 400; letter-spacing: 0.02em; }
+
+  nav.tabs { display: flex; gap: 0.25rem; margin-left: auto; }
+  nav.tabs button {
+    font-family: var(--font-body); font-size: 0.88rem; font-weight: 600;
+    color: var(--ink-soft); background: none; border: 1px solid transparent;
+    padding: 0.5rem 0.9rem; border-radius: 7px; cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  nav.tabs button:hover { color: var(--ink); background: var(--surface-raised); }
+  nav.tabs button[aria-selected="true"] {
+    color: var(--accent-ink); background: var(--accent);
+  }
+
+  /* ---------- Layout ---------- */
+  .shell {
+    max-width: 1180px; margin: 0 auto;
+    display: grid; grid-template-columns: 230px minmax(0, 1fr);
+    gap: 2.5rem; padding: 2.25rem 1.5rem 6rem;
+    align-items: start;
+  }
+  @media (max-width: 860px) {
+    .shell { grid-template-columns: 1fr; }
+    .toc-rail { display: none; }
+  }
+
+  .toc-rail { position: sticky; top: 4.5rem; }
+  .toc-rail .toc-title {
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-soft); margin: 0 0 0.75rem;
+  }
+  .toc-rail ol { list-style: none; margin: 0; padding: 0; border-left: 1px solid var(--border); }
+  .toc-rail li { margin: 0; }
+  .toc-rail a {
+    display: block; padding: 0.32rem 0 0.32rem 0.9rem; margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-size: 0.83rem; color: var(--ink-soft); text-decoration: none;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .toc-rail a:hover { color: var(--ink); }
+  .toc-rail a.active { color: var(--accent); border-left-color: var(--accent); font-weight: 600; }
+
+  main.panel { display: none; min-width: 0; }
+  main.panel.active { display: block; animation: fade 0.2s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) { main.panel.active { animation: none; } }
+
+  .doc-head { margin-bottom: 2.25rem; }
+  .doc-head h1 {
+    font-family: var(--font-display); font-size: 2.05rem; font-weight: 600;
+    margin: 0 0 0.4rem; text-wrap: balance; letter-spacing: -0.01em;
+  }
+  .doc-head .kicker {
+    font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.09em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 0.55rem;
+  }
+
+  section.doc-section { margin: 0 0 2.6rem; max-width: 72ch; }
+  section.doc-section h2 {
+    font-family: var(--font-display); font-size: 1.35rem; font-weight: 600;
+    margin: 0 0 0.9rem; padding-top: 0.15rem;
+    border-top: 1px solid var(--border-soft); padding-top: 1.1rem;
+    text-wrap: balance;
+  }
+  section.doc-section > h2:first-child { border-top: none; padding-top: 0; }
+  section.doc-section h3 {
+    font-family: var(--font-body); font-size: 1rem; font-weight: 700;
+    margin: 1.4rem 0 0.6rem; color: var(--ink);
+  }
+  section.doc-section p { margin: 0 0 0.9rem; color: var(--ink); }
+  section.doc-section ul, section.doc-section ol { margin: 0 0 0.9rem; padding-left: 1.3rem; }
+  section.doc-section li { margin: 0 0 0.45rem; }
+  section.doc-section li > ul, section.doc-section li > ol { margin-top: 0.45rem; }
+  .muted { color: var(--ink-soft); }
+
+  /* ---------- Callouts ---------- */
+  .callout {
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    background: var(--surface); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.2rem; margin: 0 0 1.2rem; box-shadow: var(--shadow);
+  }
+  .callout .callout-label {
+    font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--accent); margin: 0 0 0.4rem; font-weight: 700;
+  }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout.note { border-left-color: var(--info); }
+  .callout.note .callout-label { color: var(--info); }
+
+  /* ---------- Badges / pills ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 0.3rem;
+    font-family: var(--font-mono); font-size: 0.68rem; font-weight: 700;
+    letter-spacing: 0.04em; text-transform: uppercase;
+    padding: 0.18rem 0.5rem; border-radius: 999px; white-space: nowrap;
+    line-height: 1.5;
+  }
+  .badge.done { background: var(--safe-soft); color: var(--safe); }
+  .badge.open, .badge.not-fixed { background: var(--review-soft); color: var(--review); }
+  .badge.deferred { background: var(--info-soft); color: var(--info); }
+  .badge.fixed { background: var(--safe-soft); color: var(--safe); }
+  .badge.risk-safe { background: var(--safe-soft); color: var(--safe); }
+  .badge.risk-review { background: var(--review-soft); color: var(--review); }
+  .badge.risk-info { background: var(--info-soft); color: var(--info); }
+
+  .tier-badge {
+    display: inline-flex; align-items: center; gap: 0.35rem;
+    font-family: var(--font-mono); font-size: 0.7rem; font-weight: 700;
+    padding: 0.15rem 0.55rem; border-radius: 5px; white-space: nowrap;
+  }
+  .tier-badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: currentColor; }
+  .tier-badge.t1 { background: color-mix(in srgb, var(--tier1) 14%, transparent); color: var(--tier1); }
+  .tier-badge.t2 { background: color-mix(in srgb, var(--tier2) 14%, transparent); color: var(--tier2); }
+  .tier-badge.t2b { background: color-mix(in srgb, var(--tier2b) 16%, transparent); color: var(--tier2b); }
+  .tier-badge.t3 { background: color-mix(in srgb, var(--tier3) 16%, transparent); color: var(--tier3); }
+  .tier-badge.t4 { background: color-mix(in srgb, var(--tier4) 16%, transparent); color: var(--tier4); }
+
+  .chip {
+    font-family: var(--font-mono); font-size: 0.78rem;
+    background: var(--surface-raised); border: 1px solid var(--border-soft);
+    padding: 0.05em 0.4em; border-radius: 4px; color: var(--ink-soft);
+  }
+
+  /* ---------- Cards ---------- */
+  .card {
+    border: 1px solid var(--border); background: var(--surface);
+    border-radius: 10px; padding: 1.1rem 1.3rem; margin: 0 0 1rem;
+    box-shadow: var(--shadow);
+  }
+  .card > :last-child { margin-bottom: 0; }
+  .card-head { display: flex; align-items: baseline; gap: 0.6rem; flex-wrap: wrap; margin-bottom: 0.55rem; }
+  .card-head strong { font-size: 0.98rem; }
+
+  .tier-block { border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.3rem 1.1rem; margin: 0 0 1rem; background: var(--surface); }
+  .tier-block h4 { display: flex; align-items: center; gap: 0.6rem; margin: 0 0 0.6rem; font-family: var(--font-body); font-size: 0.95rem; }
+  .tier-block ul { margin-bottom: 0; }
+
+  /* Table */
+  .table-wrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 10px; margin: 0 0 1.2rem; }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 0.88rem; }
+  thead th {
+    text-align: left; font-family: var(--font-mono); font-size: 0.7rem;
+    letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-soft);
+    background: var(--surface-raised); padding: 0.65rem 0.9rem; border-bottom: 1px solid var(--border);
+  }
+  tbody td { padding: 0.7rem 0.9rem; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: var(--surface-raised); }
+
+  .status-strip {
+    display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+    font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-soft);
+    margin-bottom: 1.4rem;
+  }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--safe); flex-shrink: 0; }
+
+  del { color: var(--ink-soft); text-decoration-color: var(--border); }
+  del + .badge { margin-left: 0.4rem; }
+
+  details {
+    border: 1px solid var(--border); border-radius: 8px; background: var(--surface);
+    padding: 0.7rem 1rem; margin: 0 0 0.6rem;
+  }
+  details[open] { padding-bottom: 0.9rem; }
+  summary {
+    cursor: pointer; font-weight: 600; font-size: 0.92rem; list-style: none;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "›"; display: inline-block; transition: transform 0.15s ease; font-family: var(--font-mono); color: var(--accent); }
+  details[open] summary::before { transform: rotate(90deg); }
+  details p, details ul { margin-top: 0.6rem; }
+
+  footer.site {
+    max-width: 1180px; margin: 0 auto; padding: 0 1.5rem 3rem;
+    color: var(--ink-soft); font-size: 0.78rem; font-family: var(--font-mono);
+  }
+  footer.site a { color: var(--ink-soft); }
+
+  .num-col { font-variant-numeric: tabular-nums; }
+
+  /* ---------- Plain-language intro ---------- */
+  .intro { max-width: 1180px; margin: 0 auto; padding: 2.5rem 1.5rem 1rem; }
+  .intro .kicker { font-family: var(--font-mono); font-size: 0.75rem; letter-spacing: 0.09em; text-transform: uppercase; color: var(--accent); margin: 0 0 0.6rem; }
+  .intro h1 { font-family: var(--font-display); font-size: clamp(1.3rem, 2.6vw, 1.85rem); font-weight: 600; margin: 0 0 0.8rem; white-space: nowrap; }
+  .intro .lede { font-size: 1.08rem; color: var(--ink-soft); max-width: 66ch; margin: 0 0 1.6rem; }
+  @media (max-width: 640px) { .intro h1 { white-space: normal; } }
+  .intro-stats { display: flex; flex-wrap: wrap; gap: 1.6rem; padding: 1.1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 2rem; }
+  .intro-stats .stat .n { display: block; font-family: var(--font-mono); font-size: 1.25rem; font-weight: 700; color: var(--ink); }
+  .intro-stats .stat .l { display: block; font-size: 0.72rem; color: var(--ink-soft); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem; }
+  .intro-card { border: 1px solid var(--border); background: var(--surface); border-radius: 10px; padding: 1.2rem 1.4rem; margin: 0 0 1rem; box-shadow: var(--shadow); }
+  .intro-card:last-of-type { margin-bottom: 1.8rem; }
+  .intro-card h3 { font-family: var(--font-body); font-size: 1.05rem; font-weight: 700; margin: 0 0 0.6rem; color: var(--ink); }
+  .intro-card p.plain { margin: 0 0 0.7rem; color: var(--ink); }
+  .intro-card p.plain:last-of-type { margin-bottom: 0; }
+  .intro-card details { margin-top: 0.7rem; border: 1px solid var(--border-soft); border-radius: 8px; padding: 0.6rem 0.9rem; background: var(--paper); }
+  .intro-card summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--accent); list-style: none; }
+  .intro-card summary::-webkit-details-marker { display: none; }
+  .intro-card summary::before { content: "▸ "; }
+  .intro-card details[open] summary::before { content: "▾ "; }
+  .intro-card .techbody { margin-top: 0.7rem; font-size: 0.92rem; }
+  .intro-card .techbody p { margin: 0 0 0.6rem; color: var(--ink-soft); }
+  .intro-card .techbody p:last-child { margin-bottom: 0; }
+  .intro-divider { font-family: var(--font-mono); font-size: 0.8rem; color: var(--ink-soft); border-top: 1px dashed var(--border); padding-top: 1.2rem; margin-bottom: 0.5rem; }
+</style>
+
+<header class="site">
+  <div class="header-inner">
+    <div class="mark">
+      <span class="glyph">DC</span>
+      <span>disk-cleanup <span class="sub">/ docket</span></span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Document">
+      <button role="tab" aria-selected="true" aria-controls="panel-spec" id="tab-spec" data-target="spec">Spec</button>
+      <button role="tab" aria-selected="false" aria-controls="panel-notes" id="tab-notes" data-target="notes">Build Log</button>
+      <button role="tab" aria-selected="false" aria-controls="panel-review" id="tab-review" data-target="review">Audit</button>
+    </nav>
+  </div>
+</header>
+
+<div class="intro">
+  <h1>A cleanup tool that would rather do nothing than guess wrong, simplifying the manual process cleaning the OS yourself</h1>
+  <p class="lede">disk-cleanup scans a machine for reclaimable space — old caches, leftover build folders, Docker bloat — and shows a checklist. Nothing gets deleted until specific items are picked and confirmed. The actual engineering problem here isn't finding big folders; it's proving, for each one, that deleting it is genuinely safe before it's ever offered as an option.</p>
+
+  <div class="intro-stats">
+    <div class="stat"><span class="n">19/19</span><span class="l">Tests passing</span></div>
+    <div class="stat"><span class="n">4</span><span class="l">Evidence tiers for "is this safe"</span></div>
+    <div class="stat"><span class="n">0</span><span class="l">Items labeled Safe on a guess</span></div>
+  </div>
+
+  <div class="intro-card">
+    <h3>Why the WSL scanner almost deleted the wrong kind of "cache"</h3>
+    <p class="plain">One scanner walks a Linux environment looking for <code>node_modules</code> folders — the disposable, regenerable dependency folders every JavaScript project creates — so it can flag them as safe to delete. Early on, that walk covered the entire home directory, which meant it also wandered into the folders VS Code itself uses to run its own remote server components. Those folders happen to contain their own <code>node_modules</code> too, but deleting them isn't the same as deleting a project's dependencies — it can break the tool that's currently running.</p>
+    <p class="plain">The fix wasn't a simple "don't touch that folder" exception, because the next tool update could add a new folder the exception doesn't know about. Instead, every hit now has to prove itself: a folder is only ever called safe if a real project marker (like <code>package.json</code>) sits right next to it. No marker, no safe label — regardless of what the folder is named or where it lives.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Known remote-dev-server directories (<code>.vscode-server</code>, <code>.cursor-server</code>, etc.) are pulled out as Info/no-action rows instead of walked into at all. Every other <code>node_modules</code>/<code>target</code> hit is classified Safe only if a project marker (<code>package.json</code>, <code>Cargo.toml</code>, <code>pom.xml</code>, <code>build.sbt</code>) is confirmed adjacent to it — otherwise it's downgraded to Review with an explicit reason. The marker check, not the exclusion list, is what actually protects an unlisted tool on a different machine.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="intro-card">
+    <h3>Why an AI tool's own folder can't be offered as one clickable row</h3>
+    <p class="plain">Both Claude Code and Codex keep their working files in a single folder in the home directory. It's tempting to offer that whole folder as one "clean this up" checklist item — except that same folder also holds login credentials, settings, and persistent memory files sitting right next to genuinely disposable cache data. One click on a folder like that would recycle-bin the useful parts along with the junk.</p>
+    <p class="plain">The fix is an allowlist, not a denylist: only specific, individually verified-safe subfolders are ever offered, and the root folder itself is never offered as a whole. A denylist ("don't touch these specific files") would quietly fail the moment a future update added a new file nobody thought to exclude yet — an allowlist fails safe instead, by simply not offering anything it hasn't already checked.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Safe subpaths: <code>.claude/shell-snapshots</code>, <code>paste-cache</code>, <code>debug</code>, <code>file-history</code>; <code>.codex/cache</code>, <code>log</code>, <code>tmp</code>, <code>.tmp</code>. Explicitly excluded after direct verification: <code>.claude/sessions</code> and <code>ide</code> (live PID-keyed state for running instances, not history), and <code>.codex/.sandbox*</code> (live executables and ACL state). Session transcript files get their own per-file safety check — for Claude, the exact session ID is cross-checked against live PID files before anything currently open is ever offered; Codex lacks that same live-mapping, so anything modified in the last ~30 minutes is treated as possibly still active instead, a known, deliberate asymmetry rather than an oversight.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="intro-card">
+    <h3>Grading each "safe to delete" claim by how it's actually known to be true</h3>
+    <p class="plain">Every single label in this tool — Safe, Review, Info — rests on some claim about what a given file or folder actually is. Once AI assistance was involved in helping write those classification rules, that raised a real question: how would a subtly wrong or unverified assumption baked into one of those rules ever get caught?</p>
+    <p class="plain">The answer was a ranking system for the claims themselves, not just the files. Every rule is sorted into one of four tiers, from "the tool told us directly" down to "this is just a pattern that's probably right." The one rule that follows from that: nothing is allowed to be labeled Safe if the only evidence behind it is the weakest tier — a guess stays visibly a guess, routed to Review with the reasoning shown, instead of being quietly upgraded to Safe because it seemed reasonable.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Tier 1 — tool/OS self-report (<code>docker system df</code>, <code>Get-AppxPackage</code>, the registry). Tier 2 — documented spec or convention (XDG cache spec, npm/pnpm docs). Tier 2b — verified by direct inspection of the tool, no formal spec exists. Tier 3 — heuristic inference (age, size, name pattern) — never allowed to sit in Safe. Tier 4 — incident-informed, meaning the rule exists because something already broke once before. As of the last audit, every purely Tier-3 item (Downloads/Personal top-N folders, stale-package heuristics, AI session files) is correctly Review and Recycle-Bin-backed rather than Safe — the one item flagged as worth a deliberate one-time manual check despite testing as Tier 2 is the pnpm shared store, since it has a larger blast radius than the other Tier 2 items.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="intro-card">
+    <h3>A release that looked fine and produced literally nothing when run</h3>
+    <p class="plain">The first published download didn't crash, didn't show an error, and didn't show up in any Windows security log — it just silently did nothing when double-clicked. Before touching the fix, every plausible cause got ruled out one at a time: not SmartScreen, not antivirus, not a missing .NET runtime, not a corrupted download. The actual cause was simpler and less dramatic than any of those — the release only contained the app's exe, not the handful of files it actually needs sitting right next to it to run.</p>
+    <p class="plain">Fixing it took two attempts. The first "fixed" build still failed the exact same silent way when tested in isolation, because a few native files were still missing from the bundle — a reminder that "it launched on my machine" isn't proof a packaged build is actually self-contained until it's tested somewhere nothing else is already sitting around to cover the gap.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>The release build had no <code>&lt;SelfContained&gt;</code>/<code>&lt;RuntimeIdentifier&gt;</code> set, so <code>dotnet publish</code> produced a framework-dependent apphost that needs its <code>.dll</code>/<code>.deps.json</code>/<code>.runtimeconfig.json</code> companions alongside it — only the bare exe was ever uploaded. The first republish attempt (<code>--self-contained true -p:PublishSingleFile=true</code>) still left five native WPF DLLs as loose files next to the exe, since <code>PublishSingleFile</code> doesn't bundle non-IL native dependencies. The working command adds <code>-p:IncludeNativeLibrariesForSelfExtract=true</code>, which self-extracts those DLLs to a temp folder at first launch. Verified by copying the exe alone into an isolated folder and confirming a real window opened — not just "no crash." Fix is built and verified locally; not yet uploaded to replace the broken release asset.</p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<div class="shell">
+  <aside class="toc-rail">
+    <p class="toc-title" data-toc-for="spec">On this page</p>
+    <ol data-toc-list="spec"></ol>
+    <ol data-toc-list="notes" hidden></ol>
+    <ol data-toc-list="review" hidden></ol>
+  </aside>
+
+  <!-- ============================================================ SPEC ============================================================ -->
+  <main class="panel active" id="panel-spec" role="tabpanel" aria-labelledby="tab-spec">
+    <div class="doc-head">
+      <p class="kicker">SPEC.md · v2, C#</p>
+      <h1>disk-cleanup — project spec</h1>
+    </div>
+
+    <div class="status-strip"><span class="dot"></span> Windows CLI + WPF clean loop: feature-complete for daily use · no open safety issues</div>
+
+    <div class="callout">
+      <p class="callout-label">Current status</p>
+      <p>Scan → checklist → select → execute → warnings on both scan and delete failures → before/after free space. Goal expanded <strong>2026-07-02</strong> to target Linux/Mac too — see “Cross-platform MVP scope” before starting Unit 4 or the Avalonia port. No open safety issues — the WSL <code>node_modules</code> scope bug is fixed, see “Resolved.”</p>
+      <p>Native <code>node_modules</code>/build-artifact scanning (<code>NativeBuildDirs</code> / <code>FindNativeBuildDirs</code>, <code>Scanners.cs:156</code> / <code>:1019</code>) shipped after being spec’d 2026-07-09 — wired into <code>Program.cs</code> and <code>MainWindow.xaml.cs</code>, tested in <code>ScannersTests.cs</code>. The “Planned unit” section was never marked done after shipping; corrected 2026-07-15.</p>
+      <p><code>WindowsTempFolder()</code> (system-wide <code>C:\Windows\Temp</code>, distinct from user <code>%TEMP%</code>) — <span class="badge done">Done</span> verified live 2026-07-15 via console scan + Clean Selected. Result: 121/123 entries cleared without elevation, 2 correctly skipped as genuinely locked (an active session log, Office Click-to-Run’s live streaming log) — matches <code>ActionExecutor.DeleteContents</code>’s partial-delete format exactly (<code>Cleared N entries, skipped M. Blocked by: …</code>), no crash, no silent failure. Correction to the original caution: elevation was <strong>not</strong> required in practice — most of <code>C:\Windows\Temp</code> was writable under a normal user account on this machine.</p>
+      <p>Next up: Avalonia UI port. A real blocker was found 2026-07-15 before any port work started — see “Avalonia port — blocker found” below.</p>
+      <p><strong>2026-08-07:</strong> the published v0.0.0 release does not run on a clean download — see “v0.0.0 release doesn’t run” in the Build Log tab. Self-contained single-file rebuild is built and verified locally; not yet uploaded to replace the broken release asset.</p>
+    </div>
+
+    <section class="doc-section" id="s-location">
+      <h2>Location</h2>
+      <p><code>C:\Users\ASUS ROG\Downloads\disk-cleanup\</code> — .NET solution, C#</p>
+      <ul>
+        <li><code>DiskCleanup.Core\</code> — scanners, action executor, selection logic (shared)</li>
+        <li><code>DiskCleanup\</code> — console app (Units 1–2)</li>
+        <li><code>DiskCleanup.Wpf\</code> — GUI widget (Unit 3): DataGrid checklist, risk filter, Clean Selected</li>
+        <li><code>DiskCleanup.Tests\</code> — xUnit tests against Core</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-what-it-does">
+      <h2>What it does</h2>
+      <ol>
+        <li>Scans these categories and computes sizes:
+          <ul>
+            <li>Recycle Bin</li>
+            <li>User Temp (<code>%TEMP%</code>), system-wide <code>C:\Windows\Temp</code>, and <code>SoftwareDistribution\Download</code></li>
+            <li>VS Code <code>CachedExtensionVSIXs</code></li>
+            <li>WSL: <code>~/.cache</code>, <code>~/.npm</code>, <code>~/.local/share/pnpm/store</code>, and any <code>node_modules</code>/<code>target</code> dirs found under <code>$HOME</code> (depth 6) — classified <span class="badge risk-safe">Safe</span> (project marker present), <span class="badge risk-review">Review</span> (marker missing), or <span class="badge risk-info">Info</span> (inside a known remote-dev-server dir like <code>.vscode-server</code>, excluded rather than walked into)</li>
+            <li>Docker reclaimable space (<code>docker system df</code>)</li>
+            <li>Top N largest folders in Downloads</li>
+            <li><code>AppData\Local\Packages</code> folders untouched for 6+ months (bloatware candidates)</li>
+            <li>Top installed apps by size (registry) — informational only</li>
+            <li>AI-related folders (<code>.claude</code>/<code>.codex</code>), flagging unnecessary chat logs, temp files, bloated memory files</li>
+          </ul>
+        </li>
+        <li>Prints a numbered checklist, e.g. <code>[1] Recycle Bin — 8.2GB — SAFE</code>, <code>[2] Downloads\Foo — 5GB — REVIEW</code></li>
+        <li>Prompts the user to type numbers (e.g. <code>1,2,5</code> or <code>all-safe</code>) to act on</li>
+        <li>Executes the chosen actions (delete/clear/prune) and reprints free space before/after</li>
+      </ol>
+    </section>
+
+    <section class="doc-section" id="s-scheduled-check">
+      <h2>New: scheduled check (background automation)</h2>
+      <ul>
+        <li>A separate run mode (<code>--check</code>) does the scan silently, no prompts</li>
+        <li>If free disk space &lt; 45GB, sends a Windows toast notification with a short summary (top 3–5 reclaimable items + total reclaimable size)</li>
+        <li>Triggered by Windows Task Scheduler at user-configured times (app does <strong>not</strong> self-schedule — setup command is printed for the user to run once)</li>
+        <li>Clicking/opening from the notification just launches the normal interactive checklist run — no auto-cleanup ever happens from <code>--check</code></li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-not-do">
+      <h2>What it does NOT do</h2>
+      <ul>
+        <li><code>--check</code> mode never deletes or modifies anything — notify only</li>
+        <li>Never touches Downloads project folders or installed apps without an explicit number pick</li>
+        <li>Anything requiring admin (Docker vhdx compaction, MSI uninstalls) is <strong>printed as a command to copy into an elevated terminal</strong>, not executed directly</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-done">
+      <h2>Done =</h2>
+      <p><code>DiskCleanup.exe</code> → see the checklist → type numbers → selected items get cleaned → see new free space before/after.</p>
+      <p><code>DiskCleanup.exe --check</code> (run by Task Scheduler) → if space &lt; 45GB, toast notification with checklist summary appears.</p>
+    </section>
+
+    <section class="doc-section" id="s-build-plan">
+      <h2>Build plan <span class="muted" style="font-weight:400; font-size:0.85rem;">— incremental, one unit at a time, stop for evaluation between</span></h2>
+      <ol>
+        <li>Scanner + checklist printer (no actions yet) <span class="badge done">Done</span></li>
+        <li>Selection input + action executor <span class="badge done">Done</span></li>
+        <li>WPF widget: checklist with checkboxes, risk filter, Clean Selected <span class="badge done">Done</span></li>
+        <li><code>--check</code> mode + toast + Task Scheduler setup <span class="badge deferred">Deferred</span> — see “Cross-platform MVP scope” (toast mechanism is platform-specific; wait for the platform-abstraction seam)</li>
+        <li>StalePackages AppX cross-check (<code>Get-AppxPackage</code>) — distinguishes “app uninstalled, orphaned data” from “app still installed, folder just looks stale” <span class="badge done">Done</span></li>
+        <li>DockerVhdxBloat scanner (flags Docker Desktop’s WSL2 <code>.vhdx</code> once it never-shrinks past 20GB, suggests a diskpart compaction command) <span class="badge done">Done</span></li>
+        <li>AiFolders root-folder safety fix (allowlist of verified-safe subpaths only, never <code>.claude</code>/<code>.codex</code> root) + session-file staleness/active-session detection <span class="badge done">Done</span></li>
+        <li>Scan-side + delete-side warning collection (Review.md finding #3: <code>catch{}</code> no longer silently swallows scan/delete errors; both CLI and WPF surface which specific file/folder blocked an action) <span class="badge done">Done</span> — verified live 2026-07-02 against real locked Temp files and an access-denied SoftwareDistribution run</li>
+      </ol>
+    </section>
+
+    <section class="doc-section" id="s-unit2">
+      <h2>Unit 2 amendment</h2>
+      <ul>
+        <li><code>all-safe</code> no longer auto-executes. It pre-selects all SAFE-risk items, prints them as a confirmation list, and requires a final y/n before any deletion happens — same as a manual numeric selection</li>
+        <li>No item, regardless of risk level, is deleted without an explicit confirm step (reason: a SAFE-categorized item like a WSL project’s <code>node_modules</code> may still be one the user wants to keep)</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-phase2">
+      <h2>Phase 2 (remaining, future)</h2>
+      <ul>
+        <li>Filter by category/size (risk-level filter done in Unit 3)</li>
+        <li>Background/scheduled run of the widget (ties into Unit 4’s <code>--check</code> mode, deferred above)</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-known-issues">
+      <h2>Known issues (open, safety-relevant)</h2>
+      <p>None currently open. See “Resolved” for the WSL <code>node_modules</code> scope fix.</p>
+    </section>
+
+    <section class="doc-section" id="s-resolved">
+      <h2>Resolved</h2>
+
+      <div class="card">
+        <div class="card-head"><strong>Subagent folder cascade + orphan detection</strong><span class="badge fixed">Fixed 2026-07-15</span></div>
+        <p><code>ScanClaudeFolder</code> (<code>Scanners.cs:513-586</code>) now matches each session’s <code>.jsonl</code> against its sibling <code>&lt;sessionId&gt;/</code> folder (<code>subagents/</code>, <code>tool-results/</code>): when both exist, deleting the conversation deletes the folder in the same action (<code>CheckItem.SecondaryPath</code>, wired through <code>ActionExecutor.MoveToRecycleBin</code>); when only the folder is left (parent conversation already deleted by a prior cleanup), it gets its own SAFE row. <code>memory/</code> stays excluded either way. Not WSL-specific — one fix in the shared scanner covers both native Windows and WSL’s <code>.claude</code>, since <code>Wsl()</code> calls the same function.</p>
+        <p>Verified live 2026-07-15 against the real <code>.claude</code> folder: found and cleanly deleted 19 pre-existing orphaned session folders across multiple projects, zero failures, all recoverable via Recycle Bin. <code>.codex</code> was checked too — the folder no longer exists on this machine (user-deleted), so <code>ScanCodexFolder</code> was left untouched.</p>
+        <p class="muted">Test coverage: <code>ScannersTests.cs</code> — <code>ScanClaudeFolder_CascadesSessionFolderIntoMatchingJsonl</code>, <code>ScanClaudeFolder_OrphanedSessionFolder_FlaggedAsSafeRow</code>, <code>ScanClaudeFolder_ActiveSessionOrphanFolder_NotFlagged</code>.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>FindBuildDirs scope bug</strong><span class="badge fixed">Fixed 2026-07-08</span></div>
+        <p><code>Wsl()</code>’s node_modules/target discovery (<code>Scanners.cs FindBuildDirs</code>) walks the entire WSL home directory (depth 6), not just <code>~/projects</code>. Confirmed live 2026-07-02: <code>~/.vscode-server</code> contains 7 real <code>node_modules</code> dirs (VS Code Server’s own bundled extensions), which used to surface as ordinary SAFE/DeleteFolder rows — indistinguishable from a project’s own dependencies, the same failure class as a prior incident where WSL cleanup corrupted <code>~/.vscode-server</code>.</p>
+        <p>Fix: kept the whole-home walk, but <code>FindBuildDirs</code> now classifies every hit three ways — known remote-dev-server dirs (<code>.vscode-server</code>, <code>.vscode-server-insiders</code>, <code>.cursor-server</code>, <code>.windsurf-server</code>) pulled out as <span class="badge risk-info">Info</span>/no-action rows instead of walked into; <code>.cache</code>/<code>.npm</code> skipped (already their own CheckItems); every other <code>node_modules</code>/<code>target</code> hit is <span class="badge risk-safe">Safe</span> only if a project marker sits next to it (<code>package.json</code>, or <code>Cargo.toml</code>/<code>pom.xml</code>/<code>build.sbt</code>), otherwise <span class="badge risk-review">Review</span> with a reason explaining the marker couldn’t be confirmed.</p>
+        <p>Verified: VS Code’s own troubleshooting docs confirm deleting <code>~/.vscode-server</code> is an official, auto-healing recovery step — so the real risk guarded against is a <em>partial</em> delete of one piece while the server may still be running, not “this folder is untouchable.” The exclusion list is a UX nicety; the marker-file check is the actual safety net for unlisted tools on other machines.</p>
+        <p class="muted">Test coverage: <code>ScannersTests.cs</code> — <code>FindBuildDirs_*</code>, <code>HasProjectMarker_*</code>. <code>all-safe</code> is safe to run on a WSL scan again.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="s-native-build">
+      <h2>Native node_modules/build-artifact scanning <span class="badge done">Done</span></h2>
+      <p class="muted">Spec’d 2026-07-09, shipped since, correction recorded 2026-07-15.</p>
+      <p><code>NativeBuildDirs()</code>/<code>FindNativeBuildDirs()</code> (<code>Scanners.cs:156</code>/<code>:1019</code>) exist, are wired into <code>Program.cs</code> and <code>MainWindow.xaml.cs</code>, and have test coverage in <code>ScannersTests.cs</code>. This section was left unmarked after shipping — kept below for the original design reasoning, not as an open item.</p>
+      <p>Before this, <code>node_modules</code>/<code>target</code> discovery only ran inside WSL (<code>Wsl()</code> → <code>FindBuildDirs</code>). Native Windows project folders (e.g. <code>Downloads\bank-transaction</code>, <code>Downloads\AccountabilityApp</code>) got zero build-artifact visibility — only ever a lump “this folder is large” REVIEW row via <code>DownloadsTopFolders</code>, never “here’s the regenerable part inside it.”</p>
+      <h3>What it does</h3>
+      <ul>
+        <li>Walks a bounded set of real project roots — <code>Downloads</code>, <code>Documents</code>, <code>Desktop</code> — depth-limited, same shape as WSL’s <code>Walk(root, depth, 6)</code></li>
+        <li>Reuses <code>HasProjectMarker</code> and the SAFE/REVIEW split as-is (already OS-agnostic — a plain <code>File.Exists</code> check): SAFE only when <code>package.json</code> or <code>Cargo.toml</code>/<code>pom.xml</code>/<code>build.sbt</code> sits next to it, REVIEW otherwise</li>
+        <li>Excludes <code>AppData</code>, <code>Program Files</code>, <code>Program Files (x86)</code>, <code>Windows</code>, <code>ProgramData</code> from the walk entirely — never descended into, since installed Electron/VS Code-family apps ship their own bundled <code>node_modules</code> under those paths (same failure class as the WSL <code>.vscode-server</code> incident). A native equivalent of <code>WslAppServerDirNames</code> may still be needed for portable/no-installer apps living elsewhere</li>
+      </ul>
+      <h3>What it does NOT do</h3>
+      <ul>
+        <li>No drive-wide <code>C:\</code> walk — bounded to the same known user-content roots as existing scanners</li>
+        <li>No auto-detection of arbitrary project roots outside those folders (e.g. a repo cloned to <code>C:\dev</code>) — out of scope for v1</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-planned">
+      <h2>Planned: system-root clutter + user dotfolder scanners</h2>
+      <p class="muted">Spec’d 2026-07-09, not yet built.</p>
+      <ul>
+        <li><strong>SystemRootClutter</strong> — curated exact-name allowlist of <code>C:\</code> root vendor/installer leftovers. Tier A (<code>intelFPGA</code>, <code>HP eSupport</code>, <code>RyzenPPKG Driver</code>, <code>WCH.CN</code>, <code>DumpStack.log</code>, <code>vfcompat.dll</code>, <code>appverifUI.dll</code>) → REVIEW, delete offered. Tier B (<code>inetpub</code>, <code>flexlm</code>) → INFO only, delete never offered (can be actively-serving IIS sites / license servers). <code>Python3xx</code>, <code>Ruby34-x64</code>, <code>xampp</code> explicitly excluded — installed runtimes, uninstall properly, not a folder-delete target.</li>
+        <li><strong>UserDotfolders</strong> — <code>.cargo</code>/<code>.cisco</code>/<code>.cursor</code> etc., cross-checked against install/PATH state before ever flagging REVIEW (same honesty as StalePackages — a failed check says “couldn’t confirm,” never silently SAFE). <code>.config</code> excluded entirely (generic dumping ground, no single “still in use” signal). Confirmed via live check 2026-07-09: <code>.cursor</code> is NOT temp/cache despite the app being uninstalled — <code>plans/</code> and <code>projects/</code> hold real authored planning docs and per-project session history — so “app uninstalled” alone is not sufficient signal for SAFE.</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-gaps">
+      <h2>Known gaps vs. a full manual OS-level cleanup pass</h2>
+      <p class="muted">Audited 2026-07-09 against Storage Sense, Disk Cleanup, restore points, optional features, language packs, dev package caches. Not committed to building all of it — recorded so future prioritization starts from a real audit.</p>
+      <h3>Not covered, ranked by likely payoff</h3>
+      <ol>
+        <li><code>Windows.old</code> / previous Windows installation — often 10–20GB, single largest possible one-time win, not investigated whether it currently exists on this machine</li>
+        <li><del>Native-Windows node_modules/build-artifact scanning</del> <span class="badge done">Done</span></li>
+        <li>Native dev package caches: NuGet (<code>~/.nuget/packages</code>), pip, Maven (<code>~/.m2</code>, confirmed on PATH), Gradle (<code>~/.gradle</code>), Android SDK. Only Docker and WSL’s <code>~/.npm</code> are currently handled. <span class="badge open">Next by this ranking</span></li>
+        <li><del>C:\Windows\Temp (system-wide temp)</del> <span class="badge done">Done — WindowsTempFolder()</span></li>
+        <li>AI model weight caches (Ollama/HuggingFace-style) — different from the <code>.claude</code>/<code>.codex</code> session-log scanning already done; not investigated</li>
+        <li>WinSxS component cleanup, old driver store packages, Delivery Optimization files, thumbnail cache, DirectX shader cache, System Restore points, optional Windows features (Hyper-V, Sandbox, IIS, SMB1), unused language packs — all untouched, lower estimated payoff/higher effort or risk than the above</li>
+      </ol>
+      <h3>Partial vs. the manual checklist’s version</h3>
+      <ul>
+        <li><code>DownloadsTopFolders</code>/<code>PersonalFolders</code> show top-N largest items only, not a full drive-wide <code>*.iso</code>/<code>*.zip</code>/gigantic-size sweep</li>
+        <li><code>InstalledAppsBySize</code> is visibility-only by design — the manual checklist’s “uninstall large programs” step still requires acting via Settings</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-deferred">
+      <h2>Deferred (explicitly out of scope for now)</h2>
+      <ul>
+        <li><strong>Locked-file-owner detail</strong> (“who is holding this handle” for a delete failure) — feasible on all 3 target OSes (Windows: Restart Manager API <code>rstrtmgr.dll</code>; Linux: walk <code>/proc/[pid]/fd</code>; macOS: <code>lsof</code>/<code>libproc</code>) but each is a fully different mechanism. Deferred rather than built Windows-only; revisit as a plugin behind the platform-abstraction seam.</li>
+        <li><strong>Unit 4 (<code>--check</code> + toast notification)</strong> — the toast mechanism is also platform-specific (Windows Toast vs. Linux <code>libnotify</code> vs. macOS <code>UserNotifications</code>). Deferred until the seam below exists.</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="s-crossplatform">
+      <h2>Cross-platform MVP scope</h2>
+      <p class="muted">Added 2026-07-02. Goal expanded this session: scale to Linux and Mac, not stay Windows-only. That changes what “MVP” means — full feature parity across 3 OSes is not the bar; a shared Core with clean platform seams is.</p>
+
+      <h3>Per-scanner scope decision <span class="muted" style="font-weight:400;">— finalized 2026-07-13</span></h3>
+      <p>Every scanner in <code>Scanners.cs</code>, sorted by what it actually needs — verified against each scanner’s real mechanism, not a guess.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th style="width:15%">Category</th><th style="width:32%">Scanners</th><th>Reasoning</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><span class="badge risk-safe">A</span><br><span class="muted" style="font-size:0.8rem;">already portable</span></td>
+              <td><code>VsCodeCache</code>, <code>NativeBuildDirs</code>, <code>Docker</code>, <code>DownloadsTopFolders</code>, <code>PersonalFolders</code>, <code>AiFolders</code></td>
+              <td>Ports with zero changes — already use <code>Environment.SpecialFolder</code>/<code>Path.GetTempPath()</code>/plain <code>Path.Combine</code>, none Windows-specific. <code>MyMusic</code>/<code>MyVideos</code> worth a Linux smoke test (XDG mapping less consistent) but not a blocker.</td>
+            </tr>
+            <tr>
+              <td><span class="badge risk-info">B</span><br><span class="muted" style="font-size:0.8rem;">needs a seam</span></td>
+              <td><code>RecycleBin</code>, <code>TempFolders</code></td>
+              <td>Cross-platform concept, per-OS mechanism. RecycleBin’s move-to-trash already has <code>ITrashProvider</code>; empty-the-bin (<code>SHEmptyRecycleBinW</code>) still needs its own seam. Linux target: freedesktop.org trash spec. Mac: <code>~/.Trash</code>. TempFolders splits into a portable <code>%TEMP%</code> half and a Windows-only <code>WindowsUpdateCache()</code>.</td>
+            </tr>
+            <tr>
+              <td><span class="badge risk-review">C</span><br><span class="muted" style="font-size:0.8rem;">Windows-only, dropped</span></td>
+              <td><code>Wsl</code> (+ <code>FindBuildDirs</code>)</td>
+              <td>WSL doesn’t exist on Linux/Mac. Not “ported” — just doesn’t run.</td>
+            </tr>
+            <tr>
+              <td><span class="badge risk-review">D</span><br><span class="muted" style="font-size:0.8rem;">new scanner, not a port</span></td>
+              <td><code>InstalledAppsBySize</code>, <code>StalePackages</code>, <code>DockerVhdxBloat</code></td>
+              <td>Windows-only mechanism, concept has an analogue but that’s new scanner work. Linux: <code>dpkg</code>/<code>rpm</code>; Mac: Homebrew casks. StalePackages is UWP/AppX-specific, no Linux/Mac equivalent model. DockerVhdxBloat’s Mac analogue lives under <code>~/Library/Containers/…</code>, a different shape entirely.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Avalonia port — blocker found <span class="muted" style="font-weight:400;">(2026-07-15, before any port work started)</span></h3>
+      <p>Checked the actual <code>.csproj</code> files rather than assuming the seam work made the port ready. It didn’t:</p>
+      <pre><code>DiskCleanup.Core.csproj:  net10.0-windows
+DiskCleanup.csproj:       net10.0-windows
+DiskCleanup.Wpf.csproj:   net10.0-windows
+DiskCleanup.Tests.csproj: net10.0-windows</code></pre>
+      <p>All four projects — <strong>including Core</strong> — target <code>net10.0-windows</code>, a Windows-only TFM. An Avalonia project on Linux/Mac cannot reference Core at all as it stands, independent of whether <code>ITrashProvider</code> is fully seamed. Core also still has Windows-only code mixed directly into shared files:</p>
+      <ul>
+        <li><code>WindowsIdentity</code> in <code>RecycleBin()</code> (<code>Scanners.cs</code>)</li>
+        <li><code>Microsoft.Win32</code> registry calls (<code>StalePackages</code>/<code>InstalledAppsBySize</code> — expected per Category D, but confirms the mixing)</li>
+        <li><code>WindowsTrashProvider.cs</code> itself lives in Core, not a Windows-specific project</li>
+      </ul>
+      <div class="callout note">
+        <p class="callout-label">Not one unit</p>
+        <p>There’s a prerequisite unit first: make Core build as portable <code>net10.0</code> — either multi-target Core, or physically split the Windows-only scanners + <code>WindowsTrashProvider</code> into a separate Windows-specific project that both the WPF app and the future Avalonia build reference. Category A scanners don’t need to move; only the Category B/D Windows-only code does. <strong>Not yet decided:</strong> multi-target vs. physical split, and exactly which files move — the next thing to spec before writing any Avalonia code.</p>
+      </div>
+
+      <h3>Recommended next steps, ranked</h3>
+      <ol>
+        <li><del>Fix the FindBuildDirs safety issue</del> <span class="badge done">Done 2026-07-08</span></li>
+        <li><del>Introduce the platform-abstraction seam in Core</del> <span class="badge done">Done 2026-07-13</span> — both Win32 calls that used to live in <code>ActionExecutor</code> (<code>SHFileOperation</code>, <code>SHEmptyRecycleBinW</code>) now go through <code>ITrashProvider</code>, implemented by <code>WindowsTrashProvider</code>. Zero <code>DllImport</code>s left in <code>ActionExecutor</code>.</li>
+        <li><del>Decide per-OS scanner scope</del> <span class="badge done">Done 2026-07-13</span> — see table above</li>
+        <li><del>Split TempFolders</del> <span class="badge done">Done 2026-07-13</span> — <code>TempFolders()</code> is now just the portable <code>%TEMP%</code> line; <code>WindowsUpdateCache()</code> is the new Windows-only scanner, wired into both apps</li>
+        <li>Split/multi-target Core so it builds as portable <code>net10.0</code> <span class="badge open">Not started — actual next unit</span></li>
+        <li>Only then: the Avalonia UI port and Unit 4/toast, since both depend on the seam existing first <span class="badge deferred">Depends on #5</span></li>
+      </ol>
+    </section>
+
+    <section class="doc-section" id="s-context">
+      <h2>Context / background</h2>
+      <ul>
+        <li>Language: C# (.NET, self-contained console app)</li>
+        <li>Folder is stateless — each run scans fresh, no saved history between runs</li>
+        <li>45GB free-space threshold is the trigger for the <code>--check</code> notification</li>
+      </ul>
+      <h3>Risk levels used in the earlier manual cleanup pass, for reference</h3>
+      <p>
+        <span class="badge risk-safe">Safe</span> Recycle Bin, build caches (node_modules, target/, npm/VSIX caches) — fully regenerable&nbsp;·&nbsp;
+        <span class="badge risk-review">Review</span> Downloads project folders, AppData\Local\Packages bloatware candidates, Docker prune/compaction&nbsp;·&nbsp;
+        <span class="badge risk-info">Info only</span> installed apps list — no action, just visibility
+      </p>
+    </section>
+  </main>
+
+  <!-- ============================================================ NOTES ============================================================ -->
+  <main class="panel" id="panel-notes" role="tabpanel" aria-labelledby="tab-notes">
+    <div class="doc-head">
+      <p class="kicker">Notes.md · build journal</p>
+      <h1>Session log</h1>
+    </div>
+
+    <section class="doc-section" id="n-done">
+      <h2>Done</h2>
+      <ol>
+        <li><strong>Self-deletion guard (#1)</strong> — <code>DownloadsTopFolders</code> now excludes the disk-cleanup tool’s own folder via <code>GetSelfRootUnder()</code>.</li>
+        <li><strong>Recycle-bin safety net (#2)</strong> — <code>ActionKind.MoveFolderToRecycleBin</code> added to <code>CheckItem.cs</code>; the three REVIEW-risk folder scanners (<code>DownloadsTopFolders</code>, <code>StalePackages</code>, <code>AiFolders</code>) use it instead of permanent <code>DeleteFolder</code>; <code>ActionExecutor</code> now handles it via <code>SHFileOperation</code> with <code>FOF_ALLOWUNDO</code> (soft-delete, recoverable).</li>
+        <li><strong>Symlink guard (#3), scan side</strong> — <code>GetDirectorySize</code> skips reparse points (won’t follow symlinks/junctions when computing sizes).</li>
+        <li><strong>Symlink guard (#3), delete side</strong> — <code>DeleteFolder</code> and <code>DeleteContents</code> now use <code>SafeDeleteTree</code>, which deletes a reparse point link itself rather than recursing into its target.</li>
+        <li><strong>WSL UNC path note (#5)</strong> — <code>DeleteFolder</code> and <code>MoveFolderToRecycleBin</code> append a compaction reminder to the result message when the path starts with <code>\\wsl.localhost\</code>.</li>
+        <li><strong>WPF “Clean Selected” checkbox fix</strong> — ticking a row’s checkbox visually worked but never committed to <code>CheckItemViewModel.IsSelected</code> before <code>CleanButton_Click</code> read it.
+          <details>
+            <summary>Root cause &amp; fix</summary>
+            <p>DataGrid’s cell-edit/binding-commit timing: neither switching <code>DataGridCheckBoxColumn</code> to <code>DataGridTemplateColumn</code> nor adding an explicit <code>ItemsGrid.CommitEdit()</code> fixed it. Fixed by bypassing the binding commit entirely — the CheckBox’s <code>Click</code> event now calls <code>ItemCheckBox_Click</code>, which sets <code>vm.IsSelected</code> directly (same direct-assignment mechanism <code>SelectAllSafeButton_Click</code> already used successfully). <code>IsChecked</code> binding is now <code>OneWay</code> (display only); <code>CommitEdit()</code> was left in as a harmless no-op safety net.</p>
+          </details>
+        </li>
+      </ol>
+    </section>
+
+    <section class="doc-section" id="n-tests">
+      <h2>Tests</h2>
+      <ul>
+        <li><code>ActionExecutorTests</code> covers: DeleteFolder, DeleteContents, MoveFolderToRecycleBin, SuggestCommand, None, and the reparse-point guard (<code>DeleteFolder_DoesNotRecurseIntoJunction</code>, built with <code>mklink /J</code> — no Developer Mode/elevation needed, so it runs for real on every machine instead of silently skipping like the earlier symlink-based version did).</li>
+        <li>Confirmed: Developer Mode is <strong>not</strong> required for end users. The guard only reads the ReparsePoint attribute and deletes existing links — both privilege-free operations. The privilege requirement only applied to .NET’s <code>CreateSymbolicLink</code>, which the old test used to manufacture a throwaway symlink for itself.</li>
+        <li>All 19 tests passing (verified 2026-06-17).</li>
+        <li>Checkbox fix diagnosed via the CLI (DiskCleanup console app): same Scanners/ActionExecutor Core, but a completely different selection mechanism (typed numbers, no DataGrid). CLI cleaning worked first try, which proved Core/ActionExecutor were never the problem and isolated the bug to the WPF checkbox specifically. No automated test covers WPF UI binding behavior — Core remains the only tested layer; this fix is manual-verification only.</li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="n-release-packaging">
+      <h2>v0.0.0 release doesn’t run <span class="badge open">Open — fix decided, not shipped</span></h2>
+      <p class="muted">Found 2026-08-07, diagnosing a downloaded exe that wouldn’t launch on a machine that should have worked.</p>
+      <p>The v0.0.0 GitHub release has exactly one asset, <code>DiskCleanup.Wpf.exe</code> (162,304 bytes, confirmed via the GitHub API) — an exact byte-match to the file that fails to launch locally, ruling out a corrupted/partial download. <code>DiskCleanup.Wpf.csproj</code> has no <code>&lt;SelfContained&gt;</code> or <code>&lt;RuntimeIdentifier&gt;</code>, so <code>dotnet publish</code> produced a framework-dependent build: a small apphost stub plus <code>DiskCleanup.Wpf.dll</code>, <code>DiskCleanup.Core.dll</code>, <code>.deps.json</code>, and <code>.runtimeconfig.json</code>, all required next to the exe to run. Only the bare exe got attached to the release — none of the companion files. The apphost can’t find its own managed assembly and exits before it gets far enough to show a window or log a crash, which is why the exe produces literally nothing on launch: no window, no error dialog, no entry in the Application or Defender event logs either way.</p>
+      <details>
+        <summary>What was ruled out first</summary>
+        <ul>
+          <li>Not SmartScreen — reproduced after explicitly clicking “Run anyway”.</li>
+          <li>Not antivirus — Windows Defender’s operational log showed only routine health-check entries, no detection/quarantine events, for the whole window around the failed launch.</li>
+          <li>Not a missing .NET runtime — <code>dotnet --list-runtimes</code> confirmed <code>Microsoft.WindowsDesktop.App 10.0.2</code> installed on the test machine.</li>
+          <li>The README’s “self-contained, no runtime needed” claim is also inaccurate for how this build was actually published — worth fixing regardless of which packaging fix ships.</li>
+        </ul>
+      </details>
+      <p><strong>Fix, built and verified 2026-08-07:</strong> republished as self-contained + single-file. First attempt (<code>dotnet publish -r win-x64 --self-contained true -p:PublishSingleFile=true</code>) still left five native WPF DLLs (<code>D3DCompiler_47_cor3.dll</code>, <code>PresentationNative_cor3.dll</code>, <code>wpfgfx_cor3.dll</code>, <code>PenImc_cor3.dll</code>, <code>vcruntime140_cor3.dll</code>) as loose files next to the exe — copying just the exe into an isolated folder reproduced the exact same silent-failure shape as the original bug (confirmed as a real <code>DllNotFoundException</code>, not silent, when run from a console). <code>PublishSingleFile</code> alone doesn’t bundle native (non-IL) dependencies for WPF.</p>
+      <p>Working command: <code>dotnet publish -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true</code> — the extra flag makes those native DLLs self-extract to a temp folder at first launch instead of needing to sit alongside the exe. Verified: exe copied alone into an isolated folder, launched via <code>Start-Process</code>, confirmed a real window (title “Disk Cleanup”, valid <code>MainWindowHandle</code>) opened — not just “no crash.” Output is one ~133MB exe, no companion files. <strong>Not yet uploaded to the GitHub release</strong> — that’s the remaining step.</p>
+    </section>
+
+    <section class="doc-section" id="n-next">
+      <h2>Next</h2>
+      <ul>
+        <li>Republish v0.0.0 (or cut v0.0.1) self-contained + single-file per “v0.0.0 release doesn’t run” above.</li>
+        <li>Decide on git init + release strategy (tag Windows version, branch for Avalonia work).</li>
+        <li>
+          <strong>Avalonia refactor</strong> (cross-platform — Windows, Linux, Mac). Plan: new <code>DiskCleanup.Avalonia</code> project; retarget Core to <code>net10.0</code> with <code>RuntimeInformation</code> guards around Win32 APIs; port XAML (Avalonia differs from WPF on DataGrid, styles, dialogs); add Linux/Mac scanner branches.
+          <p class="muted">Research this session: <code>SHFileOperation</code>/<code>SHEmptyRecycleBinW</code> (the REVIEW-risk soft-delete path) have no Linux/Mac equivalent, and .NET has no built-in cross-platform trash API. A real port means implementing the freedesktop.org trash spec by hand on Linux (move to <code>~/.local/share/Trash/files</code> + a <code>.trashinfo</code> sidecar) and the simpler <code>~/.Trash</code> convention on Mac — not just swapping the UI framework.</p>
+        </li>
+      </ul>
+
+      <h3>External review (Review.md) findings</h3>
+      <ol>
+        <li><span class="badge fixed">Fixed</span> Docker scanner showed 0B-reclaimable rows as actionable (<code>Scanners.cs</code> ~126) — now skips any row whose reclaimable string starts with <code>0B</code> instead of matching on <code>%</code> (which <code>"0B (0%)"</code> also contains).</li>
+        <li><span class="badge fixed">Fixed</span> <code>FindBuildDirs</code> didn’t skip reparse points while walking (<code>Scanners.cs</code> ~339) — now checks <code>FileAttributes.ReparsePoint</code> before recursing into or collecting a subdirectory, matching <code>GetDirectorySize</code>’s existing guard.</li>
+        <li><span class="badge not-fixed">Not fixed — design tradeoff</span> <code>catch{}</code> swallows scan-time errors silently across <code>Scanners.cs</code> — no visibility when Docker/WSL/registry access fails. Same pattern on the delete side: <code>SafeDeleteTree</code> (<code>ActionExecutor.cs</code> ~140–144) swallows per-file/per-subfolder failures, surfacing only a vague “directory not empty” with no indication of which nested file blocked it. Seen live this session on WSL <code>node_modules</code> under <code>~/projects/kan</code> — likely Windows’ 260-char path limit colliding with pnpm’s deeply-nested <code>.pnpm</code> store plus the <code>\\wsl.localhost\…</code> UNC prefix. Would need a “collect warnings, show them” design decision before touching code — not done yet.</li>
+        <li><span class="badge fixed">Fixed</span> <code>CleanButton_Click</code> ran synchronously on the UI thread, freezing the window on large deletes with no feedback. <code>ActionExecutor.Execute</code> calls now run via <code>Task.Run</code> (same pattern <code>ScanButton_Click</code> already used for scanning); Clean/Scan buttons disable and StatusText shows “Cleaning N item(s)…” while it runs. Still no per-item progress bar — bigger feature, not in scope for this fix.</li>
+        <li><span class="badge deferred">Not a fix</span> <code>SHFileOperation</code> is legacy but defensible — review frames this as “know how to justify it,” not a fix; folded into the Avalonia research above instead.</li>
+      </ol>
+
+      <h3>Real-detection scope</h3>
+
+      <details open>
+        <summary><span class="badge fixed">Fixed</span> WSL pnpm store size detection</summary>
+        <p>Per-package <code>node_modules</code> reported near-zero bytes because <code>GetDirectorySize</code> skips the symlinks pnpm uses internally (confirmed live: a real <code>node_modules</code> under <code>~/projects/kan/apps/web</code> reported 8KB via the tool’s logic vs. 13MB following symlinks); the real bytes live in pnpm’s content-addressable store (<code>~/.local/share/pnpm/store</code>, confirmed 1.7GB on this machine), which <code>Wsl()</code> never visited. Added as its own SAFE/DeleteFolder row (same tier as <code>~/.cache</code>, <code>~/.npm</code>) plus a Reason explaining it’s a regenerable shared cache, not project data. Default path only — no handling for a custom <code>pnpm config set store-dir</code>. No new test — <code>Wsl()</code> has no path-injection seam; verification is live against the real distro instead.</p>
+      </details>
+
+      <details>
+        <summary><span class="badge fixed">Fixed</span> Docker vhdx bloat (Unit 6)</summary>
+        <p>The old “deferred, Docker not installed” premise no longer held: Docker Desktop is actually installed and running on this machine (<code>docker-desktop</code> WSL distro, state Running), with a real vhdx confirmed at ~59.85GB. New scanner <code>DockerVhdxBloat()</code> recursively globs <code>%LocalAppData%\Docker\wsl\**\*.vhdx</code> (doesn’t hardcode a subfolder name — confirmed this machine uses <code>main</code>, not the <code>disk</code>/<code>data</code> guessed earlier), flags files ≥20GB as REVIEW with <code>ActionKind.SuggestCommand</code> (<code>wsl --shutdown</code> + <code>diskpart</code> compact — not <code>Optimize-VHD</code>, since that needs the Hyper-V module Docker Desktop’s WSL2 backend doesn’t require), plus a Reason explaining the disk grows but never auto-shrinks. Wired into both apps’ scan lists. No automated test — same precedent as <code>Docker()</code>/<code>Wsl()</code>. Unit 4 (<code>--check</code>/toast) deliberately held off instead — needs a Windows-only NuGet dependency, and that choice should wait until the cross-platform question is settled.</p>
+      </details>
+
+      <details>
+        <summary><span class="badge fixed">Built</span> Unit 5 — StalePackages AppX cross-check</summary>
+        <p>Cross-checks <code>AppData\Local\Packages</code> folder names (= PackageFamilyName) against <code>Get-AppxPackage</code> to distinguish “app uninstalled, orphaned data” from “app still installed, folder metadata is just old” (mtime-only was a weak signal — NTFS dir mtime only updates on direct child add/remove). Shells out to <code>powershell -Command Get-AppxPackage</code> (matches the existing <code>Docker()</code>/<code>GetWslDistros()</code> ProcessStartInfo pattern) rather than the native PackageManager WinRT API (would need a TFM retarget off plain <code>net10.0-windows</code> across all 3 projects for one lookup). Stays Risk=REVIEW either way — the orphaned-vs-installed distinction lives in the new <code>Reason</code> field, not a 4th risk tier. Added a static shared-runtime-package allowlist (<code>Microsoft.VCLibs</code>, <code>Microsoft.NET.Native</code>, <code>Microsoft.UI.Xaml</code>, <code>Microsoft.WindowsAppRuntime</code>, <code>Microsoft.Services.Store.Engagement</code>) so framework components never get flagged regardless of staleness. <code>IsSharedRuntimePackage</code> made public specifically for testing (no path-injection seam exists for <code>StalePackages</code> itself, matching Docker/Wsl/TempFolders precedent).</p>
+      </details>
+
+      <details>
+        <summary><span class="badge fixed">Built</span> CheckItem.Reason + WPF details pane</summary>
+        <p>Prompted by hands-on evaluation: grid labels were getting truncated with no way to read the rest, and REVIEW items (<code>.claude\shell-snapshots</code>, AppData\Local\Packages folders) gave no way to judge “will this affect an app I use” beyond the bare label. Added an optional <code>Reason</code> field to <code>CheckItem</code> carrying a plain-language explanation, populated for StalePackages and both AiFolders scanners. Labels were shortened back down to just the path — the long stuff moved into <code>Reason</code>. WPF gained a details pane below the grid (<code>MainWindow.xaml</code> row 2, wired via <code>ItemsGrid_SelectionChanged</code>) showing the selected row’s full label, full path, and Reason in a wrapped, scrollable text block. CLI untouched — <code>Program.cs</code> still only prints <code>Label — Size — Risk</code>; Reason isn’t surfaced there (scoped out, not forgotten).</p>
+      </details>
+
+      <details>
+        <summary><span class="badge fixed">Built</span> AiFolders safety fix + staleness refinement (Units 7–8)</summary>
+        <p class="muted">Spec’d next session originally — found a live safety bug; the fix shipped before the feature work.</p>
+        <p>Current <code>AiFolders()</code> used to offer the literal root <code>.claude</code>/<code>.codex</code> folder as one <code>MoveFolderToRecycleBin</code> item. Verified live on this machine: that root holds <code>.credentials.json</code>/<code>auth.json</code>, <code>settings.json</code>/<code>config.toml</code>, <code>CLAUDE.md</code>/<code>MEMORY.md</code> (persistent cross-session memory), and live SQLite runtime state right next to disposable caches — selecting that one row would recycle-bin all of it.</p>
+        <p>Fixed by replacing it with <code>ScanClaudeFolder()</code>/<code>ScanCodexFolder()</code>, an allowlist of verified-safe subpaths only (never the root) — chosen over a denylist specifically because a denylist would re-create this same bug for any new file/folder a future Claude Code or Codex update adds, until someone notices and excludes it.</p>
+        <p><strong>Safe:</strong> <code>.claude/shell-snapshots</code>, <code>paste-cache</code>, <code>debug</code>, <code>file-history</code> (labeled “edit history,” not “cache”); <code>.codex/cache</code>, <code>log</code>, <code>tmp</code>, <code>.tmp</code>.<br>
+        <strong>Excluded</strong> (verified why, on this machine): <code>.claude/sessions</code> + <code>ide</code> (live PID-keyed process state for <em>running</em> instances, not history); <code>.claude/cache</code>, <code>backups</code>, <code>session-env</code> (held back — <code>cache/</code> turned out to hold an app-update changelog, not session junk); <code>.codex/.sandbox*</code>, <code>.sandbox-bin</code>, <code>.sandbox-secrets</code> (live executables + ACL state + <code>sandbox_users.json</code> — not safe).</p>
+        <p><strong>Session-file judgment:</strong> no date filter at all — every <code>.jsonl</code> shows up regardless of age. Revised away from a day-threshold (90, then 60) after evaluation surfaced that a single one-and-done session is just as “done” the day it’s created as months later, so age alone can’t signal abandonment. The only exclusion is the session actually still open: for <code>.claude</code>, the transcript filename is literally the sessionId, cross-checked against the live PID files in <code>sessions/*.json</code> (<code>{"pid":...,"sessionId":...}</code>) — exact, not a guess. For <code>.codex</code> there’s no equivalent live-PID-to-session mapping, so anything modified in the last ~30 minutes is treated as possibly still active — a known asymmetry (Claude’s check is precise, Codex’s is a time-based heuristic), not an oversight.</p>
+        <p>Each shown file gets a label with age in days, a message count, and a cursory excerpt (first human-typed message, truncated, read straight from the <code>.jsonl</code>) — explicitly <strong>not</strong> an AI-generated summary (would add a first outbound API dependency, cost, and latency this fully-local tool doesn’t have today). For Codex, the excerpt logic skips tool-injected <code>&lt;environment_context&gt;</code>-style entries that show up under <code>"role":"user"</code> but aren’t anything the human actually typed.</p>
+        <p><strong>Display:</strong> grouped list — per-file CheckItems printed under their project name, not a full tree-view/treemap (considered, rejected as more UI work than needed right now). Needed a new <code>ActionKind.MoveFileToRecycleBin</code> (single-file recycle-bin move) since a project folder mixes disposable <code>.jsonl</code> files with the untouchable adjacent <code>memory/</code> subdir. Decided: per-file rows over per-project aggregation, since aggregation would need a new bulk-action that re-derives the relevant-file set at execute time, reopening a smaller version of the root-folder risk if written carelessly.</p>
+        <p class="muted">Verification: <code>DiskCleanup.Tests\ScannersTests.cs</code> covers the root/memory/sandbox exclusions, the active-session exclusion (Claude exact, Codex grace-window), and that old and brand-new session files both still appear. Confirmed manually via <code>dotnet run --project DiskCleanup</code> against real <code>~/.claude</code>/<code>~/.codex</code> data.</p>
+      </details>
+
+      <details>
+        <summary><span class="badge deferred">Deferred (superseded)</span> Unit 6 — DockerVhdxBloat, original note</summary>
+        <p>New scanner idea — compare the physical Docker Desktop WSL2 <code>.vhdx</code> file size (never auto-shrinks) against logical usage, suggest a <code>diskpart</code> compaction command. Deferred at the time: Docker wasn’t installed on this machine and <code>%LocalAppData%\Docker\wsl\</code> was empty, so it couldn’t be live-verified — revisit once on a machine with Docker Desktop installed. <span class="muted">(Superseded by the “Fixed” entry above once Docker Desktop was installed.)</span></p>
+      </details>
+    </section>
+  </main>
+
+  <!-- ============================================================ REVIEW ============================================================ -->
+  <main class="panel" id="panel-review" role="tabpanel" aria-labelledby="tab-review">
+    <div class="doc-head">
+      <p class="kicker">Review.md · external audit</p>
+      <h1>Code review &amp; evidence-tier audit</h1>
+    </div>
+
+    <section class="doc-section" id="r-findings">
+      <h2>Review findings</h2>
+
+      <div class="callout note">
+        <p class="callout-label">Stale findings note</p>
+        <p>Findings #1 (Docker 0% rows) and #2 (FindBuildDirs following reparse points) reference code that has since changed — current <code>Scanners.cs</code> already filters <code>0B</code> reclaimable rows (line 170) and already skips <code>ReparsePoint</code> inside <code>FindBuildDirs</code> (lines 813–818). Confirmed fixed after this review was written — see the Build Log tab.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>1. Docker scanner likely shows zero-reclaim items as actionable</strong><span class="badge fixed">Resolved since</span></div>
+        <p>In <span class="chip">Scanners.cs:126</span>, this condition adds Docker rows when <code>reclaimable.Contains('%') || reclaimable.Contains("0B")</code>. Docker output usually includes percentages, so this can include rows with <code>0B (0%)</code>, which makes the UI suggest work where there is nothing to reclaim. A stronger version should parse the reclaimable size and only show meaningful values.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>2. WSL project scan can follow symlinks/junctions while discovering build folders</strong><span class="badge fixed">Resolved since</span></div>
+        <p><code>GetDirectorySize</code> correctly skips <code>FileAttributes.ReparsePoint</code>, but <code>FindBuildDirs</code> does not check that before recursing: <span class="chip">Scanners.cs:339</span>. That weakens the promise that symlinks and junctions are never followed. Microsoft documents <code>ReparsePoint</code> as the marker for files/directories containing reparse-point data, so this is the right flag to use consistently.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>3. Errors are swallowed during scanning</strong><span class="badge not-fixed">Design tradeoff, open</span></div>
+        <p>Many scanner methods use broad <code>catch { }</code>, e.g. <span class="chip">Scanners.cs:27</span>. For a personal tool this is tolerable, but as an engineer you should explain the tradeoff: it keeps scanning resilient, but hides permission, Docker, WSL, and registry failures from the user. A better version would collect warnings and show them in the CLI/WPF log.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>4. WPF cleanup runs on the UI thread</strong><span class="badge fixed">Resolved since</span></div>
+        <p>The scan is correctly offloaded with <code>Task.Run</code>, but cleanup itself ran synchronously inside <code>CleanButton_Click</code>: <span class="chip">MainWindow.xaml.cs:82</span>. Large deletes or shell operations can freeze the window. A junior should recognize this as a UX/responsiveness issue and propose async execution plus disabled controls/progress state.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><strong>5. Use of SHFileOperation is defensible but legacy</strong><span class="badge deferred">Know your justification</span></div>
+        <p>The code correctly checks both the return code and <code>fAnyOperationsAborted</code>: <span class="chip">ActionExecutor.cs:164</span>. Microsoft’s docs say <code>SHFileOperation</code> was replaced by <code>IFileOperation</code>, and that <code>FOF_ALLOWUNDO</code> sends deletes to the Recycle Bin. So the current implementation is reasonable for a small app, but you should know it’s an older API and be able to justify why you used it.</p>
+      </div>
+    </section>
+
+    <section class="doc-section" id="r-expected">
+      <h2>What you’re expected to know</h2>
+
+      <h3>Architecture</h3>
+      <ul>
+        <li><code>DiskCleanup.Core</code> owns scanning, selection parsing, and action execution</li>
+        <li><code>DiskCleanup</code> is the CLI shell over Core</li>
+        <li><code>DiskCleanup.Wpf</code> is the desktop UI over the same Core logic</li>
+        <li>Tests target Core because that’s where the important behavior lives</li>
+      </ul>
+
+      <h3>Safety model</h3>
+      <ul>
+        <li>Nothing is deleted until the user explicitly selects and confirms</li>
+        <li><span class="badge risk-safe">Safe</span> means regenerable, not automatically deleted</li>
+        <li><span class="badge risk-review">Review</span> uses Recycle Bin where possible</li>
+        <li><span class="badge risk-info">Info</span> rows, like installed apps, are non-actionable</li>
+        <li>Symlinks/junctions are meant to be treated as links, not traversed targets</li>
+      </ul>
+
+      <h3>Questions you should be able to answer</h3>
+      <details>
+        <summary>Why use MoveFolderToRecycleBin for REVIEW items but direct deletion for temp/cache contents?</summary>
+        <p>REVIEW items carry real uncertainty about whether the content is wanted — Recycle Bin keeps the action reversible. Temp/cache contents are Tier 1/2 evidence (OS- or tool-documented as transient), so direct deletion matches the confidence level.</p>
+      </details>
+      <details>
+        <summary>Why are installed apps informational only?</summary>
+        <p>Uninstalling is a registry/MSI-level operation with side effects this tool doesn’t own — it surfaces visibility, and the user acts through Settings.</p>
+      </details>
+      <details>
+        <summary>What can go wrong when deleting files?</summary>
+        <p>Permissions, locked files, long paths, reparse points, partial success — each needs its own handling rather than a single try/catch swallowing all of them the same way.</p>
+      </details>
+      <details>
+        <summary>Why is ProcessStartInfo used for Docker/WSL, and what risks exist with redirected output/timeouts?</summary>
+        <p>Both are external CLIs with no .NET-native API — shelling out is the only path. Microsoft explicitly warns redirected streams can deadlock if handled poorly (e.g. reading stdout synchronously while the child blocks writing to a full stderr buffer), so knowing this docs area matters.</p>
+      </details>
+      <details>
+        <summary>Why keep the core logic separate from WPF?</summary>
+        <p>So the same scanning/selection/execution logic is testable headlessly and reusable across the CLI, WPF, and eventually Avalonia front ends without duplication.</p>
+      </details>
+      <details>
+        <summary>What tests exist, and what gaps remain?</summary>
+        <p>Core (Scanners, ActionExecutor) is tested; WPF UI binding behavior is not — the checkbox-commit bug in the Build Log was diagnosed by isolating Core via the CLI, not by a UI test.</p>
+      </details>
+    </section>
+
+    <section class="doc-section" id="r-verification">
+      <h2>Verification</h2>
+      <p>Ran <code>dotnet test</code>. It passed: <strong>19 tests passed, 0 failed.</strong> The first run needed package restore and failed under restricted network access; rerunning with approved NuGet access succeeded.</p>
+      <h3>Docs worth knowing</h3>
+      <ul>
+        <li><a href="https://learn.microsoft.com/en-us/windows/win32/api/shellapi/nf-shellapi-shfileoperationw" target="_blank" rel="noopener">SHFileOperationW</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.io.fileattributes" target="_blank" rel="noopener">FileAttributes.ReparsePoint</a></li>
+        <li><a href="https://learn.microsoft.com/en-us/dotnet/api/system.diagnostics.processstartinfo.redirectstandardoutput" target="_blank" rel="noopener">ProcessStartInfo.RedirectStandardOutput</a></li>
+      </ul>
+    </section>
+
+    <section class="doc-section" id="r-tiers">
+      <h2>Evidence-tier audit</h2>
+      <p class="muted">Added 2026-07-07 after a discussion about AI-assisted rules risking unverified or hallucinated “knowledge” baked into the classifier. Every SAFE/REVIEW label in <code>Scanners.cs</code> rests on a claim about what a path means. This sorts each claim by how it’s actually checkable, not by who first said it.</p>
+
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Tier</th><th>What it means</th></tr></thead>
+          <tbody>
+            <tr><td><span class="tier-badge t1">Tier 1</span></td><td>Tool/OS self-report — the tool’s own accounting (<code>docker system df</code>, <code>Get-AppxPackage</code>, the registry) or a documented OS mechanism. Highest trust, true regardless of who mentioned it.</td></tr>
+            <tr><td><span class="tier-badge t2">Tier 2</span></td><td>Documented spec/convention — a written external doc exists (XDG cache spec, npm/pnpm/cargo docs, Microsoft KB). Verifiable by reading the source.</td></tr>
+            <tr><td><span class="tier-badge t2b">Tier 2b</span></td><td>Tool-inspection knowledge, no formal spec. True as observed on this machine/version, but not backed by a citable doc. Weaker than Tier 2 — re-verify if the tool updates.</td></tr>
+            <tr><td><span class="tier-badge t3">Tier 3</span></td><td>Heuristic inference — age, size, or name pattern used as a proxy for “unwanted.” No document proves it, a judgment call. Should never sit in SAFE.</td></tr>
+            <tr><td><span class="tier-badge t4">Tier 4</span></td><td>Incident-informed — the rule exists because something already broke once.</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="tier-block">
+        <h4><span class="tier-badge t1">Tier 1</span></h4>
+        <ul>
+          <li>Recycle Bin — SAFE, line 26. OS mechanism; items are already user-deleted.</li>
+          <li>Docker reclaimable rows — REVIEW, line 180. Docker’s own <code>system df</code> self-report. Still gated behind SuggestCommand (copy/paste, not auto-run) — extra friction kept even on high-trust data, the right call since these deletes are irreversible.</li>
+          <li>StalePackages installed/orphaned check — REVIEW, lines 312–315. The installed-or-not fact comes from <code>Get-AppxPackage</code> (Windows’ own registry); only the “stale = safe” layer on top is Tier 3.</li>
+          <li>InstalledAppsBySize — INFO only, line 397. Registry read, no action possible either way.</li>
+        </ul>
+      </div>
+
+      <div class="tier-block">
+        <h4><span class="tier-badge t2">Tier 2</span></h4>
+        <ul>
+          <li>User Temp / SoftwareDistribution\Download — SAFE, lines 38 &amp; 42. <code>%TEMP%</code> and Windows Update’s download cache are both Microsoft-documented as transient/safe to clear.</li>
+          <li>VS Code CachedExtensionVSIXs — SAFE, line 54. Documented in VS Code’s own GitHub issues as a re-downloadable install cache (community-level doc, closer to 2b in strength).</li>
+          <li>WSL ~/.cache — SAFE, line 74. XDG Base Directory spec explicitly defines this as non-essential, regenerable.</li>
+          <li>WSL ~/.npm — SAFE, line 79. npm’s own docs describe this as the package cache; <code>npm cache clean</code> is an official, supported operation.</li>
+          <li>WSL pnpm store — SAFE, line 88. pnpm’s own docs describe the store as reconstructable via re-fetch/re-link. Higher blast radius than the others (shared across every pnpm project on the distro) — worth an actual empirical check once before fully trusting this one.</li>
+          <li>node_modules/target WITH a project marker — SAFE, line 107. Standard tool convention, gated by a verifiable marker file rather than name-matching alone — the marker check is what keeps this out of Tier 3.</li>
+          <li>DockerVhdxBloat compaction — REVIEW, line 209. Documented Hyper-V/Docker Desktop behavior (vhdx grows, never auto-shrinks); compaction doesn’t delete data. Kept at REVIEW + manual command anyway.</li>
+        </ul>
+      </div>
+
+      <div class="tier-block">
+        <h4><span class="tier-badge t2b">Tier 2b</span></h4>
+        <ul>
+          <li>.claude cache dirs (shell-snapshots, paste-cache, debug, file-history) — REVIEW, line 474. .codex cache dirs (cache, log, tmp, .tmp) — REVIEW, line 586. Known from inspecting these tools directly, not from a published spec. Correctly kept at REVIEW rather than SAFE — re-verify if either CLI changes its on-disk layout.</li>
+        </ul>
+      </div>
+
+      <div class="tier-block">
+        <h4><span class="tier-badge t3">Tier 3</span> <span class="muted" style="font-weight:400; font-size:0.82rem;">— all currently REVIEW, correctly, none should ever become SAFE</span></h4>
+        <ul>
+          <li>node_modules/target WITHOUT a project marker — REVIEW, line 113. Appropriately downgraded once the verifiable marker check fails.</li>
+          <li>DownloadsTopFolders — REVIEW, line 242. “Big” is not “unwanted”; pure size heuristic, mitigated by Recycle Bin.</li>
+          <li>PersonalFolders (Documents/Desktop/Pictures/Music/Videos top-N) — REVIEW, line 424. Zero semantic knowledge about the file — closest thing in this project to what a manual disk-usage viewer shows and leaves for a human to judge. Correctly the least-trusted bucket.</li>
+          <li>StalePackages “stale = safe to delete” reasoning — REVIEW, lines 309–315. The orphan fact is Tier 1, but “hasn’t been touched in 6 months” as a proxy for “unwanted” is a guess layered on top.</li>
+          <li>AI session transcripts (.jsonl) — REVIEW, lines 512 &amp; 611. Best-designed REVIEW row in the file: instead of asserting a size-only heuristic, it surfaces the underlying signal (age, message count, first-message excerpt) so the human does the actual judgment call.</li>
+        </ul>
+      </div>
+
+      <div class="tier-block">
+        <h4><span class="tier-badge t4">Tier 4</span></h4>
+        <ul>
+          <li>WSL app-server dirs (.vscode-server, .cursor-server, etc.) — excluded entirely as INFO, line 120. Exact failure class as the project memory incident — a rule that looked reasonable and wasn’t, now hardcoded as never-touch rather than re-classified.</li>
+          <li>.claude / .codex root folders — never offered at all. Holds credentials/settings/live memory; precaution, not inferred.</li>
+          <li>FindBuildDirs walking the whole WSL home instead of ~/projects — same failure class as the .vscode-server incident; see the Build Log tab — fixed 2026-07-08.</li>
+        </ul>
+      </div>
+
+      <div class="callout">
+        <p class="callout-label">What this leaves you with</p>
+        <ul style="margin-bottom:0;">
+          <li>Nothing is currently labeled SAFE on Tier-3-only evidence — the purely heuristic buckets (Downloads/Personal top-N, stale packages, AI session files) are already REVIEW and Recycle-Bin-backed</li>
+          <li>The weakest “trusted” items are Tier 2b (Claude/Codex internal folder names) — true today, but only because someone inspected the tool, not because a spec promises it won’t change</li>
+          <li>The pnpm store SAFE rule (Tier 2, but high blast radius) is the one item on this list worth a deliberate one-time empirical test before trusting it further</li>
+        </ul>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="site">disk-cleanup docket — generated for local review, source: SPEC.md · Notes.md · Review.md</footer>
+
+<script>
+  (function () {
+    var tabs = document.querySelectorAll('nav.tabs button');
+    var panels = { spec: document.getElementById('panel-spec'), notes: document.getElementById('panel-notes'), review: document.getElementById('panel-review') };
+    var tocLists = {
+      spec: document.querySelector('[data-toc-list="spec"]'),
+      notes: document.querySelector('[data-toc-list="notes"]'),
+      review: document.querySelector('[data-toc-list="review"]')
+    };
+    var tocTitle = document.querySelector('[data-toc-for]');
+    var titles = { spec: 'Spec sections', notes: 'Journal sections', review: 'Audit sections' };
+    var current = 'spec';
+    var observer = null;
+
+    function buildToc(key) {
+      var list = tocLists[key];
+      if (list.childElementCount) return;
+      var panel = panels[key];
+      var headings = panel.querySelectorAll('section.doc-section > h2');
+      headings.forEach(function (h) {
+        var section = h.closest('section');
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = '#' + section.id;
+        a.textContent = h.textContent.replace(/\s+—.*$/, '').trim();
+        a.dataset.target = section.id;
+        a.addEventListener('click', function (e) {
+          e.preventDefault();
+          section.scrollIntoView({ behavior: reducedMotion() ? 'auto' : 'smooth', block: 'start' });
+        });
+        li.appendChild(a);
+        list.appendChild(li);
+      });
+    }
+
+    function reducedMotion() {
+      return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    }
+
+    function activateTab(key) {
+      current = key;
+      tabs.forEach(function (b) { b.setAttribute('aria-selected', b.dataset.target === key ? 'true' : 'false'); });
+      Object.keys(panels).forEach(function (k) { panels[k].classList.toggle('active', k === key); });
+      Object.keys(tocLists).forEach(function (k) { tocLists[k].hidden = k !== key; });
+      tocTitle.textContent = titles[key];
+      buildToc(key);
+      window.scrollTo({ top: 0, behavior: 'auto' });
+      setupScrollSpy();
+    }
+
+    tabs.forEach(function (btn) {
+      btn.addEventListener('click', function () { activateTab(btn.dataset.target); });
+    });
+
+    function setupScrollSpy() {
+      if (observer) observer.disconnect();
+      var panel = panels[current];
+      var sections = panel.querySelectorAll('section.doc-section');
+      var links = tocLists[current].querySelectorAll('a');
+      var linkFor = {};
+      links.forEach(function (a) { linkFor[a.dataset.target] = a; });
+
+      observer = new IntersectionObserver(function (entries) {
+        entries.forEach(function (entry) {
+          var link = linkFor[entry.target.id];
+          if (!link) return;
+          if (entry.isIntersecting) {
+            links.forEach(function (a) { a.classList.remove('active'); });
+            link.classList.add('active');
+          }
+        });
+      }, { rootMargin: '-15% 0px -70% 0px', threshold: 0 });
+
+      sections.forEach(function (s) { observer.observe(s); });
+    }
+
+    buildToc('spec');
+    setupScrollSpy();
+  })();
+</script>

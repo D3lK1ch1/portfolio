@@ -1,0 +1,774 @@
+---
+layout: case-study
+title: KangarooTuning — Acoustic Guidance Feasibility Study
+---
+<style>
+  :root {
+    --paper: #e5dfc8;
+    --paper-alt: #dcd3b3;
+    --paper-alt-2: #d2c7a3;
+    --ink: #2a2620;
+    --ink-soft: #5c5340;
+    --ink-faint: #8a7f66;
+    --hazard: #a8431a;
+    --hazard-soft: #a8431a1a;
+    --eucalypt: #3d5540;
+    --eucalypt-soft: #3d55401a;
+    --line: rgba(42, 38, 32, 0.16);
+    --line-strong: rgba(42, 38, 32, 0.32);
+    --code-bg: #d9d0af;
+    --diff-add: #3d55401f;
+    --diff-add-ink: #2f4432;
+    --diff-del: #a8431a1f;
+    --diff-del-ink: #7c341a;
+    --shadow: 0 1px 0 rgba(42, 38, 32, 0.4);
+  }
+
+  :root[data-theme="dark"] {
+    --paper: #1a1812;
+    --paper-alt: #231f17;
+    --paper-alt-2: #2c2819;
+    --ink: #e9e1c6;
+    --ink-soft: #b3a686;
+    --ink-faint: #7d735a;
+    --hazard: #e2824c;
+    --hazard-soft: #e2824c26;
+    --eucalypt: #8bb087;
+    --eucalypt-soft: #8bb08726;
+    --line: rgba(233, 225, 198, 0.14);
+    --line-strong: rgba(233, 225, 198, 0.28);
+    --code-bg: #221f16;
+    --diff-add: #8bb0871f;
+    --diff-add-ink: #a9cba6;
+    --diff-del: #e2824c1f;
+    --diff-del-ink: #e2a487;
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --paper: #1a1812;
+      --paper-alt: #231f17;
+      --paper-alt-2: #2c2819;
+      --ink: #e9e1c6;
+      --ink-soft: #b3a686;
+      --ink-faint: #7d735a;
+      --hazard: #e2824c;
+      --hazard-soft: #e2824c26;
+      --eucalypt: #8bb087;
+      --eucalypt-soft: #8bb08726;
+      --line: rgba(233, 225, 198, 0.14);
+      --line-strong: rgba(233, 225, 198, 0.28);
+      --code-bg: #221f16;
+      --diff-add: #8bb0871f;
+      --diff-add-ink: #a9cba6;
+      --diff-del: #e2824c1f;
+      --diff-del-ink: #e2a487;
+      --shadow: 0 1px 0 rgba(0, 0, 0, 0.4);
+    }
+  }
+
+  * { box-sizing: border-box; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    background:
+      linear-gradient(var(--line) 1px, transparent 1px) 0 0 / 28px 28px,
+      linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0 / 28px 28px,
+      var(--paper);
+    color: var(--ink);
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", "Book Antiqua", serif;
+    font-size: 17px;
+    line-height: 1.65;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--hazard); color: var(--paper); }
+
+  a { color: var(--hazard); text-decoration-thickness: 1px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--hazard);
+    outline-offset: 3px;
+  }
+
+  .display {
+    font-family: "Archivo Narrow", "Roboto Condensed", "Arial Narrow", "Segoe UI Semibold", sans-serif;
+    font-stretch: condensed;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    font-weight: 800;
+  }
+
+  .mono {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, "Roboto Mono", monospace;
+  }
+
+  .kicker {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--hazard);
+    font-weight: 600;
+  }
+
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  .wrap-wide {
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ---------- Masthead ---------- */
+
+  .masthead {
+    border-bottom: 3px solid var(--ink);
+    padding: 40px 0 36px;
+  }
+
+  .masthead-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.78rem;
+    color: var(--ink-soft);
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+    border-bottom: 1px solid var(--line-strong);
+  }
+
+  h1.title {
+    font-size: clamp(2.5rem, 7vw, 4.6rem);
+    line-height: 0.96;
+    margin: 0 0 14px;
+    text-wrap: balance;
+  }
+
+  .subtitle {
+    font-family: Georgia, serif;
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 1.15rem;
+    max-width: 46ch;
+    margin: 0 0 22px;
+    text-wrap: balance;
+  }
+
+  .stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    border: 2px solid var(--hazard);
+    color: var(--hazard);
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    transform: rotate(-1.2deg);
+    background: var(--hazard-soft);
+  }
+
+  .hero-graphic {
+    margin-top: 32px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper-alt);
+  }
+
+  .hero-graphic svg { display: block; width: 100%; height: auto; }
+
+  .hero-caption {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    color: var(--ink-faint);
+    padding: 9px 14px;
+    border-top: 1px solid var(--line);
+  }
+
+  .band-key { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; }
+  .band-swatch { width: 10px; height: 10px; display: inline-block; }
+
+  /* ---------- Sections ---------- */
+
+  section { padding: 54px 0; border-bottom: 1px solid var(--line); }
+  section:last-of-type { border-bottom: none; }
+
+  h2.section-title {
+    font-size: clamp(1.5rem, 3.6vw, 2rem);
+    margin: 6px 0 22px;
+    text-wrap: balance;
+  }
+
+  p { margin: 0 0 16px; }
+  p:last-child { margin-bottom: 0; }
+
+  .lede {
+    font-size: 1.08rem;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr;
+    gap: 36px;
+    align-items: start;
+  }
+  @media (max-width: 640px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .fact-box {
+    border: 1px solid var(--line-strong);
+    background: var(--paper-alt);
+    padding: 18px 20px;
+  }
+  .fact-box h3 {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin: 0 0 10px;
+    font-weight: 600;
+  }
+  .fact-box ul { margin: 0; padding-left: 18px; }
+  .fact-box li { margin-bottom: 8px; font-size: 0.94rem; color: var(--ink-soft); }
+  .fact-box li:last-child { margin-bottom: 0; }
+
+  /* ---------- Spec sheet ---------- */
+
+  .spec-sheet {
+    border: 1px solid var(--line-strong);
+    background: var(--paper-alt);
+  }
+  .spec-row {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 4px 20px;
+    padding: 13px 18px;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.92rem;
+  }
+  .spec-row:last-child { border-bottom: none; }
+  .spec-key {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.78rem;
+    color: var(--eucalypt);
+    font-weight: 600;
+  }
+  .spec-val { color: var(--ink-soft); }
+  @media (max-width: 560px) {
+    .spec-row { grid-template-columns: 1fr; }
+  }
+
+  .arch-diagram {
+    margin-top: 28px;
+    border: 1px solid var(--line-strong);
+    background: var(--paper-alt);
+    padding: 20px;
+    overflow-x: auto;
+  }
+  .arch-diagram svg { display: block; margin: 0 auto; }
+
+  /* ---------- Timeline ---------- */
+
+  .timeline { position: relative; }
+  .tl-entry {
+    position: relative;
+    padding: 0 0 34px 28px;
+    border-left: 2px solid var(--line-strong);
+  }
+  .tl-entry:last-child { padding-bottom: 0; }
+  .tl-entry::before {
+    content: "";
+    position: absolute;
+    left: -6px;
+    top: 4px;
+    width: 10px;
+    height: 10px;
+    background: var(--hazard);
+    border: 2px solid var(--paper);
+  }
+  .tl-date {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.76rem;
+    color: var(--hazard);
+    letter-spacing: 0.05em;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .tl-title { font-size: 1.08rem; font-weight: 700; margin-bottom: 6px; }
+  .tl-body { color: var(--ink-soft); font-size: 0.95rem; }
+  .tl-body code { font-size: 0.85rem; }
+
+  /* ---------- Bug log ---------- */
+
+  .bug {
+    border: 1px solid var(--line-strong);
+    background: var(--paper-alt);
+    margin-bottom: 26px;
+    transition: box-shadow 0.15s ease;
+  }
+  .bug:last-child { margin-bottom: 0; }
+  .bug:hover { box-shadow: 3px 3px 0 var(--line-strong); }
+
+  .bug-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .bug-title { font-size: 1.1rem; font-weight: 700; }
+  .bug-file {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.76rem;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .bug-body { padding: 18px 20px; }
+  .bug-body p { font-size: 0.96rem; color: var(--ink-soft); }
+  .bug-body p strong { color: var(--ink); }
+
+  .diff {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.82rem;
+    background: var(--code-bg);
+    border: 1px solid var(--line);
+    overflow-x: auto;
+    margin: 14px 0;
+  }
+  .diff-line {
+    padding: 2px 14px;
+    white-space: pre;
+  }
+  .diff-add { background: var(--diff-add); color: var(--diff-add-ink); }
+  .diff-del { background: var(--diff-del); color: var(--diff-del-ink); }
+
+  .why {
+    border-left: 3px solid var(--eucalypt);
+    padding: 4px 0 4px 14px;
+    font-size: 0.92rem;
+    color: var(--ink-soft);
+    margin-top: 14px;
+  }
+  .why strong { color: var(--eucalypt); font-family: ui-monospace, monospace; font-size: 0.75rem; letter-spacing: 0.06em; text-transform: uppercase; display: block; margin-bottom: 4px; }
+
+  /* ---------- Test readout ---------- */
+
+  .readout-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.92rem;
+  }
+  .readout-table th {
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    text-align: left;
+    font-weight: 600;
+    padding: 10px 14px;
+    border-bottom: 2px solid var(--ink);
+  }
+  .readout-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  .readout-table tr:last-child td { border-bottom: none; }
+  .readout-wrap { overflow-x: auto; border: 1px solid var(--line-strong); background: var(--paper-alt); }
+  .readout-wrap table { min-width: 560px; }
+
+  .count { font-variant-numeric: tabular-nums; font-family: ui-monospace, monospace; font-weight: 700; }
+
+  .pill {
+    display: inline-block;
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+  }
+  .pill-pass { color: var(--eucalypt); }
+  .pill-fail { color: var(--hazard); }
+  .pill-skip { color: var(--ink-faint); }
+
+  /* ---------- Limitations ---------- */
+
+  .caution {
+    border: 1px solid var(--hazard);
+    background: var(--hazard-soft);
+    padding: 22px 24px;
+  }
+  .caution ul { margin: 0; padding-left: 20px; }
+  .caution li { margin-bottom: 12px; font-size: 0.95rem; color: var(--ink-soft); }
+  .caution li:last-child { margin-bottom: 0; }
+  .caution li strong { color: var(--ink); }
+
+  /* ---------- Roadmap ---------- */
+
+  .checklist { list-style: none; margin: 0; padding: 0; }
+  .checklist li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 0.96rem;
+    color: var(--ink-soft);
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .checklist li::before {
+    content: "";
+    flex: none;
+    width: 14px;
+    height: 14px;
+    margin-top: 3px;
+    border: 2px solid var(--ink-faint);
+  }
+
+  /* ---------- Closing ---------- */
+
+  .closing {
+    padding: 54px 0 70px;
+  }
+  .verdict {
+    border-top: 3px solid var(--ink);
+    border-bottom: 3px solid var(--ink);
+    padding: 26px 0;
+    margin-bottom: 30px;
+  }
+  .verdict p { font-size: 1.1rem; }
+  .sign-off {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Consolas, monospace;
+    font-size: 0.78rem;
+    color: var(--ink-faint);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-graphic .band { animation: draw 1.4s ease forwards; }
+    @keyframes draw {
+      from { stroke-dashoffset: var(--len); opacity: 0; }
+      to { stroke-dashoffset: 0; opacity: 1; }
+    }
+  }
+</style>
+
+<div class="masthead">
+  <div class="wrap">
+    <div class="masthead-top">
+      <span>KANGAROOTUNING / FEASIBILITY STUDY</span>
+      <span>SOLO BUILD · MAR&ndash;MAY 2026</span>
+    </div>
+    <h1 class="title display">Kangaroo<br>Tuning</h1>
+    <p class="subtitle">A sound-based wildlife guidance simulation, built to test one question before any hardware gets bought: can directional sound plausibly steer a kangaroo herd away from a construction road and into a safe corridor?</p>
+    <span class="stamp">Simulation-Validated · Field-Unvalidated</span>
+
+    <div class="hero-graphic">
+      <svg viewBox="0 0 880 300" role="img" aria-labelledby="heroTitle heroDesc">
+        <title id="heroTitle">Three-band acoustic field diagram</title>
+        <desc id="heroDesc">A directional emitter on the left projects three acoustic bands toward a safe corridor on the right, crossing a road boundary in between.</desc>
+        <defs>
+          <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+            <path d="M 20 0 L 0 0 0 20" fill="none" stroke="var(--line)" stroke-width="1"/>
+          </pattern>
+        </defs>
+        <rect width="880" height="300" fill="url(#grid)"/>
+
+        <rect x="560" y="0" width="60" height="300" fill="var(--hazard-soft)"/>
+        <text x="590" y="20" text-anchor="middle" class="mono" font-size="10" fill="var(--hazard)">ROAD</text>
+
+        <rect x="740" y="0" width="140" height="300" fill="var(--eucalypt-soft)"/>
+        <text x="810" y="20" text-anchor="middle" class="mono" font-size="10" fill="var(--eucalypt)">CORRIDOR</text>
+
+        <circle cx="60" cy="150" r="7" fill="var(--ink)"/>
+        <text x="60" y="180" text-anchor="middle" class="mono" font-size="10" fill="var(--ink-faint)">EMITTER</text>
+
+        <circle cx="700" cy="140" r="5" fill="var(--ink)"/>
+        <text x="700" y="126" text-anchor="middle" class="mono" font-size="10" fill="var(--ink-faint)">HERD</text>
+
+        <path class="band" style="--len:900" d="M60,150 Q 380,60 700,140" fill="none" stroke="var(--eucalypt)" stroke-width="2.5" stroke-dasharray="900" stroke-dashoffset="0"/>
+        <path class="band" style="--len:900" d="M60,150 Q 380,150 700,140" fill="none" stroke="var(--hazard)" stroke-width="2.5" stroke-dasharray="6 6"/>
+        <path class="band" style="--len:900" d="M60,150 Q 380,240 700,140" fill="none" stroke="var(--ink-faint)" stroke-width="2" stroke-dasharray="2 5"/>
+      </svg>
+      <div class="hero-caption">
+        <span>
+          <span class="band-key"><span class="band-swatch" style="background:var(--eucalypt)"></span>social cue, 500Hz&ndash;2kHz</span>
+          <span class="band-key"><span class="band-swatch" style="background:var(--hazard)"></span>mid-freq guide, 2&ndash;10kHz</span>
+          <span class="band-key"><span class="band-swatch" style="background:var(--ink-faint)"></span>ultrasonic repeller, &gt;20kHz</span>
+        </span>
+        <span>50&times;50 grid · distance attenuation + wind distortion</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<main>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">The Problem</span>
+      <h2 class="section-title display">Fencing works. It also destroys the habitat it's meant to protect.</h2>
+      <div class="two-col">
+        <div>
+          <p class="lede">Construction sites near wildlife corridors kill kangaroos when herds wander onto active roads. The usual fix is physical exclusion &mdash; fencing, which is expensive, disrupts the very corridor it's next to, and doesn't scale to sites with large herds.</p>
+          <p>The alternative under test here is acoustic: directional sound emitters tuned to a kangaroo's hearing range, aiming to nudge herds toward a safe exit corridor instead of walling them out. Nobody had field access, a hardware budget, or live kangaroos to test that on. So the question got answered in simulation first &mdash; build the behavior and physics model, and see whether acoustic guidance is even plausible before buying a single directional speaker.</p>
+        </div>
+        <div class="fact-box">
+          <h3>What the research actually says</h3>
+          <ul>
+            <li>Eastern grey hearing range: 1&ndash;18kHz, peak sensitivity 2&ndash;3.5kHz</li>
+            <li>Foot-thump below 7kHz signals predator threat &mdash; raises vigilance, not approach</li>
+            <li><strong>No confirmed attraction sound exists in the literature</strong> for this species</li>
+            <li>Commercial deterrents (Roo Guard, Shu Roo, Roobadge) show mixed or no proven results</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap-wide">
+      <span class="kicker">System Overview</span>
+      <h2 class="section-title display">What actually got built</h2>
+      <p class="lede" style="max-width:70ch">A 2D grid simulation with a real behavioral model underneath it &mdash; not a toy. Every kangaroo carries stress, curiosity, herd cohesion, a panic threshold, and a velocity, and reacts to a physically modelled sound field rather than a scripted path.</p>
+
+      <div class="spec-sheet">
+        <div class="spec-row"><span class="spec-key">environment</span><span class="spec-val">50&times;50 grid &mdash; construction zone, road boundary, safe corridor, obstacles, worker noise sources</span></div>
+        <div class="spec-row"><span class="spec-key">agent model</span><span class="spec-val">per-kangaroo stress, curiosity, herd cohesion, panic threshold, velocity</span></div>
+        <div class="spec-row"><span class="spec-key">acoustic field</span><span class="spec-val">3-band model &mdash; mid-freq guide, social cue, ultrasonic repeller &mdash; with distance attenuation and wind distortion</span></div>
+        <div class="spec-row"><span class="spec-key">controllers</span><span class="spec-val">rule-based baseline (shipped) + Gymnasium-compatible PPO environment scaffold (untrained)</span></div>
+        <div class="spec-row"><span class="spec-key">interface</span><span class="spec-val">CLI &mdash; status / demo / interactive / test, plus a real-time ASCII map renderer</span></div>
+        <div class="spec-row"><span class="spec-key">tests</span><span class="spec-val">pytest, 3 stages, documented expected outcomes &mdash; including the ones expected to fail</span></div>
+      </div>
+
+      <div class="arch-diagram">
+        <svg viewBox="0 0 720 200" width="720" height="200" role="img" aria-labelledby="archTitle archDesc">
+          <title id="archTitle">Acoustic state ownership diagram</title>
+          <desc id="archDesc">AcousticField computes the real sound values. AcousticEnvironment holds a cached copy read by each KangarooAgent. A sync call is required to keep the cache current.</desc>
+          <rect x="20" y="70" width="180" height="60" fill="none" stroke="var(--ink)" stroke-width="1.5"/>
+          <text x="110" y="95" text-anchor="middle" class="mono" font-size="12" fill="var(--ink)">AcousticField</text>
+          <text x="110" y="112" text-anchor="middle" class="mono" font-size="9" fill="var(--ink-faint)">computes real values</text>
+
+          <rect x="270" y="70" width="200" height="60" fill="none" stroke="var(--hazard)" stroke-width="1.5"/>
+          <text x="370" y="95" text-anchor="middle" class="mono" font-size="12" fill="var(--hazard)">AcousticEnvironment</text>
+          <text x="370" y="112" text-anchor="middle" class="mono" font-size="9" fill="var(--ink-faint)">holds cached copy</text>
+
+          <rect x="540" y="70" width="160" height="60" fill="none" stroke="var(--eucalypt)" stroke-width="1.5"/>
+          <text x="620" y="95" text-anchor="middle" class="mono" font-size="12" fill="var(--eucalypt)">KangarooAgent</text>
+          <text x="620" y="112" text-anchor="middle" class="mono" font-size="9" fill="var(--ink-faint)">reads the cache</text>
+
+          <line x1="200" y1="100" x2="266" y2="100" stroke="var(--hazard)" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <text x="233" y="88" text-anchor="middle" class="mono" font-size="8" fill="var(--hazard)">update_acoustic_fields()</text>
+          <text x="233" y="150" text-anchor="middle" class="mono" font-size="8" fill="var(--hazard)">never called &mdash; the bug</text>
+
+          <line x1="470" y1="100" x2="536" y2="100" stroke="var(--ink)" stroke-width="1.5"/>
+          <polygon points="536,100 528,96 528,104" fill="var(--ink)"/>
+        </svg>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">Build Timeline</span>
+      <h2 class="section-title display">Nine weeks, four real work sessions</h2>
+      <div class="timeline">
+        <div class="tl-entry">
+          <div class="tl-date">08 MAR 2026</div>
+          <div class="tl-title">Scaffold: environment, agent model, acoustic field, CLI</div>
+          <div class="tl-body">First working build. Stage 1 tests at this point: stress response and herd behavior <strong style="color:var(--eucalypt)">passed</strong>; acoustic gradient influence and ultrasonic repulsion <strong style="color:var(--hazard)">failed</strong> &mdash; the sound field wasn't reaching the agents yet.</div>
+        </div>
+        <div class="tl-entry">
+          <div class="tl-date">12 APR 2026</div>
+          <div class="tl-title">Documentation overhaul</div>
+          <div class="tl-body">Rewrote the README against a proper template, fixed typos. No behavior changes &mdash; a legibility pass before the bug-hunting session that followed.</div>
+        </div>
+        <div class="tl-entry">
+          <div class="tl-date">27 APR 2026</div>
+          <div class="tl-title">The bug-fixing day</div>
+          <div class="tl-body">Found and fixed the acoustic sync bug that had kangaroos moving blind since day one, three separate bugs in the rule-based controller, wired in the real <code>RLController</code> import, and added the CLI entrypoint. Most of the case study below happened in this single session.</div>
+        </div>
+        <div class="tl-entry">
+          <div class="tl-date">03&ndash;06 MAY 2026</div>
+          <div class="tl-title">Cleanup and close-out</div>
+          <div class="tl-body">Deduplicated <code>RL_ACTION_MAP</code> into <code>config.py</code>, removed dead state fields from <code>SoundEmulator</code>, fixed a control-flow bug in the RL action dispatch, and closed the POC with final documented test results.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap-wide">
+      <span class="kicker">Bug Log</span>
+      <h2 class="section-title display">Four bugs worth explaining</h2>
+      <p class="lede" style="max-width:70ch">Picked for what they teach, not just that they got fixed. All four are real commits from 27 April &ndash; 6 May.</p>
+
+      <div class="bug">
+        <div class="bug-head">
+          <span class="bug-title">Kangaroos were navigating blind</span>
+          <span class="bug-file">kangaroo_agent.py</span>
+        </div>
+        <div class="bug-body">
+          <p><strong>Root cause:</strong> two objects held the same data. <code>AcousticField</code> computed the real sound values every step; <code>AcousticEnvironment</code> held a cached copy that agents actually read from. The method that synced the cache, <code>update_acoustic_fields()</code>, existed and worked &mdash; it was just never called during a simulation step. Every kangaroo read an all-zero sound field, every step, for the entire early build. That's why Stage 1's acoustic tests failed on 8 March.</p>
+          <div class="diff">
+            <div class="diff-line">  def step_all(self, acoustic_environment, acoustic_field):</div>
+            <div class="diff-line diff-add">+     acoustic_environment.update_acoustic_fields(acoustic_field)</div>
+            <div class="diff-line">      herd_center = self.get_herd_center()</div>
+            <div class="diff-line">      for agent in self.agents:</div>
+          </div>
+          <div class="why"><strong>Why it's worth telling</strong>A one-line fix, but the failure mode is a real category: a cache-invalidation bug. Nothing crashed. Nothing threw. The simulation ran fine and produced confidently wrong behavior for weeks, because no one checked whether the numbers a component reads are the same numbers being computed elsewhere.</div>
+        </div>
+      </div>
+
+      <div class="bug">
+        <div class="bug-head">
+          <span class="bug-title">Checking a key exists instead of what it's set to</span>
+          <span class="bug-file">controller_rule_based.py</span>
+        </div>
+        <div class="bug-body">
+          <p><strong>Root cause:</strong> the action dict always carried every key, with a default value when unset. <code>if "activate_cue" in action</code> is <code>True</code> whenever the key is present &mdash; which was always &mdash; so the social cue, ultrasound, and intensity branches fired every single step regardless of whether the controller had actually decided to activate them.</p>
+          <div class="diff">
+            <div class="diff-line diff-del">-     if "activate_cue" in action:</div>
+            <div class="diff-line diff-add">+     if action["activate_cue"]:</div>
+            <div class="diff-line">          acoustic_field.set_social_cue(action["activate_cue"], 0.3)</div>
+          </div>
+          <div class="why"><strong>Why it's worth telling</strong><code>in</code> checks presence, not truthiness. Easy to write, easy to miss in review, and it silently turns a conditional into an unconditional &mdash; three separate branches, same mistake, same commit.</div>
+        </div>
+      </div>
+
+      <div class="bug">
+        <div class="bug-head">
+          <span class="bug-title">The beam that never stopped spinning</span>
+          <span class="bug-file">controller_rule_based.py</span>
+        </div>
+        <div class="bug-body">
+          <p><strong>Root cause:</strong> <code>get_action()</code> computed an absolute target angle toward the corridor. <code>apply_action()</code> treated it as a relative delta and added it to the current beam angle every step. The beam angle grew without bound instead of tracking the corridor, and the herd's starting position was hardcoded into the angle calculation on top of that, so it never re-aimed as the herd moved.</p>
+          <div class="diff">
+            <div class="diff-line diff-del">-     current_angle = acoustic_field.beam_angle</div>
+            <div class="diff-line diff-del">-     new_angle = current_angle + action["adjust_beam_direction"]</div>
+            <div class="diff-line diff-add">+     new_angle = action["adjust_beam_direction"]</div>
+          </div>
+          <div class="why"><strong>Why it's worth telling</strong>The variable name <code>adjust_beam_direction</code> was ambiguous about absolute vs. relative &mdash; renamed at the call site to make the contract obvious rather than leaving a comment that would drift from the code.</div>
+        </div>
+      </div>
+
+      <div class="bug">
+        <div class="bug-head">
+          <span class="bug-title">Dispatch logic that ran for the wrong controller</span>
+          <span class="bug-file">simulation_runner.py</span>
+        </div>
+        <div class="bug-body">
+          <p><strong>Root cause:</strong> two bugs, same commit, same root cause &mdash; control flow drifted out of the block it belonged in. Controller type detection used <code>hasattr(controller, 'model')</code> as a stand-in for "is this the RL controller," which is fragile &mdash; any object exposing a <code>.model</code> attribute for any reason would get routed down the RL path. Separately, the RL action-dispatch block was placed after the if/else instead of inside it, so it executed unconditionally, including for the rule-based controller, whose actions are a dict where the dispatch expected an integer key. TypeError, every step.</p>
+          <div class="diff">
+            <div class="diff-line diff-del">-     if hasattr(self.controller, RLController):</div>
+            <div class="diff-line diff-add">+     if isinstance(self.controller, RLController):</div>
+            <div class="diff-line">          action = self.controller.get_action(state)</div>
+            <div class="diff-line diff-add">+         self._apply_rl_action(action)</div>
+            <div class="diff-line diff-add">+         action_name = config.RL_ACTION_MAP.get(action, "increase_intensity")</div>
+          </div>
+          <div class="why"><strong>Why it's worth telling</strong><code>hasattr</code> checks are a common shortcut for type detection in Python, but they detect shape, not identity. <code>isinstance</code> says what the object actually is.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap-wide">
+      <span class="kicker">Test Readout</span>
+      <h2 class="section-title display">Where the POC actually landed</h2>
+      <div class="readout-wrap">
+        <table class="readout-table">
+          <thead>
+            <tr><th>Stage</th><th>Result</th><th>Notes</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>1 &mdash; Behavior model</td>
+              <td><span class="count">4</span>/<span class="count">4</span> <span class="pill pill-pass">Pass</span></td>
+              <td>Acoustic gradient influence, ultrasonic repulsion, stress response, herd behavior &mdash; core mechanics confirmed working.</td>
+            </tr>
+            <tr>
+              <td>2 &mdash; Rule-based controller</td>
+              <td><span class="count">3</span>/<span class="count">4</span> <span class="pill pill-fail">1 Fail</span></td>
+              <td>Near-road response, stress reduction, and baseline pass. Corridor guidance fails: starting distance of 40 grid units exceeds effective beam range at current attenuation settings &mdash; documented as a parameter limitation, not a code bug.</td>
+            </tr>
+            <tr>
+              <td>3 &mdash; RL scaffold</td>
+              <td><span class="count">2</span> Pass / <span class="count">3</span> <span class="pill pill-skip">Skip</span></td>
+              <td>Environment interface and RL-vs-rule comparison pass. Training convergence, safe-exit-rate, and generalization tests skipped &mdash; no trained model exists yet.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">Known Limitations</span>
+      <h2 class="section-title display">What this doesn't prove</h2>
+      <div class="caution">
+        <ul>
+          <li><strong>Behavioral parameters aren't field-validated.</strong> Stress accumulation, curiosity response, and acoustic sensitivity curves are estimated from desk research about kangaroo hearing, not measured from real animals.</li>
+          <li><strong>No confirmed attraction sound exists in the literature.</strong> The mid-frequency guide beam is a working hypothesis, not an established fact &mdash; this is the central untested assumption the whole approach rests on.</li>
+          <li><strong>Habituation is unmodeled.</strong> Real animals adapt to repeated artificial stimuli over time; the simulation doesn't account for that.</li>
+          <li><strong>Outdoor sound dispersion and construction background noise</strong> are unresolved &mdash; the acoustic model runs in a clean simulated field.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="wrap">
+      <span class="kicker">What's Next</span>
+      <h2 class="section-title display">Before any hardware gets built</h2>
+      <ul class="checklist">
+        <li>Train the PPO controller &mdash; target &gt;80% safe exit rate</li>
+        <li>Sensitivity analysis on curiosity, herd cohesion, and gradient strength</li>
+        <li>Baseline comparison: random walk vs. acoustic-guided, to prove the influence is real and not noise</li>
+        <li>Monte Carlo runs across multiple seeds for statistical validation</li>
+        <li>Hardware prototype &mdash; Raspberry Pi, directional speaker, PIR sensor &mdash; only once simulation results hold up</li>
+        <li>Field testing &mdash; requires a wildlife permit and ethics clearance</li>
+      </ul>
+    </div>
+  </section>
+
+  <div class="closing">
+    <div class="wrap">
+      <div class="verdict">
+        <span class="kicker">POC Verdict</span>
+        <p>Acoustic guidance is plausible in simulation and unproven in the field. That's not a hedge &mdash; it's the actual, disciplined output of a proof-of-concept: don't spend a hardware budget or ask for a wildlife permit until the physics and behavior model earn it. The model earned a "maybe, worth prototyping." It didn't earn a "yes."</p>
+      </div>
+      <div class="sign-off">
+        <span>1,577 lines &middot; 6 python modules &middot; 3 test stages</span>
+        <span>KangarooTuning &middot; closed 06 May 2026</span>
+      </div>
+    </div>
+  </div>
+
+</main>

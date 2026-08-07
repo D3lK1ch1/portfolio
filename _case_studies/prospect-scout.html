@@ -1,0 +1,526 @@
+---
+layout: case-study
+title: Prospect Scout — Build Log & Case File
+description: "A build log and case study for Prospect Scout: an evidence-only, locally-run research aid, documented the same way it documents its own findings."
+---
+<style>
+  :root {
+    --paper: #E9EDEF;
+    --paper-raised: #FFFFFF;
+    --paper-sunk: #DCE2E5;
+    --ink: #16232F;
+    --ink-soft: #4B5A67;
+    --ink-faint: #7C8A94;
+    --accent: #1B6E8C;
+    --accent-ink: #0E3B4A;
+    --confirmed: #2E7D4F;
+    --confirmed-bg: #E3F0E5;
+    --review: #9C6B10;
+    --review-bg: #F3E8D2;
+    --rejected: #9C4A3C;
+    --rejected-bg: #F2E1DD;
+    --rule: #C7CFD2;
+    --rule-strong: #A9B4B8;
+    --shadow: 0 1px 0 rgba(22,35,47,0.06);
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", "JetBrains Mono", Consolas, "Roboto Mono", "Liberation Mono", monospace;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, "Times New Roman", serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --paper: #0D1620;
+      --paper-raised: #142331;
+      --paper-sunk: #0A1119;
+      --ink: #E7EDF1;
+      --ink-soft: #9FB2BE;
+      --ink-faint: #6C8291;
+      --accent: #5FC7E8;
+      --accent-ink: #BFEBF8;
+      --confirmed: #6BCB8E;
+      --confirmed-bg: #123021;
+      --review: #E3B15C;
+      --review-bg: #332508;
+      --rejected: #E28E7E;
+      --rejected-bg: #331917;
+      --rule: #23384A;
+      --rule-strong: #345066;
+      --shadow: 0 1px 0 rgba(0,0,0,0.4);
+    }
+  }
+  :root[data-theme="dark"] {
+    --paper: #0D1620;
+    --paper-raised: #142331;
+    --paper-sunk: #0A1119;
+    --ink: #E7EDF1;
+    --ink-soft: #9FB2BE;
+    --ink-faint: #6C8291;
+    --accent: #5FC7E8;
+    --accent-ink: #BFEBF8;
+    --confirmed: #6BCB8E;
+    --confirmed-bg: #123021;
+    --review: #E3B15C;
+    --review-bg: #332508;
+    --rejected: #E28E7E;
+    --rejected-bg: #331917;
+    --rule: #23384A;
+    --rule-strong: #345066;
+    --shadow: 0 1px 0 rgba(0,0,0,0.4);
+  }
+  :root[data-theme="light"] {
+    --paper: #E9EDEF;
+    --paper-raised: #FFFFFF;
+    --paper-sunk: #DCE2E5;
+    --ink: #16232F;
+    --ink-soft: #4B5A67;
+    --ink-faint: #7C8A94;
+    --accent: #1B6E8C;
+    --accent-ink: #0E3B4A;
+    --confirmed: #2E7D4F;
+    --confirmed-bg: #E3F0E5;
+    --review: #9C6B10;
+    --review-bg: #F3E8D2;
+    --rejected: #9C4A3C;
+    --rejected-bg: #F2E1DD;
+    --rule: #C7CFD2;
+    --rule-strong: #A9B4B8;
+    --shadow: 0 1px 0 rgba(22,35,47,0.06);
+  }
+
+  * { box-sizing: border-box; }
+  html { color-scheme: light dark; }
+  body {
+    margin: 0;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 17px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection { background: var(--accent); color: var(--paper-raised); }
+  a { color: var(--accent); text-decoration-thickness: 1px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+  .wrap { max-width: 760px; margin: 0 auto; padding: 0 24px; }
+
+  code, .mono { font-family: var(--mono); }
+
+  /* ---------- title block ---------- */
+  .titleblock {
+    border-bottom: 3px double var(--rule-strong);
+    padding: 48px 0 22px;
+  }
+  .titleblock .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+  h1 {
+    font-family: var(--mono);
+    font-weight: 700;
+    font-size: clamp(28px, 5vw, 42px);
+    letter-spacing: -0.01em;
+    margin: 0 0 10px;
+    text-wrap: balance;
+  }
+  .titleblock .dek {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-soft);
+    font-size: 19px;
+    max-width: 58ch;
+    margin: 0;
+    text-wrap: balance;
+  }
+  .meta-grid {
+    margin-top: 26px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .meta-grid div {
+    background: var(--paper-raised);
+    padding: 10px 14px;
+  }
+  .meta-grid .k {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: block;
+    margin-bottom: 4px;
+  }
+  .meta-grid .v {
+    font-family: var(--mono);
+    font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ---------- sections ---------- */
+  section { padding: 44px 0; border-bottom: 1px solid var(--rule); }
+  section:last-of-type { border-bottom: none; }
+  .section-label {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 6px;
+  }
+  h2 {
+    font-family: var(--mono);
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  p { margin: 0 0 16px; max-width: 66ch; }
+  section > p:last-child { margin-bottom: 0; }
+
+  /* ---------- hero evidence card ---------- */
+  .hero-card {
+    margin-top: 32px;
+    background: var(--paper-raised);
+    border: 1px solid var(--rule-strong);
+    box-shadow: var(--shadow);
+  }
+  .hero-card .card-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--paper-sunk);
+  }
+  .hero-card .card-head .kind {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .stamp {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border: 1px solid currentColor;
+    white-space: nowrap;
+  }
+  .stamp.confirmed { color: var(--confirmed); background: var(--confirmed-bg); }
+  .stamp.review    { color: var(--review); background: var(--review-bg); }
+  .stamp.rejected  { color: var(--rejected); background: var(--rejected-bg); }
+  .hero-card .card-body { padding: 18px 18px 20px; }
+  .hero-card blockquote {
+    margin: 0 0 14px;
+    padding-left: 14px;
+    border-left: 2px solid var(--rule-strong);
+    font-style: italic;
+    color: var(--ink-soft);
+  }
+  .hero-card .field { display: flex; gap: 10px; font-size: 14.5px; margin-top: 8px; }
+  .hero-card .field .k { font-family: var(--mono); color: var(--ink-faint); flex: 0 0 96px; text-transform: uppercase; font-size: 11px; letter-spacing: 0.06em; padding-top: 2px; }
+  .hero-card .field .v { flex: 1; }
+  .hero-card .field a { word-break: break-all; }
+  .hero-caption {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    margin-top: 10px;
+  }
+
+  /* ---------- build log ---------- */
+  .log-entry { display: grid; grid-template-columns: 108px 1fr; gap: 18px; padding: 20px 0; border-top: 1px solid var(--rule); }
+  .log-entry:first-of-type { border-top: none; padding-top: 0; }
+  .log-date { font-family: var(--mono); font-size: 13px; color: var(--accent); padding-top: 2px; }
+  .log-title { font-weight: 700; margin: 0 0 6px; font-size: 17px; }
+  .log-body p { font-size: 15.5px; margin-bottom: 10px; }
+  .log-body ul { margin: 0 0 6px; padding-left: 20px; font-size: 15.5px; }
+  .log-body li { margin-bottom: 4px; }
+  .log-body .filecite { font-family: var(--mono); font-size: 13px; background: var(--paper-sunk); padding: 1px 5px; }
+
+  /* ---------- case studies ---------- */
+  .case { background: var(--paper-raised); border: 1px solid var(--rule-strong); box-shadow: var(--shadow); margin-bottom: 22px; }
+  .case:last-child { margin-bottom: 0; }
+  .case-head { padding: 14px 20px; border-bottom: 1px solid var(--rule); display: flex; align-items: baseline; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+  .case-head h3 { font-family: var(--mono); font-size: 16px; margin: 0; }
+  .case-body { padding: 18px 20px 20px; }
+  .case-body p { font-size: 15.5px; }
+  .case-trace {
+    font-family: var(--mono);
+    font-size: 13.5px;
+    background: var(--paper-sunk);
+    border-left: 2px solid var(--accent);
+    padding: 10px 14px;
+    margin: 14px 0;
+    overflow-x: auto;
+    white-space: pre;
+  }
+  .case-verdict { display: flex; gap: 10px; align-items: baseline; margin-top: 14px; font-size: 15px; }
+  .case-verdict .stamp { flex: 0 0 auto; }
+
+  /* ---------- rules table ---------- */
+  .rules-table { width: 100%; border-collapse: collapse; font-size: 15px; }
+  .rules-table th, .rules-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+  .rules-table th { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-faint); font-weight: 600; }
+  .rules-table td:first-child { font-family: var(--mono); font-size: 13.5px; white-space: nowrap; color: var(--accent-ink); }
+  .table-scroll { overflow-x: auto; border: 1px solid var(--rule); }
+  .table-scroll .rules-table th, .table-scroll .rules-table td { border-bottom: 1px solid var(--rule); }
+  .table-scroll .rules-table tr:last-child td { border-bottom: none; }
+
+  /* ---------- gaps ledger ---------- */
+  .ledger { list-style: none; margin: 0; padding: 0; }
+  .ledger li { display: grid; grid-template-columns: 26px 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--rule); font-size: 15px; }
+  .ledger li:first-child { border-top: none; }
+  .ledger .num { font-family: var(--mono); font-size: 13px; color: var(--ink-faint); padding-top: 2px; }
+  .ledger .gap-title { font-weight: 700; margin: 0 0 4px; font-size: 15.5px; }
+  .ledger p { margin: 0; font-size: 14.5px; color: var(--ink-soft); }
+
+  /* ---------- stack strip ---------- */
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-bottom: 22px; }
+  .stat-strip div { background: var(--paper-raised); padding: 16px 14px; }
+  .stat-strip .num { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--accent-ink); font-variant-numeric: tabular-nums; }
+  .stat-strip .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; }
+  .stack-list { font-family: var(--mono); font-size: 14px; color: var(--ink-soft); line-height: 2; }
+  .stack-list b { color: var(--ink); font-weight: 600; }
+
+  footer { padding: 40px 0 60px; }
+  footer .rule { border: none; border-top: 3px double var(--rule-strong); margin: 0 0 26px; }
+  footer p { font-size: 14.5px; color: var(--ink-soft); max-width: 60ch; }
+  footer .sign { font-family: var(--mono); font-size: 13px; color: var(--ink-faint); margin-top: 18px; }
+
+  @media (max-width: 600px) {
+    .titleblock { padding-top: 34px; }
+    .titleblock .eyebrow { flex-direction: column; gap: 4px; }
+    .log-entry { grid-template-columns: 1fr; gap: 4px; }
+    .hero-card .field { flex-direction: column; gap: 2px; }
+    .hero-card .field .k { flex: none; }
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    section, .hero-card, .case { animation: rise 0.5s ease-out both; }
+    section:nth-of-type(2) { animation-delay: 0.02s; }
+  }
+  @keyframes rise { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation: none !important; transition: none !important; }
+  }
+</style>
+
+<div class="wrap">
+
+  <div class="titleblock">
+    <div class="eyebrow">
+      <span>CASE FILE / BUILD LOG</span>
+      <span>MELBOURNE · VIC · AUSTRALIA</span>
+    </div>
+    <h1>Prospect Scout</h1>
+    <p class="dek">A locally-run research aid that finds companies worth a cold email — and refuses to tell you anything it can't cite. This page documents how it was built, what broke, and what's still honestly unsolved, using the same evidence discipline the tool itself is built around.</p>
+    <div class="meta-grid">
+      <div><span class="k">Status</span><span class="v">Pre-release</span></div>
+      <div><span class="k">Sessions logged</span><span class="v">2026-07-26 → 08-07</span></div>
+      <div><span class="k">Tests passing</span><span class="v">131 / 131</span></div>
+      <div><span class="k">Live calls in suite</span><span class="v">0</span></div>
+    </div>
+  </div>
+
+  <section aria-label="Sample output">
+    <p class="section-label">Exhibit A — what it actually outputs</p>
+    <h2>One real result, unedited</h2>
+    <p>Not a mockup. This is a live finding from a real run against <code>itnetworks.com.au</code>, discovered during this session's own testing — reproduced here exactly as the tool wrote it, because a case study about an evidence-only tool should open with evidence, not a claim about one.</p>
+    <div class="hero-card">
+      <div class="card-head">
+        <span class="kind">Team Contact Signal</span>
+        <span class="stamp confirmed">confidence: medium</span>
+      </div>
+      <div class="card-body">
+        <blockquote>&ldquo;CTO&rdquo; found on this page, near the text: &ldquo;...About IT Networks. Meet the leadership team behind IT Networks&rsquo; managed IT support...&rdquo;</blockquote>
+        <div class="field"><span class="k">Source</span><span class="v"><a href="https://www.itnetworks.com.au/about-it-networks/" target="_blank" rel="noopener noreferrer">itnetworks.com.au/about-it-networks/</a></span></div>
+        <div class="field"><span class="k">Suggestion</span><span class="v">Possible contact: Jim Kay (CTO) — verify from the excerpt before reaching out; this is a best-effort match, not confirmed.</span></div>
+      </div>
+    </div>
+    <p class="hero-caption">That specific result didn't exist until this session fixed a false positive that pointed at a blog post about installing Microsoft Teams instead. See Case 01.</p>
+  </section>
+
+  <section aria-label="What it is">
+    <p class="section-label">Brief</p>
+    <h2>The challenge to create the solution</h2>
+    <p>While there are many official and unofficial job boards out there, or else automation agents to make the job hunt easier, it focuses more on the 20% jobs posted seen rather than the 80% hidden job market through word of mouth, or the bold chance to reach out for them.</p>
+    <p>The idea stemmed with a piece of advice called 'why not search for the company, find the CTO / HR etc and then reach out via cold email? Find what you can solve for them, write it out and get that conversation'. Rather than job boards with the usual resume and cover letter fed to the ATS and 99% leading nowhere, why not that type of appeal?</p>
+    <p>The problem for me is finding those companies, especially 'small to mid-sized' companies more likely to hire junior / entry level candidates with international immigrant status even for just a bit and pay the bills than big companies that everyone covets. So, I reached out to spec this project, casting a net over the location for those companies, even non-tech as long as they have a tech team, and take my chances.</p>
+    <h2>What this actually is</h2>
+    <p>Given a location and a technical interest, Prospect Scout finds publicly visible companies that are plausible prospects, collects verifiable case-study and hiring signals from their own sites, and writes a local report for a human to review before reaching out. It is deliberately not a lead-generation guarantee — a search can return zero eligible companies when public evidence doesn't support one, and that's treated as a correct answer, not a failure.</p>
+    <p>The one rule everything else follows from: it must never invent a company, a case study, a problem, or a contact. Every finding ships with a source URL, an excerpt, and a confidence level the human is meant to actually distrust a little.</p>
+  </section>
+
+  <section aria-label="Build log">
+    <p class="section-label">Log</p>
+    <h2>Build log</h2>
+
+    <div class="log-entry">
+      <div class="log-date">2026-07-26</div>
+      <div class="log-body">
+        <p class="log-title">Search widening, ranking, and a results page worth reading</p>
+        <p>OSM discovery widened to libraries and research institutes alongside offices; <span class="filecite">scout/research.py</span> gained bounded concurrency so a 250-candidate run finishes in minutes instead of tens of minutes; <span class="filecite">scout/ranking.py</span> shipped — eligible before needs-review, then location and evidence strength, reasons shown per company instead of an opaque score. Role matching switched from substring to whole-word after a real false positive: &ldquo;software engineer&rdquo; was matching inside &ldquo;software engineering,&rdquo; a degree name, not a role.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-07-31</div>
+      <div class="log-body">
+        <p class="log-title">Baseline: fetcher, discovery, evidence pipeline, reporting</p>
+        <p>The polite fetcher (<span class="filecite">scout/fetcher.py</span>) — honours <code>robots.txt</code>, identifies itself honestly, skips login-gated content. Sitemap-first page discovery, sector classification, location verification, and local Markdown/JSON reporting. First documented baseline; the web app and CLI both usable end to end.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-04</div>
+      <div class="log-body">
+        <p class="log-title">Profile-aware discovery and a named contact, only when the site actually publishes one</p>
+        <p>OSM's single fixed <code>office=*</code> query became a per-profile tag set — the technology profile now asks for <code>office=it</code>/<code>research</code>/<code>engineer</code>, not everything. Team/leadership-page contact extraction shipped, deliberately scoped to a company's own published team page — no third-party enrichment, no guessed emails. Caught two real bugs in testing before shipping: naive matching once flagged &ldquo;Sales Director&rdquo; as a &ldquo;CTO&rdquo; hit (both words contain the substring &ldquo;cto&rdquo;), and a name-extraction heuristic once grabbed &ldquo;Our Head&rdquo; instead of the real name sitting two words later.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-07</div>
+      <div class="log-body">
+        <p class="log-title">Live-testing the live tool, and fixing what it found</p>
+        <p>This session. Ran real searches, read every result by hand, and didn't like some of them — see the three cases below. Shipped from that: a word-boundary fix for a false-positive contact page, a minimum-evidence floor before the tool will assert a sector, contact-aware and MSP-language-aware wording on its weakest finding type, and a full redesign of outreach guidance — from a composed, sendable draft to personalized talking points, after a first attempt over-corrected into being generic.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="Case studies">
+    <p class="section-label">Exhibits B–D</p>
+    <h2>Three bugs, found by actually reading the output</h2>
+    <p>None of these came from a code review. They came from running real searches against real companies and refusing to accept a result just because it didn't crash.</p>
+
+    <div class="case">
+      <div class="case-head">
+        <h3>Case 01 — The blog post about Microsoft Teams</h3>
+        <span class="stamp confirmed">confirmed &amp; fixed</span>
+      </div>
+      <div class="case-body">
+        <p>Team-contact discovery matched pages by keyword: <code>"team"</code> among them. It flagged <code>/blog/how-to-install-microsoft-teams/</code> as a leadership page — because <code>"team"</code> is a literal substring of <code>"teams,"</code> the software product, not the org-chart concept. The extracted "contact" was <code>Business Needs</code>, pulled from the headline <em>&ldquo;Why Your Small Business Needs a CIO.&rdquo;</em></p>
+        <div class="case-trace">path = "/blog/how-to-install-microsoft-teams/"
+"team" in path            → True   (substring match — wrong)
+re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
+        <p>Fixed with a word-boundary match, deliberately scoped to team-page keywords only — the case-study keyword list keeps its existing substring behaviour on purpose, since one of its terms (<code>"success-stor"</code>) is an intentional truncation to catch both "story" and "stories." Re-ran the exact same company afterward: it found the real about page, and a real name.</p>
+        <div class="case-verdict"><span class="stamp confirmed">Live re-test</span><span>itnetworks.com.au now returns Jim Kay, CTO — the card at the top of this page.</span></div>
+      </div>
+    </div>
+
+    <div class="case">
+      <div class="case-head">
+        <h3>Case 02 — A public library, filed under fashion retail</h3>
+        <span class="stamp review">partially fixed — said so</span>
+      </div>
+      <div class="case-body">
+        <p>Sector inference counts keyword hits per category and reports the winner, no matter how thin the margin. A local council library's homepage scored two hits under <em>fashion/retail</em>: <code>"collection"</code> and <code>"clothing."</code> A library collection isn't a clothing collection — but the word is identical either way.</p>
+        <p>Added a floor: a sector needs at least two independent keyword hits before it gets reported as anything but <em>unknown</em>. Re-ran the library afterward, expecting it fixed.</p>
+        <div class="case-verdict"><span class="stamp review">It wasn't.</span><span>Two hits clears a floor of two. The fix catches thin, single-word false positives — not this one. Said so plainly instead of quietly claiming a win; the honest fix needs the word list itself reconsidered, not just a stricter count.</span></div>
+      </div>
+    </div>
+
+    <div class="case">
+      <div class="case-head">
+        <h3>Case 03 — BHP was in the map data the whole time</h3>
+        <span class="stamp confirmed">confirmed, scoped for later</span>
+      </div>
+      <div class="case-body">
+        <p>Prompted by a real story: someone found a tech role at a mining company through a networking event, not a search. Checked directly whether OpenStreetMap even had the data — it did. BHP's Melbourne HQ is a real, recently-verified OSM node, tagged <code>office=company</code>, with a live <code>website</code> tag pointing at bhp.com.</p>
+        <div class="case-trace">node(2456680377) → office=company, website=bhp.com, check_date=2026-05-28</div>
+        <p>The technology profile's OSM query only asks for <code>office=it</code>/<code>research</code>/<code>engineer</code> — not <code>office=company</code>, the tag every generic corporate HQ gets. BHP was findable and invisible to this profile at the same time. Filed as evidence for a real, separately-scoped question: tech work increasingly lives inside companies that don't look like tech companies at all — not something to patch into this session's fixes by accident.</p>
+      </div>
+    </div>
+  </section>
+
+  <section aria-label="The rules">
+    <p class="section-label">Contract</p>
+    <h2>What every finding is required to carry</h2>
+    <p>Not a style guide — an enforced shape. A finding missing any of these isn't a weaker finding, it's not a finding.</p>
+    <div class="table-scroll">
+      <table class="rules-table">
+        <thead><tr><th>Field</th><th>Requirement</th></tr></thead>
+        <tbody>
+          <tr><td>source_url</td><td>Canonical URL after redirects — always the company's own site.</td></tr>
+          <tr><td>evidence</td><td>Short observed text, actually present on the fetched page. Never paraphrased into a claim.</td></tr>
+          <tr><td>confidence</td><td>High, medium, or low — a name match with no name nearby is low, always.</td></tr>
+          <tr><td>suggestion</td><td>A specific next action tied to that evidence, framed as a hypothesis, never a certainty.</td></tr>
+          <tr><td>status</td><td>eligible / needs_review / rejected. Only eligible companies get recommended — no evidence, no recommendation.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-label="Known limitations">
+    <p class="section-label">Open ledger</p>
+    <h2>What's still honestly unsolved</h2>
+    <p>Recorded on purpose, not discovered by a reader. A tool that only admits its limits when asked isn't actually being evidence-based about itself.</p>
+    <ul class="ledger">
+      <li>
+        <span class="num">01</span>
+        <div>
+          <p class="gap-title">OpenStreetMap doesn't have every company mapped</p>
+          <p>Confirmed real misses, including a large multinational. This is the ceiling on discovery today, not a bug — the fix is a second, name-verification-only source, not a bigger query.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">02</span>
+        <div>
+          <p class="gap-title">A tagged site can outlive the business it was tagged for</p>
+          <p>One confirmed case: an OSM record pointed at a domain since hijacked for SEO spam in another language. Nothing today tells "the fetch succeeded" apart from "this is still who OSM says it is."</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">03</span>
+        <div>
+          <p class="gap-title">Keyword matching can't tell intent from coincidence</p>
+          <p>A university's own career-services page can contain the exact phrase you searched for as a degree name, not a hiring signal. Word-boundary matching fixed the false <em>certainty</em>; it can't fix the ambiguity itself — that's left to the human review step on purpose.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">04</span>
+        <div>
+          <p class="gap-title">A real, currently-open role can still be invisible</p>
+          <p>If a company only lists a vacancy on a third-party job board and nowhere on its own site, this tool won't find it — job-board scraping is explicitly out of scope, not an oversight.</p>
+        </div>
+      </li>
+    </ul>
+  </section>
+
+  <section aria-label="Stack">
+    <p class="section-label">Under the hood</p>
+    <h2>Built with</h2>
+    <div class="stat-strip">
+      <div><div class="num">131</div><div class="label">tests passing</div></div>
+      <div><div class="num">0</div><div class="label">live calls in suite</div></div>
+      <div><div class="num">4</div><div class="label">focus profiles</div></div>
+      <div><div class="num">250</div><div class="label">candidates / run</div></div>
+    </div>
+    <p class="stack-list">
+      <b>Language</b> — Python 3<br>
+      <b>Web app</b> — FastAPI + Uvicorn<br>
+      <b>Fetching</b> — httpx, robots.txt-honouring, self-identifying user agent<br>
+      <b>Parsing</b> — BeautifulSoup, hand-rolled sitemap XML discovery<br>
+      <b>Discovery</b> — OpenStreetMap (Nominatim geocoding + Overpass queries)<br>
+      <b>Tests</b> — stdlib <code>unittest</code>, fixture &amp; fake-based, zero live network calls<br>
+      <b>Reports</b> — local Markdown + JSON, nothing leaves the machine
+    </p>
+  </section>
+
+  <footer>
+    <hr class="rule">
+    <p>Everything above is drawn directly from this project's own <code>CHANGELOG.md</code> and <code>docs/</code> — dated, sourced, and written the same evidence-first way the tool writes about the companies it finds. No claim on this page describes a result that wasn't actually run.</p>
+    <p class="sign">Prospect Scout — a personal, locally-run project. Built, broken, fixed, and logged in the open.</p>
+  </footer>
+
+</div>

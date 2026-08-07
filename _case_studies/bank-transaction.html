@@ -1,0 +1,1427 @@
+---
+layout: case-study
+title: Bank Transaction Analyser — Session Journal
+---
+<style>
+:root{
+  --paper:#eef1ee; --paper-2:#e2e8e3; --paper-3:#d7dfd9;
+  --ink:#17221f; --ink-soft:#45524e; --ink-faint:#6f7d78;
+  --line:rgba(23,34,31,.16); --line-strong:rgba(23,34,31,.30);
+  --accent:#2b6d5c; --accent-ink:#0f3a30; --accent-soft:rgba(43,109,92,.12); --accent-line:rgba(43,109,92,.45);
+  --rust:#a3462b; --rust-soft:rgba(163,70,43,.12); --rust-line:rgba(163,70,43,.5);
+  --gold:#93701f; --gold-soft:rgba(169,122,36,.16); --gold-line:rgba(169,122,36,.5);
+  --code-bg:#182420; --code-ink:#dfeae5; --code-line:rgba(223,234,229,.14);
+  --shadow:0 1px 2px rgba(23,34,31,.07), 0 10px 28px -16px rgba(23,34,31,.22);
+  --font-display:"Palatino Linotype","Iowan Old Style","URW Palladio L",Georgia,serif;
+  --font-body:Seravek,"Segoe UI",-apple-system,BlinkMacSystemFont,"Helvetica Neue",Arial,sans-serif;
+  --font-mono:ui-monospace,"Cascadia Mono","SFMono-Regular",Consolas,"Liberation Mono",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:#101a17; --paper-2:#16221e; --paper-3:#1d2b26;
+    --ink:#dfe8e4; --ink-soft:#a4b6b0; --ink-faint:#78897f;
+    --line:rgba(223,232,228,.14); --line-strong:rgba(223,232,228,.26);
+    --accent:#63b299; --accent-ink:#bfe9d9; --accent-soft:rgba(99,178,153,.14); --accent-line:rgba(99,178,153,.5);
+    --rust:#dd8265; --rust-soft:rgba(221,130,101,.14); --rust-line:rgba(221,130,101,.5);
+    --gold:#d6ab5c; --gold-soft:rgba(214,171,92,.16); --gold-line:rgba(214,171,92,.5);
+    --code-bg:#0a1210; --code-ink:#cfe3db; --code-line:rgba(223,234,229,.12);
+    --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 32px -18px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#101a17; --paper-2:#16221e; --paper-3:#1d2b26;
+  --ink:#dfe8e4; --ink-soft:#a4b6b0; --ink-faint:#78897f;
+  --line:rgba(223,232,228,.14); --line-strong:rgba(223,232,228,.26);
+  --accent:#63b299; --accent-ink:#bfe9d9; --accent-soft:rgba(99,178,153,.14); --accent-line:rgba(99,178,153,.5);
+  --rust:#dd8265; --rust-soft:rgba(221,130,101,.14); --rust-line:rgba(221,130,101,.5);
+  --gold:#d6ab5c; --gold-soft:rgba(214,171,92,.16); --gold-line:rgba(214,171,92,.5);
+  --code-bg:#0a1210; --code-ink:#cfe3db; --code-line:rgba(223,234,229,.12);
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 14px 32px -18px rgba(0,0,0,.6);
+}
+:root[data-theme="light"]{
+  --paper:#eef1ee; --paper-2:#e2e8e3; --paper-3:#d7dfd9;
+  --ink:#17221f; --ink-soft:#45524e; --ink-faint:#6f7d78;
+  --line:rgba(23,34,31,.16); --line-strong:rgba(23,34,31,.30);
+  --accent:#2b6d5c; --accent-ink:#0f3a30; --accent-soft:rgba(43,109,92,.12); --accent-line:rgba(43,109,92,.45);
+  --rust:#a3462b; --rust-soft:rgba(163,70,43,.12); --rust-line:rgba(163,70,43,.5);
+  --gold:#93701f; --gold-soft:rgba(169,122,36,.16); --gold-line:rgba(169,122,36,.5);
+  --code-bg:#182420; --code-ink:#dfeae5; --code-line:rgba(223,234,229,.14);
+}
+
+*{box-sizing:border-box;}
+html,body{margin:0;padding:0;}
+body{
+  background:var(--paper); color:var(--ink); font-family:var(--font-body);
+  font-size:15.5px; line-height:1.6; -webkit-font-smoothing:antialiased;
+}
+::selection{background:var(--accent-soft); color:var(--ink);}
+a{color:var(--accent);}
+:focus-visible{outline:2px solid var(--accent); outline-offset:2px; border-radius:2px;}
+
+/* ---- Shell ---- */
+.shell{display:grid; grid-template-columns:272px minmax(0,1fr) 220px; min-height:100vh;}
+@media (max-width:1300px){ .shell{grid-template-columns:272px minmax(0,1fr);} .outline{display:none;} }
+@media (max-width:900px){ .shell{grid-template-columns:1fr;} .sidebar{position:fixed; z-index:40; inset:0 20% 0 0; transform:translateX(-102%); transition:transform .25s ease;} .sidebar.open{transform:translateX(0);} .scrim{display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:35;} .scrim.show{display:block;} .menu-btn{display:inline-flex !important;} }
+
+/* ---- Sidebar ---- */
+.sidebar{
+  background:var(--paper-2); border-right:1px solid var(--line);
+  display:flex; flex-direction:column; height:100vh; position:sticky; top:0;
+}
+.brand{padding:22px 20px 14px; border-bottom:1px solid var(--line);}
+.brand .mark{font-family:var(--font-mono); font-size:11px; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); font-weight:600;}
+.brand h1{font-family:var(--font-display); font-size:20px; margin:6px 0 2px; font-weight:600; letter-spacing:.01em; text-wrap:balance;}
+.brand p{margin:0; font-size:12.5px; color:var(--ink-faint);}
+
+.search-wrap{padding:14px 16px; border-bottom:1px solid var(--line);}
+.search-wrap input{
+  width:100%; background:var(--paper); border:1px solid var(--line-strong); color:var(--ink);
+  font:13.5px var(--font-body); padding:8px 10px; border-radius:3px;
+}
+.search-wrap input::placeholder{color:var(--ink-faint);}
+.search-wrap input:focus{outline:none; border-color:var(--accent);}
+
+.nav-scroll{flex:1; overflow-y:auto; padding:10px 10px 24px;}
+.nav-group-label{
+  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--ink-faint); padding:14px 10px 6px;
+}
+.nav-item{
+  display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer;
+  color:var(--ink); padding:8px 10px; border-radius:3px; font:inherit; font-size:13.5px;
+}
+.nav-item:hover{background:var(--paper-3);}
+.nav-item.active{background:var(--accent-soft); box-shadow:inset 2px 0 0 var(--accent);}
+.nav-item .ni-title{display:block; font-weight:600; margin-bottom:3px;}
+.nav-item .ni-meta{display:flex; align-items:center; gap:7px; font-size:11.5px; color:var(--ink-faint);}
+.nav-item .ni-date{font-family:var(--font-mono);}
+.nav-empty{padding:16px 10px; font-size:12.5px; color:var(--ink-faint); display:none;}
+
+.status{
+  display:inline-flex; align-items:center; gap:5px; font-family:var(--font-mono); font-size:10.5px;
+  letter-spacing:.04em; text-transform:uppercase; padding:1.5px 6px 1.5px 5px; border-radius:2px; border:1px solid;
+  white-space:nowrap;
+}
+.status::before{content:""; width:6px; height:6px; border-radius:50%; display:inline-block;}
+.status--good{color:var(--accent); border-color:var(--accent-line); background:var(--accent-soft);}
+.status--good::before{background:var(--accent);}
+.status--warn{color:var(--gold); border-color:var(--gold-line); background:var(--gold-soft);}
+.status--warn::before{background:var(--gold);}
+.status--bad{color:var(--rust); border-color:var(--rust-line); background:var(--rust-soft);}
+.status--bad::before{background:var(--rust);}
+
+.menu-btn{
+  display:none; position:fixed; top:14px; left:14px; z-index:45; align-items:center; justify-content:center;
+  width:38px; height:38px; background:var(--paper-2); border:1px solid var(--line-strong); border-radius:3px;
+  color:var(--ink); font-size:16px; cursor:pointer; box-shadow:var(--shadow);
+}
+
+/* ---- Content ---- */
+.content{min-width:0; padding:0 0 80px;}
+.content-inner{max-width:760px; margin:0 auto; padding:48px 40px 0;}
+@media (max-width:640px){ .content-inner{padding:70px 20px 0;} }
+
+.doc{display:none;}
+.doc.active{display:block; animation:fade .25s ease;}
+@media (prefers-reduced-motion:reduce){ .doc.active{animation:none;} }
+@keyframes fade{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:none;}}
+
+.doc-eyebrow{
+  font-family:var(--font-mono); font-size:11px; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-faint); margin:0 0 10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap;
+}
+.doc-eyebrow time{color:var(--accent);}
+.doc h1{
+  font-family:var(--font-display); font-size:clamp(26px,4vw,34px); line-height:1.15; margin:0 0 14px;
+  font-weight:600; text-wrap:balance;
+}
+.doc-dek{color:var(--ink-soft); font-size:15.5px; margin:0 0 26px; padding-bottom:26px; border-bottom:1px solid var(--line);}
+
+.doc-body h2{
+  font-family:var(--font-display); font-size:20px; font-weight:600; margin:40px 0 14px;
+  padding-top:22px; border-top:1px solid var(--line);
+}
+.doc-body > h2:first-child{padding-top:0; border-top:none; margin-top:0;}
+.doc-body h3{font-family:var(--font-display); font-size:16.5px; font-weight:600; margin:26px 0 10px;}
+.doc-body h4{
+  font-family:var(--font-mono); font-size:11.5px; letter-spacing:.08em; text-transform:uppercase;
+  color:var(--accent); margin:22px 0 8px;
+}
+.doc-body p{margin:0 0 14px; max-width:66ch;}
+.doc-body ul,.doc-body ol{margin:0 0 14px; padding-left:22px; max-width:64ch;}
+.doc-body li{margin-bottom:6px;}
+.doc-body li > ul, .doc-body li > ol{margin-top:6px;}
+.doc-body strong{font-weight:700; color:var(--ink);}
+.doc-body hr{border:none; border-top:1px solid var(--line); margin:30px 0;}
+
+code, .fp{
+  font-family:var(--font-mono); font-size:.87em; background:var(--paper-3); border:1px solid var(--line);
+  padding:1px 5px; border-radius:2px; color:var(--ink);
+}
+.fp{color:var(--accent);}
+
+pre{
+  background:var(--code-bg); color:var(--code-ink); border:1px solid var(--code-line); border-radius:4px;
+  padding:14px 16px; overflow-x:auto; font-size:13px; line-height:1.55; margin:0 0 16px;
+}
+pre code{background:none; border:none; padding:0; color:inherit; font-size:inherit;}
+pre.mermaid{background:var(--paper-2); color:var(--ink); padding:18px;}
+
+.table-wrap{overflow-x:auto; margin:0 0 20px; border:1px solid var(--line); border-radius:4px;}
+table{width:100%; border-collapse:collapse; font-size:13.5px; min-width:460px;}
+thead th{
+  text-align:left; font-family:var(--font-mono); font-size:10.5px; letter-spacing:.07em; text-transform:uppercase;
+  color:var(--ink-faint); background:var(--paper-2); padding:9px 12px; border-bottom:1px solid var(--line-strong);
+  white-space:nowrap;
+}
+tbody td{padding:9px 12px; border-bottom:1px solid var(--line); vertical-align:top;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:var(--paper-2);}
+td:has(> code:only-child){font-variant-numeric:tabular-nums;}
+
+.callout{
+  border:1px solid var(--line); border-radius:4px; padding:14px 16px; margin:0 0 18px; background:var(--paper-2);
+}
+.callout > :last-child{margin-bottom:0;}
+.callout-label{
+  font-family:var(--font-mono); font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; font-weight:700;
+  margin:0 0 8px; display:block;
+}
+.callout--good{border-color:var(--accent-line); background:var(--accent-soft);}
+.callout--good .callout-label{color:var(--accent);}
+.callout--warn{border-color:var(--gold-line); background:var(--gold-soft);}
+.callout--warn .callout-label{color:var(--gold);}
+.callout--bad{border-color:var(--rust-line); background:var(--rust-soft);}
+.callout--bad .callout-label{color:var(--rust);}
+
+.filetree{font-family:var(--font-mono); font-size:13px; background:var(--paper-2); border:1px solid var(--line); border-radius:4px; padding:14px 16px; margin:0 0 20px; line-height:1.7;}
+.filetree .path{color:var(--accent);}
+.filetree .desc{color:var(--ink-faint);}
+
+.pipeline{display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin:0 0 20px; font-family:var(--font-mono); font-size:12.5px;}
+.pipeline .step{border:1px solid var(--line-strong); border-radius:3px; padding:6px 10px; background:var(--paper-2);}
+.pipeline .arrow{color:var(--ink-faint);}
+
+/* ---- Arc strip (Overview) ---- */
+.arc{display:flex; overflow-x:auto; gap:0; margin:0 0 26px; padding-bottom:6px;}
+.arc-node{
+  flex:0 0 auto; width:126px; padding:10px 12px 12px; border-left:1px solid var(--line); cursor:pointer;
+  background:none; text-align:left; font:inherit; color:inherit;
+}
+.arc-node:first-child{border-left:none;}
+.arc-node:hover{background:var(--paper-2);}
+.arc-node .arc-date{font-family:var(--font-mono); font-size:10.5px; color:var(--ink-faint); display:block; margin-bottom:6px;}
+.arc-node .arc-dot{width:8px; height:8px; border-radius:50%; display:inline-block; margin-bottom:8px;}
+.arc-node .arc-label{display:block; font-size:12px; font-weight:600; line-height:1.3;}
+.dot-good{background:var(--accent);} .dot-warn{background:var(--gold);} .dot-bad{background:var(--rust);}
+
+/* ---- Outline (right rail) ---- */
+.outline{position:sticky; top:0; height:100vh; overflow-y:auto; padding:52px 22px 40px 18px;}
+.outline-label{font-family:var(--font-mono); font-size:10.5px; letter-spacing:.12em; text-transform:uppercase; color:var(--ink-faint); margin:0 0 10px;}
+.outline-list{list-style:none; margin:0; padding:0; border-left:1px solid var(--line);}
+.outline-list li{margin:0;}
+.outline-list button{
+  display:block; width:100%; text-align:left; background:none; border:none; cursor:pointer; font:inherit;
+  color:var(--ink-soft); font-size:12.5px; padding:5px 0 5px 14px; margin-left:-1px; border-left:1px solid transparent;
+  line-height:1.4;
+}
+.outline-list button:hover{color:var(--ink); border-left-color:var(--line-strong);}
+.outline-list li.lvl3 button{padding-left:24px; font-size:12px; color:var(--ink-faint);}
+
+::-webkit-scrollbar{width:9px; height:9px;}
+::-webkit-scrollbar-thumb{background:var(--line-strong); border-radius:5px;}
+::-webkit-scrollbar-track{background:transparent;}
+
+/* ---------- Plain-language intro ---------- */
+.intro{max-width:1150px; margin:0 auto; padding:48px 24px 12px;}
+.intro .kicker{font-family:var(--font-mono); font-size:12px; letter-spacing:.09em; text-transform:uppercase; color:var(--accent); margin:0 0 10px;}
+.intro h1{font-family:var(--font-display); font-size:clamp(1.3rem, 2.6vw, 1.75rem); font-weight:600; margin:0 0 14px; white-space:nowrap;}
+.intro .lede{font-size:17px; color:var(--ink-soft); max-width:66ch; margin:0 0 24px;}
+@media (max-width:640px){ .intro h1{white-space:normal;} }
+.intro-stats{display:flex; flex-wrap:wrap; gap:26px; padding:16px 0; border-top:1px solid var(--line); border-bottom:1px solid var(--line); margin:0 0 30px;}
+.intro-stats .stat .n{display:block; font-family:var(--font-mono); font-size:19px; font-weight:700; color:var(--ink);}
+.intro-stats .stat .l{display:block; font-size:11px; color:var(--ink-faint); text-transform:uppercase; letter-spacing:.04em; margin-top:2px;}
+.intro-card{border:1px solid var(--line); background:var(--paper-2); border-radius:8px; padding:18px 22px; margin:0 0 16px; box-shadow:var(--shadow);}
+.intro-card:last-of-type{margin-bottom:26px;}
+.intro-card h3{font-family:var(--font-body); font-size:16.5px; font-weight:700; margin:0 0 10px; color:var(--ink);}
+.intro-card p.plain{margin:0 0 10px; color:var(--ink); font-size:15px;}
+.intro-card p.plain:last-of-type{margin-bottom:0;}
+.intro-card details{margin-top:10px; border:1px solid var(--line); border-radius:6px; padding:8px 12px; background:var(--paper);}
+.intro-card summary{cursor:pointer; font-size:13px; font-weight:600; color:var(--accent); list-style:none;}
+.intro-card summary::-webkit-details-marker{display:none;}
+.intro-card summary::before{content:"▸ ";}
+.intro-card details[open] summary::before{content:"▾ ";}
+.intro-card .techbody{margin-top:10px; font-size:13.5px;}
+.intro-card .techbody p{margin:0 0 8px; color:var(--ink-soft);}
+.intro-card .techbody p:last-child{margin-bottom:0;}
+.intro-divider{font-family:var(--font-mono); font-size:13px; color:var(--ink-faint); border-top:1px dashed var(--line); padding-top:20px; margin-bottom:6px;}
+</style>
+
+<button class="menu-btn" id="menuBtn" aria-label="Open navigation">☰</button>
+<div class="scrim" id="scrim"></div>
+
+<div class="intro">
+  <h1>Nine sessions chasing three banks, then a deliberate rollback</h1>
+  <p class="lede">This app parses a bank statement PDF and turns it into a spend breakdown by day, week, or month — the granularity the bank's own app doesn't offer. It started ANZ-only, then spent nine sessions attempting to support three different banks' PDF formats at once. Because it did not succeed, it was a learning point in giving up to pivot for better features in coming future.</p>
+
+  <div class="intro-stats">
+    <div class="stat"><span class="n">9</span><span class="l">Sessions on the multi-bank attempt</span></div>
+    <div class="stat"><span class="n">1</span><span class="l">Deliberate rollback to ANZ-only</span></div>
+    <div class="stat"><span class="n">173</span><span class="l">Tests green — on synthetic data</span></div>
+  </div>
+
+  <div class="intro-card">
+    <h3>Passing tests didn't mean the feature actually worked</h3>
+    <p class="plain">Supporting CBA and NAB statements alongside ANZ meant handling three different PDF layouts — different headers, different column positions, different ways of splitting a transaction description across lines. Progress looked real: bugs got diagnosed, fixes shipped, and the multi-bank test suite eventually went fully green, 17 out of 17.</p>
+    <p class="plain">All of that was against hand-written synthetic test data shaped like a real statement — not an actual CBA or NAB PDF. When a real one was finally run through the parser, both banks came back worse than before the fixes, not better. The tests had been quietly validating a guess about what those PDFs looked like, not the PDFs themselves.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Two parsing paths existed: a text-extraction path (<code>pdf-parse</code>) and a layout-aware path using x/y coordinates (<code>pdf2json</code>). The layout-aware path was the one wired into the live API. Real-PDF UAT on 2026-05-19 regressed both CBA and NAB — orphan rows were being dropped and opening-balance blocks weren't being isolated correctly, gaps that the synthetic fixtures never exercised because they didn't reproduce those exact page-layout quirks.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="intro-card">
+    <h3>Choosing to roll back, instead of chasing the fix one more session</h3>
+    <p class="plain">After the real-PDF regression, the next step was a hybrid fallback — try the layout-aware parser first, fall back to the simpler text parser if it came back empty. That shipped, but CBA and NAB were still unreliable against real statements. At that point the honest assessment was that three-bank support, done properly, needed real-PDF test fixtures from the start — not synthetic ones with fixes layered on top after the fact.</p>
+    <p class="plain">Rather than sink a tenth session into the same approach, the multi-bank branch was rolled back to ANZ-only — the one bank actually proven against real statements. That freed up the next session to build something that shipped cleanly instead: a calendar view giving by-day and by-week detail, which turned out to be the actual gap the bank's own app didn't cover.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>The full arc: 2026-04-29 multi-bank column-map scaffold → 05-02 three CBA/NAB bugs diagnosed → 05-04 fixes, 4 tests still red → 05-05 173 passing (synthetic, flagged not real-PDF-ready) → 05-18 17/17 multiBank suite green → 05-19 pdf2json ships to the API, real PDFs regress → 05-24 hybrid fallback added, still unresolved → 05-31 rolled back to ANZ-only → 07-09 Calendar View ships. Each session in that arc is logged individually in the timeline below, in order, with what was tried and why it did or didn't hold up.</p>
+      </div>
+    </details>
+  </div>
+</div>
+
+<div class="shell">
+  <nav class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="mark">Ledger / Dev Journal</span>
+      <h1>Bank Transaction Analyser</h1>
+      <p>Uncommitted session notes, browsable — March–July 2026</p>
+    </div>
+    <div class="search-wrap">
+      <input type="text" id="search" placeholder="Filter sessions…" autocomplete="off">
+    </div>
+    <div class="nav-scroll" id="navScroll">
+      <div class="nav-group-label">Reference</div>
+      <button class="nav-item" data-target="doc-overview" data-search="status overview overview parser strategy known issues blocked pending next priorities">
+        <span class="ni-title">Status Overview</span>
+        <span class="ni-meta"><span class="ni-date">sessions/overview.md</span></span>
+      </button>
+      <button class="nav-item" data-target="doc-notes" data-search="architecture notes core problem parsing pipeline categories transaction improvements testing regex extractMerchant multi-bank diagnosis">
+        <span class="ni-title">Architecture &amp; Parser Notes</span>
+        <span class="ni-meta"><span class="ni-date">Notes.md</span></span>
+      </button>
+
+      <div class="nav-group-label">Timeline</div>
+
+      <button class="nav-item" data-target="s-0320" data-search="test suite fixes jest-dom woolies column parsing">
+        <span class="ni-title">Test suite fixes</span>
+        <span class="ni-meta"><span class="ni-date">Mar 20</span><span class="status status--good">Fixed</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0429" data-search="multi-bank scaffold column position date format detectDateFormat">
+        <span class="ni-title">Multi-bank scaffold</span>
+        <span class="ni-meta"><span class="ni-date">Apr 29</span><span class="status status--warn">Scaffolded</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0502" data-search="multi-bank bug investigation CBA NAB year leak format detection particulars">
+        <span class="ni-title">Multi-bank bug investigation</span>
+        <span class="ni-meta"><span class="ni-date">May 02</span><span class="status status--warn">Diagnosed</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0504" data-search="multi-bank parsing fixes CBA NAB debit credit column offset">
+        <span class="ni-title">Multi-bank parsing fixes</span>
+        <span class="ni-meta"><span class="ni-date">May 04</span><span class="status status--warn">Partial</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0505" data-search="structural header detection alias isCreditTransaction real world">
+        <span class="ni-title">Structural header detection</span>
+        <span class="ni-meta"><span class="ni-date">May 05</span><span class="status status--good">173 green</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0518" data-search="regression test fixes bug 5 blank marker plural header typo">
+        <span class="ni-title">Regression fixes + Bug 5</span>
+        <span class="ni-meta"><span class="ni-date">May 18</span><span class="status status--good">17/17 green</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0519" data-search="pdf2json UAT regression multi-bank feasibility block merger mermaid architecture timeline">
+        <span class="ni-title">pdf2json UAT regression</span>
+        <span class="ni-meta"><span class="ni-date">May 19</span><span class="status status--bad">Regressed</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0524" data-search="hybrid pdf fallback multi-bank parser hardening pdf-parse pdf2json">
+        <span class="ni-title">Hybrid fallback hardening</span>
+        <span class="ni-meta"><span class="ni-date">May 24</span><span class="status status--warn">Improved</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0531" data-search="ANZ-only rollback official ANZ blocker corrupted amounts leaked values">
+        <span class="ni-title">ANZ-only rollback</span>
+        <span class="ni-meta"><span class="ni-date">May 31</span><span class="status status--bad">Rolled back</span></span>
+      </button>
+      <button class="nav-item" data-target="s-0709" data-search="calendar view feature groupByMonth year rollover portfolio">
+        <span class="ni-title">Calendar view feature</span>
+        <span class="ni-meta"><span class="ni-date">Jul 09</span><span class="status status--good">Shipped</span></span>
+      </button>
+    </div>
+    <div class="nav-empty" id="navEmpty">No sessions match.</div>
+  </nav>
+
+  <main class="content" id="content">
+    <div class="content-inner">
+
+      <!-- ============ OVERVIEW ============ -->
+      <section class="doc active" id="doc-overview">
+        <p class="doc-eyebrow">Reference · <time>2026-05-19</time> (after pdf2json UAT regression)</p>
+        <h1>Status Overview</h1>
+        <p class="doc-dek">The parser strategy, known issues, and feature-testing status as they stood mid-saga — the multi-bank detour's high-water mark before the rollback.</p>
+
+        <div class="doc-body">
+        <h2>Why this exists</h2>
+        <p>Like all my projects, it started out as a personal problem wanting to know how much I spend per month dowwn to the last detail. I wanted to know what I actually spend without scrolling through the bank app date by date, hunting for merchant and price that overwhelmed me because I would lose any pattern and gain nothing. More than once during the build someone asked "doesn't the bank app already do that?" and until late in the build, the honest answer was no until I saw 'Spend Summary' in my own bank app.</p>
+        <p>Not wanting the project to go to waste, it still bothered me and thus it just proved the real gap was finer than a monthly total. By-day and by-week detail, down to the transaction, was still missing — which is what the <strong>Calendar View</strong> (Jul 09) ended up solving.</p>
+
+        <h2>The multi-bank arc</h2>
+        <p>Nine sessions, one attempt at ANZ/CBA/NAB support, one regression, one rollback, one pivot. Click a node to jump to that session.</p>
+        <div class="arc" id="arcStrip">
+          <button class="arc-node" data-target="s-0429"><span class="arc-date">Apr 29</span><span class="arc-dot dot-warn"></span><span class="arc-label">Scaffold column-map architecture</span></button>
+          <button class="arc-node" data-target="s-0502"><span class="arc-date">May 02</span><span class="arc-dot dot-warn"></span><span class="arc-label">Diagnose 3 CBA/NAB bugs</span></button>
+          <button class="arc-node" data-target="s-0504"><span class="arc-date">May 04</span><span class="arc-dot dot-warn"></span><span class="arc-label">Fix, 4 tests still red</span></button>
+          <button class="arc-node" data-target="s-0505"><span class="arc-date">May 05</span><span class="arc-dot dot-good"></span><span class="arc-label">173 passing, flagged unready</span></button>
+          <button class="arc-node" data-target="s-0518"><span class="arc-date">May 18</span><span class="arc-dot dot-good"></span><span class="arc-label">17/17 multiBank green</span></button>
+          <button class="arc-node" data-target="s-0519"><span class="arc-date">May 19</span><span class="arc-dot dot-bad"></span><span class="arc-label">pdf2json ships, real PDFs regress</span></button>
+          <button class="arc-node" data-target="s-0524"><span class="arc-date">May 24</span><span class="arc-dot dot-warn"></span><span class="arc-label">Hybrid fallback, still unfinished</span></button>
+          <button class="arc-node" data-target="s-0531"><span class="arc-date">May 31</span><span class="arc-dot dot-bad"></span><span class="arc-label">Rolled back to ANZ-only</span></button>
+          <button class="arc-node" data-target="s-0709"><span class="arc-date">Jul 09</span><span class="arc-dot dot-good"></span><span class="arc-label">Pivot: Calendar view ships</span></button>
+        </div>
+
+        <h2>Parser strategy</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Path</th><th>Library</th><th>Used in API</th><th>Real PDF UAT</th></tr></thead>
+          <tbody>
+            <tr><td>Text</td><td><code>pdf-parse</code> → <code>parseTransactions(text)</code></td><td>No (removed)</td><td>Was poor for CBA (0 txs)</td></tr>
+            <tr><td>Layout</td><td><code>pdf2json</code> → <code>parseTransactionsFromPdf</code></td><td><strong>Yes</strong></td><td><strong>Regressed</strong> CBA/NAB May 2026</td></tr>
+            <tr><td>Probe</td><td><code>probe-pdf2json.ts</code></td><td>No (reference only)</td><td>Used to inspect x/y columns</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Known issues &amp; fixes</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Issue</th><th>Root cause</th><th>Solution</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>PDF parser returns incorrect amounts</td><td>Regex / column guess on flat text</td><td>pdf2json x/y columns</td><td>Partial</td></tr>
+            <tr><td>Missing transaction filtering</td><td>Page headers, totals</td><td><code>filterSummaryRows()</code></td><td>Done</td></tr>
+            <tr><td>Categorization</td><td>Keyword matching</td><td><code>getCategoryFromDescription</code></td><td>Done</td></tr>
+            <tr><td>Multiple bank formats</td><td>Different headers/columns</td><td>Structural header + pdf2json</td><td>In progress</td></tr>
+            <tr><td>CBA real PDF</td><td>Mixed dates, split header, multi-row</td><td>Block merger attempted</td><td>Failed UAT May 2026</td></tr>
+            <tr><td>NAB real PDF</td><td>Dots, multi-row, orphan row drop</td><td>Block merger attempted</td><td>Failed UAT May 2026</td></tr>
+            <tr><td>ANZ official multi-row</td><td>Merchant + EFTPOS on separate y</td><td><code>mergeDescriptionLines</code></td><td>Not re-UAT'd</td></tr>
+            <tr><td>Tests vs reality</td><td>Synthetic fixtures only</td><td>Need probe-derived fixtures</td><td>Not started</td></tr>
+            <tr><td>No API fallback</td><td>pdf2json-only route</td><td>pdf-parse fallback when 0 txs</td><td>Recommended</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Feature testing status</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Feature</th><th>Unit</th><th>Integration</th><th>UAT</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>File upload</td><td>Yes</td><td>Yes</td><td>Yes</td><td>PDF only</td></tr>
+            <tr><td>PDF parsing (pdf2json)</td><td>Yes (synthetic rows)</td><td>Partial</td><td><strong>Failed</strong> CBA/NAB</td><td>See 2026-05-19</td></tr>
+            <tr><td>PDF parsing (text fallback)</td><td>Yes</td><td>N/A</td><td>Not wired</td><td>Still in codebase</td></tr>
+            <tr><td>Transaction parsing (ANZ)</td><td>Yes</td><td>Yes</td><td>Unknown</td><td>Re-test after block merger</td></tr>
+            <tr><td>Transaction parsing (CBA/NAB)</td><td>Yes (fictional)</td><td>No</td><td><strong>Failed</strong></td><td>—</td></tr>
+            <tr><td>Categorization</td><td>Yes</td><td>Yes</td><td>Partial</td><td>misc if description truncated</td></tr>
+            <tr><td>Monthly grouping</td><td>Yes</td><td>Yes</td><td>Partial</td><td>—</td></tr>
+            <tr><td>Database persistence</td><td>No</td><td>No</td><td>No</td><td>Blocked</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Session log (multi-bank)</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Date</th><th>Session</th><th>Outcome</th></tr></thead>
+          <tbody>
+            <tr><td>Apr 29</td><td>Multi-bank scaffold</td><td>Column map wired</td></tr>
+            <tr><td>May 02</td><td>CBA/NAB bug investigation</td><td>3 text-parser bugs identified</td></tr>
+            <tr><td>May 04–05</td><td>Text parser fixes</td><td>multiBank 17/17 synthetic</td></tr>
+            <tr><td>May 18</td><td>blank→0.00, plural headers</td><td>Tests green</td></tr>
+            <tr><td>May 19</td><td>pdf2json API + block merger</td><td><strong>UAT worse</strong> for CBA/NAB</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Blocked / pending</span>
+          <ul>
+            <li>pdf2json UAT fixes — orphan rows, opening balance, CBA header, API fallback</li>
+            <li>Real PDF fixtures from probe output (not hand-written ideal rows)</li>
+            <li>Database integration — schema not finalized</li>
+            <li>Export reports — not implemented</li>
+          </ul>
+        </div>
+
+        <h2>Next session priorities (as of May 19)</h2>
+        <ol>
+          <li>pdf-parse fallback in <code>parse-data/route.ts</code></li>
+          <li>Fix orphan-row drop + opening-balance block isolation in <code>pdf2json-extractor.ts</code></li>
+          <li>Probe snapshot → test fixture for one CBA page + one NAB page</li>
+          <li>Re-UAT all four PDFs; update Notes.md probe table</li>
+        </ol>
+        </div>
+      </section>
+
+      <!-- ============ NOTES.MD ============ -->
+      <section class="doc" id="doc-notes">
+        <p class="doc-eyebrow">Reference · <time>Notes.md</time></p>
+        <h1>Architecture &amp; Parser Notes</h1>
+        <p class="doc-dek">Standing reference: file map, the parsing pipeline, category rules, and the running log of test-fixing and diagnosis sessions folded into this file over time.</p>
+
+        <div class="doc-body">
+        <h2>Architecture</h2>
+        <h3>Frontend</h3>
+        <div class="filetree">
+          <div><span class="path">app/layout.tsx</span> — <span class="desc">Root HTML layout, fonts, global wrapper</span></div>
+          <div><span class="path">app/page.tsx</span> — <span class="desc">Home page</span></div>
+          <div><span class="path">app/global.css</span> — <span class="desc">Global Tailwind</span></div>
+          <div><span class="path">components/HomePage.tsx</span> — <span class="desc">Client page for upload, loading, error, display</span></div>
+          <div><span class="path">components/FileUploader</span> — <span class="desc">Dropzone UI, single-file checks, calls parse-data</span></div>
+          <div><span class="path">components/TransactionDisplay</span> — <span class="desc">Summary, monthly breakdown, categorized transactions</span></div>
+          <div><span class="path">components/ui/input.tsx</span> — <span class="desc">Reusable styled input</span></div>
+          <div><span class="path">components/ui/progress.tsx</span> — <span class="desc">Reusable progress bar</span></div>
+          <div><span class="path">lib/util.ts</span> — <span class="desc">cn() Tailwind class merging</span></div>
+        </div>
+
+        <h3>Backend</h3>
+        <div class="filetree">
+          <div><span class="path">app/api/parse-data/route.ts</span> — <span class="desc">Upload endpoint, PDF validation, temp-file handling, extraction, parser call</span></div>
+          <div style="margin-top:8px"><span class="path">lib/tempFile.ts</span> — <span class="desc">Temp dir / file writing helper</span></div>
+          <div><span class="path">lib/types/index.ts</span> — <span class="desc">Transaction, ParsedData, Summary interfaces</span></div>
+          <div><span class="path">lib/categories.ts</span> — <span class="desc">Category keywords + colors, single source of truth</span></div>
+          <div><span class="path">lib/transactionParser.ts</span> — <span class="desc">Re-exports lib/parser/ for back-compat</span></div>
+          <div><span class="path">lib/parser/index.ts</span> — <span class="desc">Main orchestrator (parseTransactions)</span></div>
+          <div><span class="path">lib/parser/types.ts</span> — <span class="desc">FormatType, HeaderInfo</span></div>
+          <div><span class="path">lib/parser/utils.ts</span> — <span class="desc">getMonthNumber</span></div>
+          <div><span class="path">lib/parser/detector.ts</span> — <span class="desc">findTransactionHeader (format detection)</span></div>
+          <div><span class="path">lib/parser/extractor.ts</span> — <span class="desc">extractTransaction (line extraction)</span></div>
+          <div><span class="path">lib/parser/filter.ts</span> — <span class="desc">filterSummaryRows</span></div>
+          <div><span class="path">lib/parser/group.ts</span> — <span class="desc">categorizeTransactions, groupByMonth</span></div>
+          <div><span class="path">lib/parser/summarize.ts</span> — <span class="desc">generateSummary</span></div>
+        </div>
+
+        <h2>Core problem: PDF bank statement parsing</h2>
+        <h3>Pipeline</h3>
+        <div class="pipeline">
+          <span class="step">parseTransactions(rawText)</span><span class="arrow">→</span>
+          <span class="step">detector: findTransactionHeader</span><span class="arrow">→</span>
+          <span class="step">extractor: extractTransaction</span><span class="arrow">→</span>
+          <span class="step">filter: filterSummaryRows</span><span class="arrow">→</span>
+          <span class="step">group + summarize</span>
+        </div>
+
+        <h3>extractor.ts — ANZ assumptions</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Component</th><th>Code</th><th>ANZ assumption</th></tr></thead>
+          <tbody>
+            <tr><td>Date regex</td><td><code>/^\d{1,2}\s+[A-Z]{3}/i</code></td><td>Expects <code>DD MMM</code> like "15 JAN"</td></tr>
+            <tr><td>Amount columns</td><td><code>numericTokens.slice(-3)</code></td><td>Last 3 values = withdrawal, deposit, balance</td></tr>
+            <tr><td>Description</td><td>substring before amounts</td><td>Text between date and amounts</td></tr>
+            <tr><td>Amount detection</td><td>checks withdrawal OR deposit</td><td>Which column has a number</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>detector.ts — format detection</h3>
+        <p>Auto-detects between two formats: <strong>column</strong> (headers contain Balance + Withdrawal + Deposit) and <strong>line</strong> (single $ amount with keyword-based type detection).</p>
+
+        <h3>Why other banks won't work as-is</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Bank</th><th>Required changes</th></tr></thead>
+          <tbody>
+            <tr><td>Westpac</td><td>Date format <code>DD/MM/YY</code> — regex needs update</td></tr>
+            <tr><td>CommBank</td><td>Description first, amounts at different positions</td></tr>
+            <tr><td>NAB</td><td>Different column order entirely</td></tr>
+            <tr><td>International</td><td>Different date formats (<code>MM/DD/YY</code>), currency symbols in different spots</td></tr>
+          </tbody>
+        </table></div>
+        <p>Root issue: PDF text extraction gives flat text — no column information. The parser assumes date always at start, description in the middle, and 3 amount columns at the end.</p>
+
+        <h2>Categories (lib/categories.ts)</h2>
+        <p>Single source of truth for <code>CATEGORY_KEYWORDS</code>, <code>CATEGORY_COLORS</code>, and <code>getCategoryFromDescription()</code>.</p>
+        <ul>
+          <li><strong>friends</strong> — mobile banking payment, transfer to/from, pay anyone, osko, pay id</li>
+          <li><strong>food</strong> — restaurant, cafe, mcdonalds, hungry jacks, kfc, snack bar, pizza, burger, sushi, noodle, bakery, coffee…</li>
+          <li><strong>utilities</strong> — vodafone, telstra, optus, energy, electricity, water, gas, internet</li>
+        </ul>
+        <p>The AI can't read PDFs directly, so the workflow is console-logging past the transaction header to figure out format: multi-column table vs. single-line per transaction. Reminder: find other bank files to see whether the same formatting can be reused.</p>
+
+        <h2>Transaction improvements (ideas, not yet built)</h2>
+        <ul>
+          <li>Categorization without hardcoding — richer rule-set, config-driven rules (JSON/TS) allowing multiple match kinds per category</li>
+          <li>A per-user database that expands over time, storing user-specific overrides — hardcoded strings that become data over time</li>
+          <li>An ML model, possibly trained on budgeting/transaction datasets (Kaggle), for merchant/category classification</li>
+          <li>Exact substring keywords vs. regex patterns vs. metadata per category</li>
+          <li>Deterministic evaluation order with explicit bank/merchant-code prefixes</li>
+          <li>Per-user or per-project override layer: overrides → global rules → fallback</li>
+          <li>Identify common ANZ description structures (<code>EFTPOS WITHDRAWAL &lt;MERCHANT&gt; &lt;SUBURB&gt;</code>) and encode as generic patterns — e.g. "EFTPOS" + food → food, "OSKO"/"PAY ID" → friends/transfer</li>
+          <li>Track frequency of "misc" descriptions by normalized merchant token</li>
+        </ul>
+
+        <hr>
+        <h2>Testing (ATTD)</h2>
+
+        <h3>Test fixing session — March 20, 2026</h3>
+        <div class="callout callout--bad">
+          <span class="callout-label">Problem</span>
+          <pre><code>Error: Failed to resolve import "@testing-library/jest-dom" from "tests/setup.ts"</code></pre>
+        </div>
+        <p>Investigation: checked <code>package.json</code> (malformed entry, line 30) → checked <code>tests/setup.ts</code> (unnecessary jest-dom import) → removed both → 22 failures remained → analyzed each failure category systematically.</p>
+
+        <h4>Issue 1 — malformed jest-dom package entry</h4>
+        <pre><code>// BEFORE (broken)
+"@testing-library/jest-dom": "file:testing-library/user-event@^14.5.0",
+// AFTER — removed, not needed</code></pre>
+        <p><span class="fp">package.json</span>, <span class="fp">tests/setup.ts</span></p>
+
+        <h4>Issue 2 — missing "woolies" keyword</h4>
+        <pre><code>// lib/transactionParser.ts line 215
+groceries: ['coles', 'woolworths', 'woolies', 'iga', 'supermarket'],</code></pre>
+        <p>Why: <code>.includes()</code> does substring matching — "woolies" doesn't match "woolworths".</p>
+
+        <h4>Issue 3 — column format parsing</h4>
+        <pre><code># 3-column format (explicit deposit column)
+ 2 Jan CARDLESS CREDIT   345.67   0.00    123456.78
+
+# 2-column format (deposit implied zero)
+ 2 Jan CARDLESS CREDIT   345.67           123456.78</code></pre>
+        <p>Solution — rewrite <code>extractTransaction()</code>: regex <code>/(\d[\d,]*(?:\.\d{1,2})?)/g</code> to find all amounts, filter out the date's day number, take the last 3 amounts as withdrawal/deposit/balance, use <code>0.00</code> placeholders for missing columns in fixtures.</p>
+
+        <h4>Issue 4 — label accessibility in FileUploader</h4>
+        <pre><code>// BEFORE
+&lt;label {...getRootProps()}&gt;
+// AFTER
+&lt;label {...getRootProps()} htmlFor="dropzone-file"&gt;</code></pre>
+        <p>Why: tests use <code>getByLabelText()</code>, which requires programmatic association.</p>
+
+        <h4>Issue 5 — header detection for line format</h4>
+        <pre><code>// Added to headerPatterns
+/date.*transaction.*description.*amount/i,
+/date.*transaction.*amount/i,</code></pre>
+        <p>Why: Transaction Reports have "Amount" instead of "Withdrawal/Deposit".</p>
+
+        <h3>Test data format requirements</h3>
+        <p>The parser requires the 3-column format for column-based statements — always include <code>0.00</code> placeholders; the parser uses the last 3 numeric values as amounts; the date's day number (e.g. "2" in "2 Jan") is filtered out.</p>
+        <pre><code>Date Transaction Detail    Withdrawal  Deposit  Balance
+ 2 Jan CARDLESS CREDIT     345.67    0.00    123456.78
+12 Jan Salary Deposit        0.00  3500.00    126786.78</code></pre>
+
+        <h3>Final test results (March 20)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Test suite</th><th>Passed</th><th>Failed</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr><td>Categorization</td><td>92</td><td>0</td><td>92</td></tr>
+            <tr><td>Transaction Parser</td><td>23</td><td>0</td><td>23</td></tr>
+            <tr><td>GroupByMonth</td><td>9</td><td>1</td><td>10</td></tr>
+            <tr><td>Summary</td><td>~4</td><td>~8</td><td>14</td></tr>
+            <tr><td>FileUploader</td><td>~9</td><td>2</td><td>11</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>140</strong></td><td><strong>10</strong></td><td><strong>150</strong></td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout--good">
+          <span class="callout-label">Recommendations for junior devs</span>
+          <ol>
+            <li>Understand the test data format before debugging the parser — check what the parser expects, check what the test data provides, align them, don't force the parser to handle bad data.</li>
+            <li>Use <code>toBeCloseTo()</code> for float comparisons, not <code>toBe()</code>.</li>
+            <li>Mock files need a proper <code>size</code> property: <code>Object.defineProperty(file, 'size', {'{'} value: 1000, configurable: true {'}'})</code>.</li>
+            <li>react-dropzone testing needs <code>userEvent</code>, mocked callbacks, or testing behavior without triggering the dropzone directly.</li>
+          </ol>
+        </div>
+
+        <h3>Setup &amp; test commands (previous testing content)</h3>
+        <pre><code>npm install -D vitest @testing-library/react@^16.0.0 @testing-library/jest-dom @testing-library/user-event@^14.5.0 jsdom
+
+npm run test           # watch mode
+npm run test:run      # once (headless)
+npm run test:coverage # with coverage report</code></pre>
+        <p><strong>Note:</strong> <code>@testing-library/react@^16</code> required for React 19; <code>user-event</code> latest stable is v14.</p>
+
+        <h3>Test structure</h3>
+        <div class="filetree">
+          <div><span class="path">tests/fixtures/sample-transactions.ts</span> — <span class="desc">Sample ANZ data (column/line format)</span></div>
+          <div><span class="path">tests/unit/transactionParser.test.ts</span> — <span class="desc">Format detection, extraction</span></div>
+          <div><span class="path">tests/unit/categorization.test.ts</span> — <span class="desc">Category keyword matching</span></div>
+          <div><span class="path">tests/unit/groupByMonth.test.ts</span> — <span class="desc">Monthly grouping logic</span></div>
+          <div><span class="path">tests/unit/summary.test.ts</span> — <span class="desc">Deposit/withdrawal/net calculations</span></div>
+          <div><span class="path">tests/integration/FileUploader.test.tsx</span> — <span class="desc">Component tests, mocked API</span></div>
+        </div>
+
+        <h3>Test fixing session — March 24, 2026</h3>
+        <p>18 tests failing across 3 files: <code>summary.test.ts</code> (8), <code>groupByMonth.test.ts</code> (8), <code>FileUploader.test.tsx</code> (2).</p>
+
+        <h4>Issue 1 — hardcoded year in tests vs runtime year in code</h4>
+        <pre><code>// lib/parser/group.ts:24
+const key = `${'$'}{new Date().getFullYear()}-${'$'}{monthNum.toString().padStart(2, '0')}`;</code></pre>
+        <p>Tests used hardcoded <code>2025</code>, but the run date was 2026-03-24. Fix: use <code>new Date().getFullYear()</code> in tests instead of hardcoding.</p>
+
+        <h4>Issue 2 — test data format didn't match parser requirements</h4>
+        <pre><code>// lib/parser/extractor.ts:126-140
+if (numericTokens.length &gt;= 3) {
+  withdrawalAmt = parseNum(numericTokens[numericTokens.length - 3]);
+  depositAmt = parseNum(numericTokens[numericTokens.length - 2]);
+  balanceAmt = parseNum(numericTokens[numericTokens.length - 1]);
+}</code></pre>
+        <p>Parser expects exactly 3 numeric values for column format. Fixture rows were missing the <code>0.00</code> placeholder for whichever column was empty.</p>
+
+        <h4>Issue 3 — test expectations didn't match test data</h4>
+        <p>Example: 2 debit transactions totalling 176.23, but the assertion expected <code>deposits === 3500.00</code> — leftover from a different fixture. Fixed by verifying transaction structure rather than mismatched totals.</p>
+
+        <h4>Issue 4 — react-dropzone integration with testing-library</h4>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Approach</th><th>Result</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td><code>fireEvent.change(input, {'{'} files {'}'})</code></td><td>Failed</td><td>Doesn't trigger dropzone</td></tr>
+            <tr><td><code>userEvent.upload(input, file)</code></td><td>Partial</td><td>Works for single files, not validation</td></tr>
+            <tr><td>Mock react-dropzone hook</td><td>Complex</td><td>Requires <code>act()</code> wrapping</td></tr>
+            <tr><td>Wrap in <code>act()</code></td><td>Warning</td><td>"not configured to support act"</td></tr>
+            <tr><td>Skip untestable tests</td><td>Pass</td><td>Practical solution — used</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Before vs after (March 24)</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Metric</th><th>Before</th><th>After</th></tr></thead>
+          <tbody>
+            <tr><td>Total tests</td><td>150</td><td>149</td></tr>
+            <tr><td>Passed</td><td>132</td><td>148</td></tr>
+            <tr><td>Failed</td><td>18</td><td>0</td></tr>
+            <tr><td>Skipped</td><td>0</td><td>1</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout--good">
+          <span class="callout-label">Key lessons</span>
+          <ul>
+            <li>Don't hardcode years in tests — use <code>new Date().getFullYear()</code>.</li>
+            <li>Match test data to parser assumptions before debugging either side.</li>
+            <li>Test data must actually produce the values the assertions expect — verify, don't assume.</li>
+            <li>Some component libraries (react-dropzone) don't test well in jsdom — prefer unit tests for logic, E2E for integration, skip flaky tests rather than leaving them broken.</li>
+            <li>Use descriptive test names ("should calculate deposits correctly for mixed transactions", not "test case 1").</li>
+          </ul>
+        </div>
+
+        <h3>When to seek help vs. debug further</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Situation</th><th>Recommendation</th></tr></thead>
+          <tbody>
+            <tr><td>Clear assertion error</td><td>Debug — compare actual vs expected</td></tr>
+            <tr><td>Test times out repeatedly</td><td>Check jsdom support for the library</td></tr>
+            <tr><td>Same test fails everywhere</td><td>Likely a code bug, not a test issue</td></tr>
+            <tr><td>Fails only in CI/local</td><td>Environment-specific issue</td></tr>
+            <tr><td>3+ attempts still failing</td><td>Consider skipping and documenting</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Regex analysis: extractMerchant failures — April 25, 2026</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Test</th><th>Input</th><th>Expected</th><th>Actual</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td><code>EFTPOS AUSTRALIA XIN DONG BEI PT\CLAYTON VIC AU</code></td><td>AUSTRALIA XIN DONG BEI</td><td>AUSTRALIA</td></tr>
+            <tr><td>2</td><td><code>VISA DEBIT PURCHASE CARD 1127 SMOLBITEZ PTY LTD MELBOURNE</code></td><td>SMOLBITEZ</td><td>SMOLBITEZ MELBOURNE</td></tr>
+          </tbody>
+        </table></div>
+        <p>Root cause — <code>ADDRESS_SUFFIX</code> regex too greedy (<code>lib/categories.ts:30</code>):</p>
+        <pre><code>const ADDRESS_SUFFIX = /\s+(STREET|ST|ROAD|RD|AVENUE|AVE|DRIVE|DR|LANE|LN|COURT|CT)?\s*[A-Z]+(\s+[A-Z]+)*\s*(VIC|NSW|QLD|SA|WA|TAS|ACT|NT)?\s*(AU AUS)\s*$/i;</code></pre>
+        <p>Trace for test 1: ANZ_PREFIXES strips <code>EFTPOS</code> → BUSINESS_NOISE strips <code>PT\CLAYTON</code> → ADDRESS_SUFFIX's unbounded <code>(\s+[A-Z]+)*</code> greedily consumes <code>XIN DONG BEI VIC AU</code>, leaving only <code>AUSTRALIA</code>. The pattern is meant for real addresses like "123 SMITH STREET MELBOURNE VIC AU" but strips any words between the start and the state code, including merchant name parts.</p>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Option</th><th>Description</th><th>Tradeoff</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>Narrow ADDRESS_SUFFIX to street type + single state</td><td>Can't handle multi-word suburbs</td></tr>
+            <tr><td>2</td><td>Two-pass: split cleaning into controlled stages</td><td>More code, more explicit</td></tr>
+            <tr><td>3</td><td>Accept current behavior, adjust test expectations</td><td>May mis-categorize future merchants</td></tr>
+          </tbody>
+        </table></div>
+
+        <h3>Multi-bank PDF parsing diagnosis — May 12, 2026</h3>
+        <p>Run via <code>npx tsx probe-pdfs.ts</code> — runs all PDFs through the parser, prints count + first 5 transactions. Key finding: <code>sampleCBAFormatText</code> and <code>sampleNABFormatText</code> in fixtures are fictional clean formats — they pass tests but don't reflect what pdf-parse actually outputs from real PDFs.</p>
+
+        <h4>Bug 1 — plural column names (ANZ, NAB)</h4>
+        <p><span class="fp">detector.ts:42-49</span> — ANZ header: "Withdrawals ($) Deposits ($)"; NAB header: "Debits Credits". <code>indexOf('withdrawal')</code>/<code>indexOf('deposit')</code> return -1 against plural tokens, so the extractor falls back to positional guessing — card/reference numbers in descriptions get picked up as amounts, displacing the real value.</p>
+        <pre><code>const withdrawalAliases = ['withdrawal', 'withdrawals', 'debit', 'debits'];
+const depositAliases = ['deposit', 'deposits', 'credit', 'credits'];</code></pre>
+
+        <h4>Bug 2 — CBA mixed date formats → 0 transactions</h4>
+        <p><span class="fp">detector.ts:73</span>, <span class="fp">extractor.ts:13</span> — CBA mixes <code>01 Jul 2021 OPENING BALANCE</code> (has year) with regular lines like <code>28 Oct THE BODY SHOP...</code> (no year). Date-format sampling hits the opening-balance line first, locks to <code>DD MMM YYYY</code>, and every regular line then fails the year-required regex.</p>
+
+        <h4>Bug 3 — CBA header split across lines</h4>
+        <p><span class="fp">detector.ts:3</span> — header is 4 separate lines (Date / Transaction / Debit / Credit Balance). <code>isTransactionHeader()</code> checks one line for date+description+amounts at once and never fires; the date column index ends up wrong.</p>
+
+        <h4>Bug 4 — NAB dot padding in descriptions</h4>
+        <p><span class="fp">extractor.ts:51-61</span> — lines like <code>X Li .....20.00</code> get their dot padding concatenated straight into the description. Fix: <code>description.replace(/\.{'{'}3,{'}'}/g, '').trim()</code>.</p>
+
+        <h4>Bug 5 — File_000.pdf columns fused</h4>
+        <p>pdf-parse renders adjacent columns with no space (<code>DateTransaction DetailsWithdrawalsDeposits</code>), and merges bank name into date (<code>05 MARANZ MOBILE BANKING</code>). A pdf-parse rendering artifact specific to this file's encoding — not easily fixable without a post-processing space-reinjection pass. Low priority.</p>
+
+        <h4>Probe output summary</h4>
+        <div class="table-wrap"><table>
+          <thead><tr><th>File</th><th>Transactions</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>2025-01-06.pdf (ANZ)</td><td>145</td><td>All typed credit (wrong), card numbers leak into amounts</td></tr>
+            <tr><td>2025-07-04.pdf (ANZ)</td><td>191</td><td>Mixed, same column bug</td></tr>
+            <tr><td>2026-01-06.pdf (ANZ)</td><td>282</td><td>Same as above</td></tr>
+            <tr><td>Australia Commonwealth J C.pdf (CBA)</td><td><strong>0</strong></td><td>Bug 2 kills all parsing</td></tr>
+            <tr><td>Australia NAB.pdf (NAB)</td><td>14</td><td>Dot padding, wrong column mapping</td></tr>
+            <tr><td>File_000.pdf (ANZ)</td><td>44</td><td>Dates show as "05 MARANZ" (fused render)</td></tr>
+          </tbody>
+        </table></div>
+
+        <h4>Fix order (by impact)</h4>
+        <ol>
+          <li><code>detector.ts</code> — plural aliases for withdrawal/deposit → fixes ANZ + NAB column mapping</li>
+          <li><code>detector.ts</code> — <code>detectDateFormat</code> doesn't lock on opening-balance year → fixes CBA 0-transaction bug</li>
+          <li><code>extractor.ts</code> — strip dot sequences from descriptions → cleans NAB output</li>
+        </ol>
+        </div>
+      </section>
+
+      <!-- ============ SESSIONS ============ -->
+      <section class="doc" id="s-0320">
+        <p class="doc-eyebrow"><time>2026-03-20</time> <span class="status status--good">Fixed</span></p>
+        <h1>Test suite fixes</h1>
+        <p class="doc-dek">A broken <code>package.json</code> entry cascaded into 22 test failures. Fixed the root cause, then the parser assumptions the tests actually depended on.</p>
+        <div class="doc-body">
+        <div class="callout callout--bad">
+          <span class="callout-label">Initial error</span>
+          <pre><code>Error: Failed to resolve import "@testing-library/jest-dom" from "tests/setup.ts"</code></pre>
+        </div>
+        <h2>Root cause</h2>
+        <p><code>package.json</code> line 30 had a malformed entry:</p>
+        <pre><code>"@testing-library/jest-dom": "file:testing-library/user-event@^14.5.0",</code></pre>
+
+        <h2>Fixes applied</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Issue</th><th>File</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>jest-dom import</td><td>tests/setup.ts</td><td>Removed unused import</td></tr>
+            <tr><td>jest-dom package</td><td>package.json</td><td>Removed malformed entry</td></tr>
+            <tr><td>"woolies" not categorized</td><td>transactionParser.ts</td><td>Added 'woolies' to groceries keywords</td></tr>
+            <tr><td>FileUploader label a11y</td><td>FileUploader.tsx</td><td>Added <code>htmlFor="dropzone-file"</code></td></tr>
+            <tr><td>Column parsing logic</td><td>transactionParser.ts</td><td>Rewrote to regex-based amount extraction</td></tr>
+            <tr><td>Header detection</td><td>transactionParser.ts</td><td>Added "Date…Amount" pattern</td></tr>
+            <tr><td>Amount threshold</td><td>transactionParser.ts</td><td>Changed to <code>val &gt;= 0</code> to handle 0.00</td></tr>
+            <tr><td>Test fixture</td><td>sample-transactions.ts</td><td>Updated to 3-column format</td></tr>
+            <tr><td>Test tolerance</td><td>transactionParser.test.ts</td><td><code>toBe()</code> → <code>toBeCloseTo()</code></td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Final result</h2>
+        <pre><code>Test Files: 2 failed | 3 passed (5)
+Tests: 10 failed | 140 passed (150)</code></pre>
+        <p>Remaining: Summary tests (8 — inline data doesn't match 3-column format) and FileUploader tests (2 — <code>fireEvent</code> doesn't trigger react-dropzone callbacks).</p>
+
+        <div class="callout callout--good">
+          <span class="callout-label">Lessons learned</span>
+          <ul>
+            <li>Always run <code>npm install</code> after package.json changes</li>
+            <li>Test data must match parser assumptions exactly</li>
+            <li>Float comparisons need <code>toBeCloseTo()</code>, not <code>toBe()</code></li>
+            <li>react-dropzone tests need <code>userEvent</code> or proper mocking</li>
+            <li>Fix test data vs. changing the parser — don't over-engineer the parser for bad test data</li>
+          </ul>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0429">
+        <p class="doc-eyebrow"><time>2026-04-29</time> <span class="status status--warn">Scaffolded</span></p>
+        <h1>Multi-bank support scaffold</h1>
+        <p class="doc-dek">First step of the multi-bank attempt: column-position + date-format detection architected in, deliberately not bank-specific hardcoding.</p>
+        <div class="doc-body">
+        <h2>What was built</h2>
+        <ul>
+          <li>Architecture decision: column-position detection + date-format inference, not bank-specific hardcoding</li>
+          <li><code>DateFormat</code> union type added to <code>types.ts</code></li>
+          <li><code>columnMap</code> and <code>dateFormat</code> wired through <code>detector.ts</code> → <code>extractor.ts</code> → <code>index.ts</code></li>
+          <li><code>TRANSACTION_REGEX</code> converted from a constant to a function that switches on <code>dateFormat</code></li>
+          <li>Skeleton for <code>detectDateFormat()</code> created but not implemented</li>
+          <li>All 159 tests pass (fallback behavior intact)</li>
+        </ul>
+        <h2>Bugs to fix next session</h2>
+        <ol>
+          <li><code>detectDateFormat</code> (<span class="fp">detector.ts:64</span>) — pattern array declared but hardcoded to return <code>'unknown'</code>. Needs to sample data rows, not the header line.</li>
+          <li><code>extractColumnFormat</code> (<span class="fp">extractor.ts:134</span>) — <code>columnMap</code> values are character offsets but code uses them as token indices. Needs offset→index conversion, or nearest-token lookup.</li>
+        </ol>
+        <div class="callout callout--warn">
+          <span class="callout-label">Habits observed</span>
+          <p><strong>Good:</strong> reasoned through the architecture before touching code — identified column-position vs. date-format as separate concerns without being told. Made all the changes without asking AI to write the logic.</p>
+          <p><strong>Watch:</strong> left <code>detectDateFormat</code> body empty — skeleton started but not finished; the commit captured incomplete work silently. Next time: finish it, or leave an explicit <code>// TODO</code>.</p>
+          <p><strong>Watch:</strong> added extra <code>DateFormat</code> variants beyond what was discussed — good initiative, but untested additions are future bugs.</p>
+        </div>
+        <h2>Ways to work better</h2>
+        <p>When a function is scaffolded but not implemented, leave an explicit <code>// TODO:</code> so the gap is visible in review. After writing a function, ask "what input would break this?" — that question on <code>detectDateFormat</code> would have caught the always-<code>'unknown'</code> return immediately.</p>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0502">
+        <p class="doc-eyebrow"><time>2026-05-02</time> <span class="status status--warn">Diagnosed</span></p>
+        <h1>Multi-bank format bug investigation</h1>
+        <p class="doc-dek">Uploaded real CBA and NAB statements to the UI and compared parsed output to actual PDF values. Three root causes found.</p>
+        <div class="doc-body">
+        <h2>Bug 1 — year leaking as withdrawal amount</h2>
+        <p><span class="fp">lib/parser/extractor.ts</span> — <code>extractColumnFormat()</code>. CBA transactions showed <code>2021</code> as the withdrawal amount with empty descriptions. <code>amountRegex</code> matches all digit sequences, including the year in <code>DD MMM YYYY</code> dates; the line-126 filter only removes the day number, not the year.</p>
+        <p><strong>Fix needed:</strong> strip the full date (year included, if <code>parts[2]</code> matches <code>/^\d{'{'}4{'}'}$/</code>) from <code>fullLine</code> before running <code>amountRegex</code>.</p>
+
+        <h2>Bug 2 — NAB format detected as 'unknown'</h2>
+        <p><span class="fp">lib/parser/detector.ts</span> — <code>detectFormat()</code>. NAB uses <code>Debit</code>/<code>Credit</code> headers instead of <code>withdrawal</code>/<code>deposit</code>, falling through to <code>'unknown'</code>.</p>
+        <p><strong>Fix needed:</strong> add a branch — <code>hasDebit &amp;&amp; hasCredit &amp;&amp; hasBalance → 'column'</code>.</p>
+
+        <h2>Bug 3 — "Particulars" column not mapped to description</h2>
+        <p><span class="fp">lib/parser/detector.ts</span> — <code>findTransactionHeader()</code>. <code>headerTokens.indexOf('description')</code> returns -1 when the header says "Particulars".</p>
+        <p><strong>Fix needed:</strong> alias lookup trying <code>['description', 'particulars', 'details', 'narrative']</code> in order.</p>
+
+        <h2>Tests scaffolded</h2>
+        <p><code>tests/unit/multiBank.test.ts</code> — 14 tests covering CBA and NAB parsing. Fixtures added: <code>sampleCBAFormatText</code>, <code>sampleNABFormatText</code>.</p>
+        <pre><code>9 failed | 5 passed</code></pre>
+
+        <h2>Fix order</h2>
+        <ol>
+          <li>Bug 1 (year strip) — unblocks most CBA failures and description tests</li>
+          <li>Bug 2 (detectFormat aliases) — unblocks NAB format detection</li>
+          <li>Bug 3 (column name aliases) — unblocks NAB description extraction</li>
+        </ol>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Outstanding question — not yet resolved</span>
+          <p>Debit/credit type detection for 2-column formats (e.g. NAB salary = credit, Coles = debit) requires knowing which column the amount appeared in. A right-to-left token approach can't distinguish this without character offsets. Needs a decision next session.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0504">
+        <p class="doc-eyebrow"><time>2026-05-04</time> <span class="status status--warn">Partial</span></p>
+        <h1>Multi-bank parsing fixes (CBA/NAB)</h1>
+        <p class="doc-dek">Applied the three bugs diagnosed on May 2 — 11 of 15 new tests pass, but debit/credit typing for two-token rows is still wrong.</p>
+        <div class="doc-body">
+        <h2>What was built</h2>
+        <ul>
+          <li>Fixed summary tests (14/14) by adding a pre-formatted <code>text</code> field to <code>summaryTestData</code></li>
+          <li>Added <code>DD MMM YYYY</code> date format support for CBA statements</li>
+          <li>Added <code>Debit</code>/<code>Credit</code> column aliases in <code>detector.ts</code></li>
+          <li>Added <code>Particulars</code> column alias for NAB description mapping</li>
+          <li>Restructured <code>extractor.ts</code> to check CBA/NAB format first, before ANZ fallback logic</li>
+          <li>Cleaned up duplicate dead code in <code>extractor.ts</code> (275 → 202 lines)</li>
+        </ul>
+
+        <h2>Test status after fixes</h2>
+        <pre><code>✔ tests/unit/summary.test.ts (14 tests)
+✔ tests/unit/groupByMonth.test.ts (9 tests)
+✔ tests/unit/transactionParser.test.ts (23 tests)
+✘ tests/unit/multiBank.test.ts (11 passed | 4 failed)</code></pre>
+
+        <h2>4 remaining failures</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Test</th><th>Issue</th></tr></thead>
+          <tbody>
+            <tr><td>Cash Deposit should be credit 4700.00</td><td><code>type = 'debit'</code> instead of <code>'credit'</code></td></tr>
+            <tr><td>Credit Interest should be credit 3.21</td><td><code>type = 'debit'</code> instead of <code>'credit'</code></td></tr>
+            <tr><td>Salary Credit should be credit 2000.00</td><td><code>type = 'debit'</code> instead of <code>'credit'</code></td></tr>
+            <tr><td>should have both debits and credits</td><td><code>credits.length = 0</code></td></tr>
+          </tbody>
+        </table></div>
+        <p>Root cause: when <code>numericTokens.length === 2</code> (amount + balance, one column empty), the 2-token case still defaults to <code>type: 'debit'</code> despite the CBA/NAB branch now running first.</p>
+
+        <h2>Next session plan</h2>
+        <ol>
+          <li>Debug what <code>numericTokens</code> actually contains for the CBA "Cash Deposit" line</li>
+          <li>Confirm <code>columnMap</code> values are character positions, not token indices (they are — the code just treats them as indices)</li>
+          <li>Fix the character-position → token-index conversion in <code>extractColumnFormat()</code></li>
+        </ol>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Ways to work better</span>
+          <p><strong>Better:</strong> test each bug fix individually before moving to the next — three bugs were fixed at once, making it hard to isolate which fix broke what.</p>
+          <p><strong>Better:</strong> add debug logging before restructuring code, not after — restructuring first made debugging harder.</p>
+          <p><strong>Watch:</strong> the file got corrupted with duplicate code during edits — verify file state with a read after each edit.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0505">
+        <p class="doc-eyebrow"><time>2026-05-05</time> <span class="status status--good">173 passing</span></p>
+        <h1>Structural header detection + multi-bank fixes</h1>
+        <p class="doc-dek">Replaced rigid hardcoded header regexes with structural detection. All multiBank tests green — but real-world gaps were flagged before committing.</p>
+        <div class="doc-body">
+        <h2>What was built</h2>
+        <ul>
+          <li>Replaced the 5-regex <code>HEADER_PATTERNS</code> array with <code>isTransactionHeader()</code>, checking 3 independent concepts: date + description + amounts</li>
+          <li>Alias lookup for columns: withdrawal/debit, deposit/credit, description/particulars/details/narrative</li>
+          <li>Fixed <code>detectDateFormat</code> to sample data lines (was sampling the header line)</li>
+          <li>Added <code>DD MMM YYYY</code> to the <code>DateFormat</code> union</li>
+          <li><code>extractColumnFormat</code> now receives <code>columnMap</code> and <code>dateFormat</code> for position-aware parsing</li>
+          <li>CBA/NAB branch correctly handles 3-token and 2-token cases</li>
+          <li>Added <code>isCreditTransaction</code> heuristic (credit, deposit, interest, salary keywords)</li>
+          <li>15 new <code>multiBank.test.ts</code> tests; removed debug <code>console.log</code></li>
+        </ul>
+        <pre><code>✔ 173 tests passing, 1 skipped — all multiBank tests green (previously 4 failures)</code></pre>
+
+        <h2>Real-world testing issues — not ready to commit yet</h2>
+        <h3>1. ANZ fallback always returns 'debit'</h3>
+        <p><span class="fp">extractor.ts:178-187</span> — the 2-token path (amount + balance, no <code>0.00</code> placeholders) has both branches returning <code>'debit'</code>. <code>isCreditTransaction</code> exists but isn't applied here. A real ANZ file with "Debit" in a credit transaction's description would misclassify it.</p>
+        <h3>2. CBA real file — only opening balance shows in app</h3>
+        <p>Unknown root cause. Needs: checking whether the real file has <code>0.00</code> placeholders or blank columns, whether <code>detectDateFormat</code> identifies the real date format correctly, and whether rows are silently failing to parse.</p>
+        <h3>3. filter.ts doesn't filter "Opening Balance"</h3>
+        <p>Pattern <code>/^balance/i</code> only catches lines starting with "Balance" — "Opening Balance" slips through. Fix: add <code>/opening balance/i</code>.</p>
+
+        <div class="callout callout--good">
+          <span class="callout-label">Ready to commit</span>
+          <p>All files in a single commit: "Add multi-bank statement format support (CBA, NAB)". Skip: <code>.claude/</code>, <code>agents/</code>, <code>sessions/</code>, <code>Notes.md</code> — session artifacts.</p>
+        </div>
+        <h2>Next session priorities</h2>
+        <ol>
+          <li>Fix ANZ fallback — apply <code>isCreditTransaction</code> to the 2-token path</li>
+          <li>Add "Opening Balance" to filter patterns</li>
+          <li>Investigate the CBA real file — get sample lines or debug in-app</li>
+          <li>Commit after fixes land</li>
+        </ol>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0518">
+        <p class="doc-eyebrow"><time>2026-05-18</time> <span class="status status--good">17/17 green</span></p>
+        <h1>Regression test fixes + Bug 5 applied</h1>
+        <p class="doc-dek">Compile errors from language cross-contamination (a PHP/Rust arrow bled into TypeScript), a mis-transcribed test amount, and the blank→0.00 fix from the May 12 diagnosis, finally applied.</p>
+        <div class="doc-body">
+        <h2>1. Diagnosed multiBank.test.ts compile errors</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>#</th><th>Line</th><th>Error</th><th>Fix</th></tr></thead>
+          <tbody>
+            <tr><td>1</td><td>135</td><td><code>() -&gt;</code> wrong arrow syntax (PHP/Rust bleed-in)</td><td><code>() =&gt;</code></td></tr>
+            <tr><td>2</td><td>136–140</td><td>Single-quoted multiline string — not valid JS</td><td>Backtick template literal</td></tr>
+            <tr><td>3</td><td>155</td><td>Expected 130000.00 — extra zero misread from 13,000.00</td><td>13000.00</td></tr>
+            <tr><td>4</td><td>157</td><td>Missing <code>;</code> after closing <code>{'}'})</code></td><td><code>{'}'});</code></td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>2. Rewrote the plural-header test fixture</h2>
+        <p>Single-line format never worked for the credit test: the 2-token path (<code>13,000.00</code> + <code>15,302.99</code>) falls back to the <code>isCreditTransaction</code> keyword heuristic, and "TRANSFER FROM" doesn't contain credit/deposit/interest/salary. Switched to multiline format with <code>blank</code> markers (as pdf-parse actually outputs), so the blank→0.00 conversion produces 3 tokens and column position determines type correctly.</p>
+
+        <h2>3. Applied Bug 5 — blank marker → 0.00</h2>
+        <p><span class="fp">extractor.ts:65-67</span> — blank lines were silently skipped before; now a blank line appends <code>' 0.00'</code>, forming a 3-token structure the CBA/NAB branch can read.</p>
+        <pre><code>// BEFORE
+if (!BLANK_LINE_REGEX.test(lines[nextIndex])) {
+  fullLine += ' ' + lines[nextIndex];
+}
+
+// AFTER
+if (BLANK_LINE_REGEX.test(lines[nextIndex])) {
+  fullLine += ' 0.00';
+} else {
+  fullLine += ' ' + lines[nextIndex];
+}</code></pre>
+        <pre><code>✔ tests/unit/multiBank.test.ts — 17/17 passing</code></pre>
+
+        <h2>Cross-check against plan and prior sessions</h2>
+        <h3>Phase 1 status</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Fix</th><th>Status</th><th>Notes</th></tr></thead>
+          <tbody>
+            <tr><td>Fix 1 — plural aliases</td><td>Done</td><td>detector.ts — from May 05</td></tr>
+            <tr><td>Fix 2 — decimal-required amountRegex</td><td>Done</td><td>extractor.ts:138 — from May 05</td></tr>
+            <tr><td>Fix 3 — detectDateFormat skips opening balance</td><td>Typo</td><td>detector.ts:74: "opening blance" (missing 'a') — passes tests since no fixture has that line, but breaks on real CBA PDFs</td></tr>
+            <tr><td>Fix 4 — page break stop regexes</td><td>Done</td><td>extractor.ts — from May 05</td></tr>
+            <tr><td>Bug 5 — blank → 0.00</td><td>Done</td><td>extractor.ts — this session</td></tr>
+          </tbody>
+        </table></div>
+        <h3>From May 05 next-session priorities</h3>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Item</th><th>Status</th></tr></thead>
+          <tbody>
+            <tr><td>Fix ANZ 2-token fallback (isCreditTransaction)</td><td>Done — line 190</td></tr>
+            <tr><td>Add "Opening Balance" to filter patterns</td><td>Already done — filter.ts:7</td></tr>
+            <tr><td>Investigate CBA real file</td><td>Not done</td></tr>
+            <tr><td>Commit after fixes land</td><td>Not done</td></tr>
+          </tbody>
+        </table></div>
+        <p>Pre-existing, unrelated: <code>groupByMonth.test.ts</code> has 2 failures not caused by this session's changes.</p>
+
+        <h2>What's left before this feature is done</h2>
+        <p><strong>Immediate:</strong> fix the "opening blance" typo at detector.ts:74; commit Phase 1 + Bug 5; investigate the 2 pre-existing groupByMonth failures.</p>
+        <p><strong>Medium term:</strong> investigate the CBA real file (only opening balance shows — likely the same typo/date-format lock); begin Phase 2, <code>pdf2json-extractor.ts</code> using x/y coordinates — <code>probe-pdf2json.ts</code> had already produced column x-positions for all banks.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Learning note</span>
+          <p>The single-quote vs. backtick distinction mirrors Python's single-quoted string limitation, except Python multiline uses triple-quotes. In JS/TS, the moment a string needs newlines, reach for backticks. The <code>-&gt;</code> arrow is a language cross-contamination sign — worth a personal cheat-sheet entry.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0519">
+        <p class="doc-eyebrow"><time>2026-05-19</time> <span class="status status--bad">Regressed</span></p>
+        <h1>pdf2json UAT regression + multi-bank feasibility notes</h1>
+        <p class="doc-dek">The API switched from flat-text pdf-parse to x/y-aware pdf2json, plus a multi-row block merger — and real CBA/NAB uploads got worse, even with 189+ unit tests green. The turning point of the saga.</p>
+        <div class="doc-body">
+        <h2>Executive summary</h2>
+        <p>Unit tests still pass because fixtures are small, hand-built row layouts — not copies of real pdf2json output. Multi-bank parsing is feasible, but only if each bank is validated against real PDF geometry (probe snapshots → committed fixtures → fixes). Synthetic tests alone keep producing false confidence.</p>
+
+        <h2>Architecture timeline</h2>
+        <pre class="mermaid">flowchart TB
+  subgraph phase1 [Phase 1 — Text parser]
+    pp[pdf-parse flat text]
+    det[detector.ts]
+    ext[extractor.ts merges continuation lines]
+    pp --> det --> ext
+  end
+  subgraph phase2 [Phase 2 — pdf2json production]
+    p2j[pdf2json x/y fragments]
+    p2e[pdf2json-extractor.ts]
+    api[parse-data/route.ts]
+    p2j --> p2e --> api
+  end
+  subgraph phase2b [Phase 2b — Block merger UAT fix]
+    blk[groupRowsIntoBlocks]
+    merge[mergeBlockColumns]
+    p2e --> blk --> merge
+  end
+  phase1 -->|replaced in API| phase2
+  phase2 --> phase2b</pre>
+
+        <div class="table-wrap"><table>
+          <thead><tr><th>When</th><th>Change</th><th>Files</th></tr></thead>
+          <tbody>
+            <tr><td>Apr 29</td><td>Column map + date format scaffold</td><td>detector.ts, extractor.ts, types.ts</td></tr>
+            <tr><td>May 02–05</td><td>CBA/NAB text fixes, multiBank.test.ts</td><td>detector.ts, extractor.ts, fixtures</td></tr>
+            <tr><td>May 18</td><td>Plural headers, blank→0.00, 17/17 multiBank</td><td>extractor.ts, detector.ts</td></tr>
+            <tr><td>May 19 (earlier)</td><td><strong>API uses pdf2json only</strong></td><td>pdf2json-extractor.ts, route.ts</td></tr>
+            <tr><td>May 19 (later)</td><td>Block merger, sort, multi-row fixtures</td><td>pdf2json-extractor.ts, bank-rows.ts</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Real UAT observations</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Bank / file</th><th>Reported behavior</th><th>Likely cause</th></tr></thead>
+          <tbody>
+            <tr><td>CBA</td><td>Failed to load</td><td>pdf2json warnings on 850KB PDF; possibly 0 transactions, or a parse error swallowed as 500. Split header + mixed date formats still fragile.</td></tr>
+            <tr><td>NAB</td><td>First visible tx ~16 Sep; many rows missing</td><td><code>groupRowsIntoBlocks</code> drops orphan rows — rows before 16 Sep never form a valid block</td></tr>
+            <tr><td>NAB</td><td>Description stuck on opening balance</td><td>Opening-balance row may start a block or merge into the first one; filter may run on the wrong field</td></tr>
+            <tr><td>ANZ</td><td>Not re-tested after block merger</td><td>Risk of the same multi-row issues recurring</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Why tests pass but UAT fails</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Tests</th><th>Real PDFs</th></tr></thead>
+          <tbody>
+            <tr><td>Ideal x/y rows, 1–5 per scenario</td><td>Hundreds of rows, irregular y-rounding, split headers, wrapped descriptions</td></tr>
+            <tr><td>Fictional flat text (text parser)</td><td>Not used by the API anymore</td></tr>
+            <tr><td>No test loads actual PDF buffers in CI</td><td>CBA/NAB geometry never asserted</td></tr>
+          </tbody>
+        </table></div>
+        <p><strong>Lesson:</strong> a passing <code>pdf2json-extractor.test.ts</code> does not prove production PDFs work.</p>
+
+        <h2>Root causes in pdf2json-extractor.ts</h2>
+        <h3>1. Orphan row drop (NAB skips)</h3>
+        <p><code>groupRowsIntoBlocks</code> (~432–466): a row that's neither a transaction start nor a continuation gets the current block finalized and is never attached anywhere. Real NAB/CBA lines often lack a date in the date column on the first visual row.</p>
+        <h3>2. Strict transaction-start detection</h3>
+        <p><code>rowStartsTransaction</code> requires a date at left or in the date column; CBA rows like "28 Oct" (no year) can fail if fragments split across columns.</p>
+        <h3>3. Opening balance bleed</h3>
+        <p><code>isSkipRow</code> skips rows whose joined text matches "opening balance" — but split fragments may not join to that exact phrase, so a block can still absorb the balance-column amount or description text.</p>
+        <h3>4. CBA header / page 1</h3>
+        <p>Header split across 4 lines; if page 1 has no valid header, <code>activeBounds</code> stays null and the entire page is skipped.</p>
+        <h3>5. No pdf-parse fallback</h3>
+        <p><span class="fp">app/api/parse-data/route.ts</span> only calls <code>parseTransactionsFromPdf</code> — any pdf2json failure is a 500 or empty state, no degraded path.</p>
+
+        <h2>Is multi-bank feasible?</h2>
+        <div class="callout callout--warn">
+          <span class="callout-label">Verdict: yes, with constraints</span>
+          <p>pdf2json is the right direction for column debit/credit — text-only parsing can't fix CBA/NAB layout. But one extractor for all banks, without per-bank real fixtures and iterative UAT, will keep regressing.</p>
+          <p><strong>Pragmatic path:</strong> (1) pdf-parse fallback for UX, (2) pdf2json per bank behind flags, (3) probe snapshots as tests, (4) fix one bank at a time.</p>
+        </div>
+
+        <h2>Recommended next steps</h2>
+        <p><strong>Immediate:</strong> hybrid API (pdf2json primary, pdf-parse fallback on 0 txs/throw); hard-skip opening-balance blocks before column conversion; never silently drop orphan rows with an amount.</p>
+        <p><strong>Short term:</strong> capture real probe fixtures for one failing CBA page and one NAB page; add <code>PDF_PARSE_DEBUG=1</code> logging per block skip reason; re-run the CBA header/column probe.</p>
+        <p><strong>Medium term:</strong> re-UAT ANZ multi-row EFTPOS; Westpac/File_000 stay out of scope until ANZ/CBA/NAB are stable; update the Notes.md probe table after each fix.</p>
+        <p><strong>Process:</strong> don't merge parser changes without at least one new real-layout fixture from probe output; commit session notes and code separately once a bank hits its success criteria.</p>
+
+        <h2>Success criteria (unchanged — still not met for CBA/NAB)</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>PDF</th><th>Target</th></tr></thead>
+          <tbody>
+            <tr><td>CBA</td><td>Loads; no large date gaps; WORLDREMIT + COSTCO as separate transactions</td></tr>
+            <tr><td>NAB</td><td>All rows; no year in description; not opening-balance text</td></tr>
+            <tr><td>ANZ official</td><td>Merchant + EFTPOS in description</td></tr>
+            <tr><td>ANZ unofficial</td><td>Chronological order</td></tr>
+          </tbody>
+        </table></div>
+
+        <div class="callout callout--bad">
+          <span class="callout-label">Ways to work better</span>
+          <p><strong>Better:</strong> one bank per PR, with a probe snapshot test before merging.</p>
+          <p><strong>Better:</strong> keep the pdf-parse fallback until pdf2json matches probe counts on all three banks.</p>
+          <p><strong>Watch:</strong> large block-merger refactors without real PDF fixtures — tests green, UAT red.</p>
+          <p><strong>Watch:</strong> assuming a chronological sort fixes "missing" rows — it only reorders what was actually parsed.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0524">
+        <p class="doc-eyebrow"><time>2026-05-24</time> <span class="status status--warn">Improved, not finished</span></p>
+        <h1>Hybrid PDF fallback + multi-bank parser hardening</h1>
+        <p class="doc-dek">Picked up from May 19: restored a usable path when pdf2json fails, and stopped the parser from dropping split rows before they had enough data to become a transaction.</p>
+        <div class="doc-body">
+        <h2>What changed</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Area</th><th>Change</th><th>Files</th></tr></thead>
+          <tbody>
+            <tr><td>Upload API</td><td>Tightened PDF validation — requires both MIME type and .pdf extension</td><td>route.ts</td></tr>
+            <tr><td>Upload API</td><td>Removed <code>any</code> size cast, used native <code>File.size</code></td><td>route.ts</td></tr>
+            <tr><td>Upload API</td><td>Consistent JSON error responses</td><td>route.ts</td></tr>
+            <tr><td>Parser API</td><td>Hybrid parsing: pdf2json first, pdf-parse fallback on throw/zero txs</td><td>lib/parser/index.ts</td></tr>
+            <tr><td>Types</td><td>Local declaration for untyped pdf-parse entrypoint</td><td>lib/types/pdf-parse.d.ts</td></tr>
+            <tr><td>pdf2json parser</td><td>Preserved pending split rows instead of dropping incomplete ones</td><td>pdf2json-extractor.ts</td></tr>
+            <tr><td>Tests</td><td>Regression coverage for split-date orphan rows + opening-balance non-leakage</td><td>bank-rows.ts, pdf2json-extractor.test.ts</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Verification</h2>
+        <pre><code>npm test -- --run
+→ 191 passed, 1 skipped
+
+npm run lint
+→ still failing — pre-existing project-wide issues, not this session's changes
+  (components/ui/input.tsx empty interface, next.config.ts require,
+   probe-pdf2json.ts any, FileUploader.test.tsx any, tests/setup.ts any)</code></pre>
+
+        <h2>Important implementation notes</h2>
+        <p>The pdf-parse fallback imports <code>pdf-parse/lib/pdf-parse</code> directly — importing the package root made Vitest execute the package's debug path and try to open a test PDF that doesn't exist in this repo.</p>
+        <p>pdf2json remains the correct primary parser (it's the only one with x/y layout for debit/credit/balance columns); pdf-parse restores usability when layout parsing fails but can't reliably solve every multi-column statement on its own.</p>
+        <p>The split-row fix is conservative: a row with an amount, description, or partial day value and no current block is kept pending; if the next row starts a transaction and the pending block has no date yet, it's merged in rather than forcing a new boundary.</p>
+
+        <div class="callout callout--good">
+          <span class="callout-label">Project explanation, for a junior developer</span>
+          <p>This is a bank transaction analyser: upload a PDF statement, extract transaction rows, filter out summary lines like opening balance or totals, categorize each transaction, group by month, return a spending summary. The hard part isn't the dashboard — it's PDF parsing. Bank PDFs look tabular but extraction libraries return fragmented text, and different banks place dates/descriptions/debits/credits/balances at different x/y positions. That's why the parser is split into detection, extraction, filtering, grouping, and summarizing. The project now has both a text-parser path (pdf-parse) and a layout-parser path (pdf2json) — layout is primary, text is fallback.</p>
+        </div>
+
+        <h2>Portfolio assessment</h2>
+        <p>Framed correctly, this is a good portfolio project — not a CRUD app or charting demo, but practical engineering around messy real-world data: parser design, file-upload validation, typed contracts, tests, incremental hardening from real failures. To make it portfolio-worthy: real redacted pdf2json fixture snapshots per bank; per-bank accuracy reporting (transaction count, known merchant rows, debit/credit correctness, no opening-balance leakage); a small parser-confidence/warnings UI section; a clean lint/test/build; a README with architecture diagram, screenshots, supported banks, limitations, test evidence. Keep scope tight before adding AI or database storage — a reliable parser is more impressive than a broad, inaccurate finance app.</p>
+
+        <h2>Next recommended steps</h2>
+        <ol>
+          <li>Capture one redacted pdf2json probe fixture each for ANZ, CBA, and NAB</li>
+          <li>Add tests asserting the real-bank success criteria from the May 19 session</li>
+          <li>Run real PDF UAT again after the fallback + split-row fixes</li>
+          <li>Fix existing lint failures</li>
+          <li>Update README/CHANGELOG once real-fixture validation is done</li>
+        </ol>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0531">
+        <p class="doc-eyebrow"><time>2026-05-31</time> <span class="status status--bad">Rolled back</span></p>
+        <h1>ANZ-only rollback and official ANZ PDF blocker</h1>
+        <p class="doc-dek">Multi-bank support removed from active code and tests. File 000 (unofficial ANZ) works; the official ANZ statement is still blocked — by corrupted PDF extraction, not a parser logic bug.</p>
+        <div class="doc-body">
+        <h2>Executive summary</h2>
+        <p>This session rolled the parser direction back toward ANZ-only support. File 000 is considered working. The official ANZ <code>2025-01-06</code> file is still blocked: most rows collapse because the parsed output contains corrupted amounts such as <code>2024.00</code> (from "EFFECTIVE DATE … 2024") and <code>432919512.00</code> (from a transfer/account reference). The parser now rejects those leaked values — but it can't recover the true amount once the PDF text extraction has already lost it.</p>
+        <div class="callout callout--bad"><span class="callout-label">Do not commit yet</span><p>Until the official ANZ raw extraction is inspected and either recovered or reported clearly as unsupported.</p></div>
+
+        <h2>What changed in working tree</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Area</th><th>Change</th><th>Files</th></tr></thead>
+          <tbody>
+            <tr><td>Parser scope</td><td>Removed active multi-bank DateFormat/columnMap plumbing</td><td>types.ts, detector.ts, extractor.ts, index.ts</td></tr>
+            <tr><td>Tests</td><td>Deleted CBA/NAB multi-bank unit test</td><td>multiBank.test.ts</td></tr>
+            <tr><td>Fixtures</td><td>Removed CBA/NAB fixture exports; ANZ fixture uses 3 amount columns</td><td>sample-transactions.ts</td></tr>
+            <tr><td>ANZ normalization</td><td>Support merged File 000 prefixes: "05 MARANZ", "04 MARVISA", "02 MARPAYMENT"</td><td>index.ts</td></tr>
+            <tr><td>Official ANZ table shape</td><td>Vertical header detection: Date/Description/Category/Withdrawal/Deposit/Amount</td><td>detector.ts</td></tr>
+            <tr><td>Official ANZ table shape</td><td>Ignored category-only continuation lines; normalized standalone "-" placeholders</td><td>index.ts</td></tr>
+            <tr><td>Amount parsing</td><td>Anchored to trailing ANZ amount columns; accepted signs, $, commas, decimals</td><td>extractor.ts</td></tr>
+            <tr><td>Safety guard</td><td>Rejected leaked description-number values (years near "EFFECTIVE DATE", large account refs)</td><td>extractor.ts</td></tr>
+            <tr><td>Regression tests</td><td>Official ANZ + File 000 regression coverage added</td><td>transactionParser.test.ts</td></tr>
+          </tbody>
+        </table></div>
+
+        <h2>Verification</h2>
+        <pre><code>npm run test:run -- tests/unit/transactionParser.test.ts   → 27 passed
+npm run test:run                                            → 162 passed, 1 skipped
+git diff --check                                             → passed</code></pre>
+        <p><code>npm run lint</code> still fails on pre-existing project-wide issues outside this rollback (input.tsx, extract-pdf.js, next.config.ts, probe-pdf2json.ts, test <code>any</code> casts).</p>
+
+        <h2>Current blocker: official ANZ 2025-01-06</h2>
+        <p>Observed bad output:</p>
+        <pre><code>08 JUL
+VISA DEBIT PURCHASE CARD 2606 ... EFFECTIVE DATE 04 JUL
+food
+-$2024.00
+-
+$-2024.00</code></pre>
+        <pre><code>09 JUL
+ANZ M-BANKING FUNDS TFER TRANSFER 311463 FROM
+friends
+-$432919512.00
+-
+$-432919512.00</code></pre>
+        <p>The parser now rejects these as leaked values rather than displaying them as real spending. One row survives validation — <code>$12.00</code> against "VODAFONE AUSTRALIA … EFFECTIVE DATE 28 DEC 2024" — because it's a plausible real amount, not a leaked year/reference. This explains why monthly grouping showed only one transaction: grouping works, but only one row survives validation.</p>
+
+        <h2>Key diagnosis</h2>
+        <p>File 000 works because the parser receives real amount tokens (<code>-$23.32 0.00</code>, <code>0.00 +$2000.00</code>). The official ANZ file doesn't, because rows appear to reach the app already corrupted: <code>20.24</code> renders as <code>2024.00</code> (decimal loss / date-year leakage), and <code>432919512</code> appears as an amount on transfer rows. The true amounts for those rows aren't present in the displayed table output at all.</p>
+        <div class="callout callout--bad">
+          <span class="callout-label">Boundary</span>
+          <p>Parser-only code must not guess missing financial amounts. It can reject impossible rows and preserve correct ones, but it cannot reconstruct cents that are absent from extraction.</p>
+        </div>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Retrospective — what I'd change next attempt</span>
+          <p>The deeper lesson here wasn't any single bug — it was the architecture choice. The parser tried to work out which bank's format it was looking at from the text itself, and every format added to that detection made it more likely to misfire on a format that already worked. Getting CBA/NAB right kept regressing ANZ, and vice versa, until the regex collisions between formats made the whole thing less reliable than just supporting one bank well.</p>
+          <p>Next time: don't make the parser guess. Put a bank picker in the UI and let the user select the format before parsing, then run only that bank's rules. A little UX friction beats a parser silently misreading its own input.</p>
+        </div>
+
+        <h2>Next required step</h2>
+        <p>Capture the raw pdf-parse text for the official ANZ PDF before <code>parseTransactions()</code> transforms it. If it contains real tokens like <code>$20.24</code>, fix normalization/extraction to preserve them. If it already only contains corrupted tokens, the fix has to move to layout-aware extraction or a clear unsupported-format/low-confidence warning.</p>
+        <ol>
+          <li>Add a local-only debug capture for uploaded PDF raw text, gated by an env var (<code>DEBUG_PDF_TEXT=1</code>)</li>
+          <li>Save raw extraction to a non-committed debug file or log during local dev</li>
+          <li>Create a redacted fixture from the real raw text around failed official rows</li>
+          <li>Add parser tests from that raw fixture</li>
+          <li>Only commit once official ANZ raw text either parses correctly or fails with a clear warning instead of fake transactions</li>
+        </ol>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Current git state</span>
+          <p>Tracked parser/test changes still uncommitted. Untracked project/session files intentionally left alone: <code>.claude/</code>, <code>agents/</code>, <code>sessions/</code>, <code>Notes.md</code>, <code>probe-pdf2json.ts</code>. Do not use <code>git reset --hard</code> or broad cleanup commands unless explicitly requested — the working tree contains useful uncommitted rollback work.</p>
+        </div>
+        </div>
+      </section>
+
+      <section class="doc" id="s-0709">
+        <p class="doc-eyebrow"><time>2026-07-09</time> <span class="status status--good">Shipped</span></p>
+        <h1>Calendar View feature + groupByMonth year-rollover fix</h1>
+        <p class="doc-dek">Started from a portfolio-veracity worry, resolved that the parser pipeline itself is the real skill signal, then shipped a genuinely different angle: a calendar grid that doubles as a categorization QA tool — and caught a real year-rollover bug along the way.</p>
+        <div class="doc-body">
+        <h2>Executive summary</h2>
+        <p>ANZ's own banking app already has a merchant/category spend summary, raising the question of whether this project still demonstrates anything beyond a CRUD app — the same question that kicked off the whole project (see <strong>Why this exists</strong> on the Overview page): the bank app answers "how much, by merchant, this month," but never by day or by week, which was the original itch. Resolved that the existing parser pipeline (PDF → categorize → 160+ tests → CI) is the actual skill signal, not novelty — but added a genuinely different angle anyway: a Google-Calendar-style day grid showing every transaction on its real date, color-coded by category, doubling as a QA tool for spotting categorization drift while <code>lib/categories.ts</code> is still being expanded.</p>
+        <p>That QA angle wasn't theoretical — laying transactions out on a calendar made it obvious, at a glance, exactly which merchant strings were landing in <code>misc</code> instead of their real category, in a way that scrolling a flat table never surfaced. Bugs that were invisible in a list became visible the moment they had a date and a color next to them.</p>
+        <p>A real correctness bug was found and fixed in <code>groupByMonth</code> (transactions defaulting to today's real-world year instead of the statement's actual year) — then found <em>again</em> in a different form during real UAT: the first fix assumed ascending chronological order, but real ANZ statements can list months descending, which ran the year away to 2030 on an actual uploaded statement. Both directions are now handled.</p>
+
+        <h2>What changed in working tree</h2>
+        <div class="table-wrap"><table>
+          <thead><tr><th>Area</th><th>Change</th><th>Files</th></tr></thead>
+          <tbody>
+            <tr><td>Bug fix</td><td><code>groupByMonth</code> no longer defaults every transaction to today's calendar year; tracks year via an explicit year token when present, or rollover-detection (only on an actual Dec↔Jan adjacency, either direction) as fallback</td><td>lib/parser/group.ts</td></tr>
+            <tr><td>New helper</td><td><code>groupByDay</code> — buckets one month's transactions by day, attaches merchant via <code>extractMerchant</code></td><td>group.ts, index.ts</td></tr>
+            <tr><td>New component</td><td><code>CalendarView</code> — month grid, day chips (Merchant · Category · ±$Amount), colored via existing CATEGORY_COLORS, prev/next navigation</td><td>components/CalendarView.tsx</td></tr>
+            <tr><td>Integration</td><td>New "Calendar View" collapsible section, same pattern as "Monthly &amp; Category Breakdown"</td><td>TransactionDisplay.tsx</td></tr>
+            <tr><td>Tests</td><td>Rollover tests (ascending + descending), explicit-year-token precedence, groupByDay bucketing/merchant/field-preservation</td><td>groupByMonth.test.ts, groupByDay.test.ts (new)</td></tr>
+            <tr><td>Docs</td><td>Calendar view feature note</td><td>README.md, CHANGELOG.md</td></tr>
+          </tbody>
+        </table></div>
+        <p>No new dependencies, no persistence changes — reads from the same in-memory <code>parsedData</code> the app already produces per upload.</p>
+
+        <h2>Decisions made this session</h2>
+        <ul>
+          <li><strong>Color palette:</strong> reused the existing <code>CATEGORY_COLORS</code> map rather than hand-rolling a new one — already covers all 11 categories, already used elsewhere, zero new design decisions.</li>
+          <li><strong>Scope cut (v1):</strong> no click-to-recategorize from the calendar, no multi-month wall view, no mobile layout pass, no persistence change. Deferred, not forgotten.</li>
+          <li><strong>Year-rollover fix:</strong> accepted as an internal-consistency fix, not a guarantee of absolute year correctness — there's no statement-period metadata anywhere in the parser to derive the true year when no year token exists at all.</li>
+        </ul>
+
+        <h2>Bugs found during UAT (real ANZ PDF, not synthetic fixtures)</h2>
+        <h3>1. Year runaway to 2030</h3>
+        <p>The first <code>groupByMonth</code> fix treated any month-number decrease as a year rollover. The real statement lists months descending (July, then June, ...), so every single-month step looked identical to an actual Dec→Jan wrap, incrementing the year every time. Fixed by only triggering on an exact Dec(12)↔Jan(1) adjacency, in whichever direction the statement is ordered — a normal one-month step, either direction, never touches the year now.</p>
+        <h3>2. Day chips truncated with no way to read the full line</h3>
+        <p><code>CalendarView</code> used Tailwind <code>truncate</code> (ellipsis) plus a native <code>title</code> hover tooltip — not discoverable; the user could only see "Vodafone…" with no price visible and no working hover/click affordance. Fixed by dropping <code>truncate</code> and letting chip text wrap (<code>whitespace-normal break-words</code>); day cells grow to fit instead of hiding content.</p>
+        <p>Neither bug was something the still-green test suite could have caught — the descending-order case and the visual truncation weren't exercised by synthetic fixtures. Both were caught only by uploading a real statement and looking at the render.</p>
+
+        <h2>Verification</h2>
+        <pre><code>npm test -- --run
+→ 169 passed, 1 skipped (started session at 161/1; +8 net)
+
+npx tsc --noEmit
+→ clean, no errors</code></pre>
+        <p>Manual UAT: real ANZ PDF (3–4 months, descending order) uploaded through the running app at localhost:3000. Confirmed after fixes: correct year per month, full chip text visible without hover, category colors matching the table view, month navigation working across the whole statement.</p>
+
+        <div class="callout callout--warn">
+          <span class="callout-label">Current git state</span>
+          <p>Not yet committed — drafting README/CHANGELOG/session log first, then writing the commit message by hand. Untracked files present from before this session, intentionally left alone: <code>.claude/</code>, <code>Notes.md</code>, <code>agents/</code>, <code>probe-misc-rate.ts</code>, <code>probe-pdf2json.ts</code>, <code>sessions/</code> (this file is the one new addition).</p>
+        </div>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <aside class="outline" id="outline">
+    <p class="outline-label">On this page</p>
+    <ul class="outline-list" id="outlineList"></ul>
+  </aside>
+</div>
+
+<script>
+(function(){
+  var navItems = Array.prototype.slice.call(document.querySelectorAll('.nav-item'));
+  var docs = Array.prototype.slice.call(document.querySelectorAll('.doc'));
+  var content = document.getElementById('content');
+  var outlineList = document.getElementById('outlineList');
+  var sidebar = document.getElementById('sidebar');
+  var scrim = document.getElementById('scrim');
+  var menuBtn = document.getElementById('menuBtn');
+
+  function slugify(text){
+    return text.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+  }
+
+  function buildOutline(id){
+    outlineList.innerHTML = '';
+    var doc = document.getElementById(id);
+    if(!doc) return;
+    var heads = doc.querySelectorAll('.doc-body h2, .doc-body h3');
+    var used = {};
+    heads.forEach(function(h){
+      var base = slugify(h.textContent) || 'section';
+      var slug = base, n = 1;
+      while(used[slug]){ slug = base + '-' + (++n); }
+      used[slug] = true;
+      h.id = slug;
+      var li = document.createElement('li');
+      if(h.tagName === 'H3') li.className = 'lvl3';
+      var btn = document.createElement('button');
+      btn.type = 'button';
+      btn.textContent = h.textContent;
+      btn.addEventListener('click', function(){
+        h.scrollIntoView({behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block:'start'});
+      });
+      li.appendChild(btn);
+      outlineList.appendChild(li);
+    });
+  }
+
+  function activate(id){
+    docs.forEach(function(d){ d.classList.toggle('active', d.id === id); });
+    navItems.forEach(function(n){ n.classList.toggle('active', n.dataset.target === id); });
+    content.scrollTop = 0;
+    buildOutline(id);
+    if(history.replaceState) history.replaceState(null,'','#'+id);
+    closeMobileNav();
+  }
+
+  navItems.forEach(function(n){
+    n.addEventListener('click', function(){ activate(n.dataset.target); });
+  });
+  document.querySelectorAll('.arc-node').forEach(function(n){
+    n.addEventListener('click', function(){ activate(n.dataset.target); });
+  });
+
+  var search = document.getElementById('search');
+  var navEmpty = document.getElementById('navEmpty');
+  search.addEventListener('input', function(){
+    var q = search.value.trim().toLowerCase();
+    var visible = 0;
+    navItems.forEach(function(n){
+      var hay = (n.dataset.search || '') + ' ' + n.textContent.toLowerCase();
+      var show = !q || hay.toLowerCase().indexOf(q) !== -1;
+      n.style.display = show ? '' : 'none';
+      if(show) visible++;
+    });
+    document.querySelectorAll('.nav-group-label').forEach(function(l){ l.style.display = q ? 'none' : ''; });
+    navEmpty.style.display = visible === 0 ? 'block' : 'none';
+  });
+
+  function openMobileNav(){ sidebar.classList.add('open'); scrim.classList.add('show'); }
+  function closeMobileNav(){ sidebar.classList.remove('open'); scrim.classList.remove('show'); }
+  menuBtn.addEventListener('click', openMobileNav);
+  scrim.addEventListener('click', closeMobileNav);
+
+  var initial = (location.hash || '').replace('#','');
+  activate(document.getElementById(initial) ? initial : 'doc-overview');
+})();
+</script>
