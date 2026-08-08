@@ -8,6 +8,9 @@ While trying to find a job and figure out my career path from a broad degree lik
 
 While networking, I have been lucky to get opportunities where I volunteer in many events, whether related to technical or not that helps build up my soft skills, give back to the community and learn new things as seen bellow:
 
+### MLAI - Founders Game
+<iframe src ="https://www.linkedin.com/embed/feed/update/urn:li:activity:7491757611042623488/" height = "600" width="100%" frameboarder="0" allowfullscreen="" title="MLAI - FoundersGame"></iframe>
+
 ### KCD
 <iframe src="https://www.linkedin.com/embed/feed/update/urn:li:activity:7490957382924038144" height ="600" width="100%" frameborder="0" allowfullscreen="" title="KCD"></iframe>
 
