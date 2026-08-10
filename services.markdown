@@ -36,7 +36,7 @@ I build working tools to solve specific problems from gaps by real and paid tool
 - You want to automate manual processes made easier with tech.
 - You need support on sites to keep updating and maintaning without undergoing major risks.
 - You want to collborate and validate idea before committing further: hardware, a bigger build, or more budget.
-- You want someone who can work inside an existing codebase and someone else's review process — raising tradeoffs, taking a directional "no" without friction, and still shipping merged, reviewed code. ([merged PRs on recycled-sound](https://github.com/enspyrco/recycled-sound/pulls?q=is%3Apr+author%3AD3lK1ch1))
+- You want someone who can work inside an existing codebase and someone else's review process — raising tradeoffs, taking a directional "no" without friction, and still shipping merged, reviewed code. 
 
 <div class="services-footer-cta">
   <a href="{{ '/projects/' | relative_url }}" class="services-cta services-cta--outline">See selected projects →</a>
