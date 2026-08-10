@@ -10,7 +10,4 @@ download_url: https://github.com/D3lK1ch1/NavMelb/releases/tag/v0.2.0
 download_label: Download APK
 repo_url: https://github.com/D3lK1ch1/NavMelb
 case_study_url: /case-studies/nav-melb/
-qr: true
-qr_image: /assets/projects/navmelb-qr.jpg
-frame: phone
 ---
