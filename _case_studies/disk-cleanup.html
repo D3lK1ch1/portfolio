@@ -1,6 +1,6 @@
 ---
 layout: case-study
-title: disk-cleanup
+title: disk-clean-checklist
 ---
 <style>
   :root {
@@ -348,7 +348,7 @@ title: disk-cleanup
   <div class="header-inner">
     <div class="mark">
       <span class="glyph">DC</span>
-      <span>disk-cleanup <span class="sub">/ docket</span></span>
+      <span>disk-clean-checklist <span class="sub">/ docket</span></span>
     </div>
     <nav class="tabs" role="tablist" aria-label="Document">
       <button role="tab" aria-selected="true" aria-controls="panel-spec" id="tab-spec" data-target="spec">Spec</button>
@@ -360,7 +360,7 @@ title: disk-cleanup
 
 <div class="intro">
   <h1>A cleanup tool that would rather do nothing than guess wrong, simplifying the manual process cleaning the OS yourself</h1>
-  <p class="lede">disk-cleanup scans a machine for reclaimable space — old caches, leftover build folders, Docker bloat — and shows a checklist. Nothing gets deleted until specific items are picked and confirmed. The actual engineering problem here isn't finding big folders; it's proving, for each one, that deleting it is genuinely safe before it's ever offered as an option.</p>
+  <p class="lede">disk-clean-checklist scans a machine for reclaimable space — old caches, leftover build folders, Docker bloat — and shows a checklist. Nothing gets deleted until specific items are picked and confirmed. The actual engineering problem here isn't finding big folders; it's proving, for each one, that deleting it is genuinely safe before it's ever offered as an option.</p>
 
   <div class="intro-stats">
     <div class="stat"><span class="n">19/19</span><span class="l">Tests passing</span></div>
@@ -429,7 +429,7 @@ title: disk-cleanup
   <main class="panel active" id="panel-spec" role="tabpanel" aria-labelledby="tab-spec">
     <div class="doc-head">
       <p class="kicker">SPEC.md · v2, C#</p>
-      <h1>disk-cleanup — project spec</h1>
+      <h1>disk-clean-checklist — project spec</h1>
     </div>
 
     <div class="status-strip"><span class="dot"></span> Windows CLI + WPF clean loop: feature-complete for daily use · no open safety issues</div>
@@ -445,7 +445,7 @@ title: disk-cleanup
 
     <section class="doc-section" id="s-location">
       <h2>Location</h2>
-      <p><code>C:\Users\ASUS ROG\Downloads\disk-cleanup\</code> — .NET solution, C#</p>
+      <p><code>C:\Users\ASUS ROG\Downloads\disk-clean-checklist\</code> — .NET solution, C#</p>
       <ul>
         <li><code>DiskCleanup.Core\</code> — scanners, action executor, selection logic (shared)</li>
         <li><code>DiskCleanup\</code> — console app (Units 1–2)</li>
@@ -698,7 +698,7 @@ DiskCleanup.Tests.csproj: net10.0-windows</code></pre>
     <section class="doc-section" id="n-done">
       <h2>Done</h2>
       <ol>
-        <li><strong>Self-deletion guard (#1)</strong> — <code>DownloadsTopFolders</code> now excludes the disk-cleanup tool’s own folder via <code>GetSelfRootUnder()</code>.</li>
+        <li><strong>Self-deletion guard (#1)</strong> — <code>DownloadsTopFolders</code> now excludes the disk-clean-checklist tool’s own folder via <code>GetSelfRootUnder()</code>.</li>
         <li><strong>Recycle-bin safety net (#2)</strong> — <code>ActionKind.MoveFolderToRecycleBin</code> added to <code>CheckItem.cs</code>; the three REVIEW-risk folder scanners (<code>DownloadsTopFolders</code>, <code>StalePackages</code>, <code>AiFolders</code>) use it instead of permanent <code>DeleteFolder</code>; <code>ActionExecutor</code> now handles it via <code>SHFileOperation</code> with <code>FOF_ALLOWUNDO</code> (soft-delete, recoverable).</li>
         <li><strong>Symlink guard (#3), scan side</strong> — <code>GetDirectorySize</code> skips reparse points (won’t follow symlinks/junctions when computing sizes).</li>
         <li><strong>Symlink guard (#3), delete side</strong> — <code>DeleteFolder</code> and <code>DeleteContents</code> now use <code>SafeDeleteTree</code>, which deletes a reparse point link itself rather than recursing into its target.</li>
@@ -979,7 +979,7 @@ DiskCleanup.Tests.csproj: net10.0-windows</code></pre>
   </main>
 </div>
 
-<footer class="site">disk-cleanup docket — generated for local review, source: SPEC.md · Notes.md · Review.md</footer>
+<footer class="site">disk-clean-checklist docket — generated for local review, source: SPEC.md · Notes.md · Review.md</footer>
 
 <script>
   (function () {
