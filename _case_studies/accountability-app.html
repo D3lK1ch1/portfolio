@@ -91,64 +91,69 @@ title: AccountabilityApp — Notes (Tab Tracking)
 
 <p class="eyebrow">Personal project — Windows widget, downloadable</p>
 <h1>AccountabilityApp</h1>
-<p class="lede">A tab-and-app tracker that runs entirely on your own machine — no account, no cloud, nothing leaves the computer. It watches which app, browser tab, or editor file is actually in focus, and can quota-block (feature being tweaked) distracting categories (like Social Media or Games) once you've spent too long in them for the day. Finally, it can even generate a report about how long you spend (for my own personal use as a contract worker for work log purposes)</p>
+<p class="lede">A Windows widget that tracks which app or window is actually in focus, down to the browser tab or open file since Chrome and VS Code both put that detail directly in their window title and runs entirely on your own machine: no account, no cloud, nothing leaves the computer very locally. It groups distracting apps and sites into categories (like Social Media or Games) with a daily time budget each based on user's choosing; going over is visible in the widget, though it doesn't interrupt what you're doing yet. It can also generate a Markdown report of tracked time, for my own use as a contract worker keeping a work log.</p>
 
 <div class="stat-row">
   <div class="stat"><span class="n">0</span><span class="l">Cloud services involved</span></div>
-  <div class="stat"><span class="n">3</span><span class="l">Clients → one local server</span></div>
-  <div class="stat"><span class="n">3</span><span class="l">Real bugs, first live test</span></div>
-  <div class="stat"><span class="n">12/12</span><span class="l">Chrome extension tests</span></div>
+  <div class="stat"><span class="n">v0.2.0</span><span class="l">Current shipped version</span></div>
+  <div class="stat"><span class="n">1</span><span class="l">Full feature built, tested, then cut pre-release</span></div>
+  <div class="stat"><span class="n">3</span><span class="l">Real bugs, caught only by real use</span></div>
 </div>
 
 <section class="block" id="why">
   <h2>Why it needed to see more than "which app is open"</h2>
   <div class="story-card">
     <p class="plain">Most simple screen-time trackers stop at the app level: "Chrome was open for 3 hours." That number is close to useless, because Chrome being open is true whether you're reading documentation for work or scrolling social media: same app, completely different value. The same problem exists for a code editor: "VS Code was open" tells you nothing about what type of work was being done.</p>
-    <p class="plain">AccountabilityApp exists to fix that granularity gap — track the actual browser tab or the actual open file, not just the parent app — while keeping everything local as the best way to keep private since this is a personal tool easily downloaded for self. No account, no server elsewhere, no data leaving the machine. That local-only constraint shaped almost every technical decision below.</p>
+    <p class="plain">AccountabilityApp exists to close that granularity gap, while keeping everything local since this is a personal tool anyone can download and run for themselves without account, server elsewhere or data leaving the machine. That local-only constraint shaped almost every decision below, including one that mattered more than expected: how much distribution friction is worth paying just to get tab-level detail, once it turned out a simpler mechanism could get most of it for free.</p>
   </div>
 </section>
 
 <section class="block" id="what-it-does">
   <h2>What it actually does</h2>
-  <p class="sub">Tracking (see what's actually being used) and blocking (WIP)</p>
+  <p class="sub">Tracking (see what's actually being used) and blocking (quota-based, visible but not yet enforced)</p>
 
   <div class="story-card">
-    <h3>Tracking — three separate clients report to one local server</h3>
-    <p class="plain">A small server lives inside the desktop app itself, listening only on your own machine. A Chrome extension tells it "this tab is now active" every time you switch tabs. A VS Code (or Cursor) extension does the same for files. Neither extension talks to the internet — they only ever talk to the app sitting on the same computer.</p>
+    <h3>Tracking: one generic window-focus check, reused for the browser and the editor for free</h3>
+    <p class="plain">A background poller checks whatever window has focus every 3 seconds and logs it as a session in the app's own local, encrypted database. That alone gives app-level detail like any basic tracker: "Chrome was open for 3 hours." The useful part is that Chrome and VS Code both write the active tab's title or the open file's name directly into their own window title bar, so the exact same generic check happens to yield tab-level and file-level detail for the two apps used most, without any app-specific integration for either.</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
-        <p>The Tauri backend runs a WebSocket server bound to <code>127.0.0.1:7734</code>. Both extensions connect to it and send JSON events shaped like <code>{ source, tab_title, tab_url, timestamp }</code>. The server closes out whatever session was previously open for that source and opens a new one, so at most one session per client is ever "open" at a time. A dedicated <code>tab_sessions</code> table (separate from the pre-existing <code>app_sessions</code> table) stores the result, with <code>end_crash_tab_sessions()</code> closing out any orphaned open rows on every app startup — so a crash mid-session can't leave a session open forever.</p>
+        <p><code>active-win-pos-rs::get_active_window()</code> is polled every 3 seconds and diffed against the previous focused window; a change closes out the prior <code>app_sessions</code> row and opens a new one. <code>end_crash_session()</code> closes any row still open on startup, so a crash mid-session can't leave one open forever. The database itself is SQLCipher-encrypted via <code>rusqlite</code>, with the key held in the OS keyring rather than on disk.</p>
       </div>
     </details>
   </div>
 
   <div class="story-card">
-    <h3>Blocking — a daily time budget per category, not per site</h3>
-    <p class="plain">Rather than blocking a fixed list of sites, the app groups them into categories (Social Media, Games, more can be added) and gives each category a daily time limit. Once you've spent too long across everything in that category such as X.com and Reddit and Instagram all count toward the same "Social Media" budget — new tabs in that category get blocked, with a rotating set of deliberately annoying popups instead of one that's easy to click past (still in the works).</p>
+    <h3>Blocking: a daily time budget per category, visible but not (yet) enforced</h3>
+    <p class="plain">Rather than blocking a fixed list of sites or apps, the app groups them into categories (Social Media, Games, more can be added) and gives each category a daily time limit, matched against both domain-style keywords and app/window-title keywords. Right now, going over the limit shows up clearly in the widget such as name, used time, a progress bar, but doesn't interrupt anything; there's no overlay or popup stopping you from continuing, since that enforcement lived in the extension that got cut (see below).</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
-        <p>Each category stores a daily limit in minutes, an enabled toggle, a manual pause toggle, and editable domain/app keyword lists. Usage is aggregated across <code>tab_sessions</code>, <code>app_sessions</code>, and any currently-open session, and evaluated per event via <code>evaluate_tab_block</code>. When a tab crosses the limit, the extension injects a blocking overlay and a rotating set of local popup deterrents (a fake ad, a rickroll-style redirect) that clean up automatically when the tab closes, navigates away, or loses focus.</p>
+        <p>Each category stores a daily limit in minutes, an enabled toggle, a manual pause toggle, and editable domain/app keyword lists. Usage is aggregated across <code>app_sessions</code> and whatever session is currently open, and the collapsed widget shows a live indicator for whichever enabled, unpaused category the focused app or window belongs to, refreshing on the same 3-second poll as the rest of the tracker.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="block" id="cut">
+  <h2>Built in full, tested, then cut before release</h2>
+  <p class="sub">The first version of tab-level tracking didn't get simplified but got deleted, on purpose.</p>
+  <div class="story-card">
+    <h3>A working Chrome extension + local WebSocket bridge, fully tested and then removed</h3>
+    <p class="plain">The original plan for tab-level tracking was a dedicated bridge: a WebSocket server inside the Tauri app, a Chrome extension reporting every tab switch to it, and eventually a matching VS Code extension. It got built, and it worked — tab sessions recorded correctly, category quota blocking triggered an overlay and rotating deterrent popups on over-budget tabs, 12/12 extension tests passed, and a real WebSocket origin-spoofing vulnerability (any webpage's JavaScript could otherwise connect and inject forged tab events, since WebSocket isn't subject to CORS the way <code>fetch()</code> is) got found and fixed before it ever shipped.</p>
+    <p class="plain">It still didn't ship. Distributing a Chrome extension to real users means either publishing through the Chrome Web Store or asking every user to manually flip on Developer Mode and click "Load Unpacked", friction that wasn't worth paying once it became clear that app-level tracking already captures nearly the same signal for free, since Chrome and VS Code both write the active tab's title or the open file's name directly into their own OS window title, which the app was already reading for every other app on the system.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Removed in v0.2.0: the <code>ws://127.0.0.1:7734</code> WebSocket server, the <code>tab_sessions</code> table, and the unpacked <code>extensions/chrome</code> extension (blocking overlay injection, rotating deterrent popups, a 15-second heartbeat to catch users who stay on a tab without switching away). A VS Code/Cursor client was specced but never built — Chrome was proven first, and the removal decision landed before a second client was worth starting. Nothing about the removal was a rush call: the extension carried its own fixed vulnerability and a full passing test suite right up to the point it was cut, which is what made "we already have most of this for free at the app level" a comfortable trade rather than a shortcut.</p>
       </div>
     </details>
   </div>
 </section>
 
 <section class="block" id="broke">
-  <h2>What broke on the first real test, and what that taught me</h2>
-  <p class="sub">All three of these only showed up once the feature was actually used end to end — not in any unit test.</p>
-
-  <div class="story-card">
-    <h3>The block only fired when you switched tabs — not while you sat and scrolled</h3>
-    <p class="plain">The whole point of a time-based block is that it should trigger while you're still on the page, not just when you leave it. Instead, usage climbed correctly in the background, but the block overlay only ever appeared on the <em>next</em> tab switch — meaning you could sit on a blocked site indefinitely as long as you never switched away.</p>
-    <details>
-      <summary>Show the technical version</summary>
-      <div class="techbody">
-        <p>The Chrome extension only sent tab events on <code>onActivated</code> (tab switch) and <code>onUpdated</code> (page load) — nothing fired while the user simply stayed on the same tab, and the block decision is only re-evaluated when the server receives an event. Fixed with a 15-second heartbeat inside <code>ws.onopen</code>: while connected, the extension re-sends the current active tab every 15 seconds, which re-triggers <code>evaluate_tab_block</code> on the backend. With a 60-second limit, the block now fires around 75 seconds in — one heartbeat interval of granularity, which was an acceptable trade for not needing a second, more complex timer mechanism.</p>
-      </div>
-    </details>
-  </div>
+  <h2>Bugs that only showed up in real use, never in a unit test</h2>
+  <p class="sub">None of these surfaced from reasoning about the code or from anything the test suites caught, only from actually using the feature.</p>
 
   <div class="story-card">
     <h3>Typing into the keyword editor kept bouncing the cursor to the start</h3>
@@ -162,12 +167,23 @@ title: AccountabilityApp — Notes (Tab Tracking)
   </div>
 
   <div class="story-card">
-    <h3>The "annoying popup" deterrents closed themselves in under a second (unverified for now)</h3>
-    <p class="plain">The blocking feature deliberately opens a couple of nuisance popup windows to discourage you from just closing the block overlay and moving on. In testing, those popups opened and then immediately closed themselves — the deterrent had no time to actually deter anything.</p>
+    <h3>A one-letter keyword quietly counted File Explorer as Social Media</h3>
+    <p class="plain">The Social Media category's app keyword <code>"x"</code> added for the X (formerly Twitter) taskbar app was also matching the letter <em>x</em> anywhere inside another window title. That included "Windows Explorer," so ordinary file-browsing time was silently getting counted toward the Social Media quota. It wasn't caught by reasoning about the matching logic; it was caught by reading an actual generated report and noticing "Windows Explorer" showing up somewhere it shouldn't.</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
-        <p>Opening a new popup window with <code>chrome.windows.create</code> makes Chrome fire an <code>onActivated</code> event for the tab inside that new window. The extension's activation handler saw an unfamiliar tab become active and, reasonably from its own logic, assumed the user had switched away from the blocked tab — so it called <code>stopBlocking</code>, which closed every deterrent window it had just opened. Fixed by tracking deterrent window IDs in a set as they're created, and having the activation handler check a tab's <code>windowId</code> against that set before assuming a real switch happened. A same-origin side effect (a popup you opened yourself) triggering a listener meant to react to the <em>user's</em> actions was the actual root cause — not a timing bug.</p>
+        <p><code>contains_keyword</code> did a plain substring match with no word-boundary check, so a single-character keyword like <code>"x"</code> matched inside any word containing that letter. Fixed by requiring the match not be flanked by another alphanumeric character on either side, so <code>"x"</code> still matches a window titled "X" but no longer matches inside "Explorer." New tests cover both the false positive and the still-intended match. The default keyword list was cleaned up in the same pass — <code>twitter.com</code>/<code>twitter</code> were stale post-rebrand duplicates of <code>x.com</code>.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="story-card">
+    <h3>The timer froze at zero after clearing all data until the next app switch</h3>
+    <p class="plain">"Clear All Data" is meant to wipe tracked history and start clean. Instead, the widget's timer sat frozen at zero right after clearing, and only started counting again once the user switched to a different app, a confusing dead window right when the feature is supposed to prove the reset actually worked.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Two separate state machines fell out of sync: the Zustand store wasn't refreshed after the database clear, and the Rust tracking thread kept holding an in-memory session pointer to a now-deleted row. Fixed on both sides as the store now calls <code>refreshStats</code>/<code>refreshSessions</code> right after clearing, and a <code>needs_reset</code> flag on <code>ActivityTracker</code> makes the Rust thread drop its stale session and start a fresh one on the very next poll tick, instead of waiting for a real app switch to notice anything changed.</p>
       </div>
     </details>
   </div>
@@ -176,13 +192,13 @@ title: AccountabilityApp — Notes (Tab Tracking)
 <section class="block" id="next">
   <h2>Where it's honestly at</h2>
   <div class="story-card">
-    <p class="plain">Tracking and category blocking both work end to end on Windows, with the Chrome extension shipped and tested (12/12) and the frontend covered too (35/35). The backend and WebSocket server already support a VS Code/Cursor client, but that extension itself isn't built yet — Chrome was the one built and proven first. There's also no "strict mode" equivalent yet: pausing a category is currently a simple toggle with no added friction, and pauses stay off until manually re-enabled rather than timing out on their own.</p>
+    <p class="plain">Tracking and category quota tracking both work end to end on Windows, backed by 31/31 backend tests and 35/35 frontend tests, all through app/window-title matching — no browser extension or editor plugin required after the Chrome bridge got cut. Going over a category's daily limit is visible in the widget but doesn't interrupt anything yet: no blocking overlay, no deterrent popups, that enforcement layer left with the extension. There's also no "strict mode" equivalent — pausing a category is a simple toggle with no added friction, and stays paused until manually re-enabled rather than timing out on its own. Backend commands for app-level blocking (<code>add_blocked_app</code>, <code>remove_blocked_app</code>, <code>get_blocked_apps</code>) already exist with no widget surface built yet — the next planned piece.</p>
   </div>
 </section>
 
 <section class="block" id="since">
-  <h2>Since then — a work-timer report, and a bigger discovery</h2>
-  <p class="sub">Four more sessions building a feature to turn the tracked data into something billable — and along the way, finding a real data-integrity bug that had been running silently for months.</p>
+  <h2>Since then, a work-timer report, and a bigger discovery</h2>
+  <p class="sub">Four more sessions building a feature to turn the tracked data into something billable and along the way, finding a real data-integrity bug that had been running silently for months.</p>
 
   <div class="stat-row">
     <div class="stat"><span class="n">31/31</span><span class="l">Backend tests passing</span></div>
@@ -192,20 +208,20 @@ title: AccountabilityApp — Notes (Tab Tracking)
 
   <div class="story-card">
     <h3>Turning tracked time into a report you could actually bill against</h3>
-    <p class="plain">The original tracking was for self-accountability, but the same data — which app or tab was in focus, and for how long — is also exactly what you'd want as a record for contract work: proof of whether a fixed-price job actually took more or less time than it was quoted for. The feature that came out of this: press download, get a plain Markdown log of everything tracked since the last download, with a header and a subtotal.</p>
-    <p class="plain">Getting the download to actually work took two attempts. The first approach appeared to fail silently — nothing visible happened on click. It turned out to have worked the whole time; the file was just never confirmed by anything the app could see. That distinction mattered enough to switch to a mechanism that could actually prove success back to the user, rather than one that merely hoped it had worked.</p>
+    <p class="plain">The original tracking was for self-accountability, but the same data which app or tab was in focus, and for how long, is also exactly what you'd want as a record for contract work: proof of whether a fixed-price job actually took more or less time than it was quoted for. The feature that came out of this: press download, get a plain Markdown log of everything tracked since the last download, with a header and a subtotal.</p>
+    <p class="plain">Getting the download to actually work took two attempts. The first approach appeared to fail silently with nothing visible happened on click. It turned out to have worked the whole time; the file was just never confirmed by anything the app could see. That distinction mattered enough to switch to a mechanism that could actually prove success back to the user, rather than one that merely hoped it had worked.</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
-        <p>The first attempt used a plain browser-style download (<code>Blob</code> + <code>&lt;a download&gt;</code>). It did work — the file was written, just discovered afterward via File Explorer rather than through any signal the app received. The real gap: a browser download click and the file finishing writing are different events, and only the click is observable from script, even in a real browser. Replaced with <code>tauri-plugin-dialog</code> for a native Save-As picker, paired with a Rust command that writes the file via <code>std::fs::write</code> — here, the <code>invoke()</code> promise resolving is real proof the bytes were written, since it's the app's own code doing the write. That's what made an in-app "Saved" confirmation possible at all.</p>
+        <p>The first attempt used a plain browser-style download (<code>Blob</code> + <code>&lt;a download&gt;</code>). It did work as the file was written, just discovered afterward via File Explorer rather than through any signal the app received. The real gap: a browser download click and the file finishing writing are different events, and only the click is observable from script, even in a real browser. Replaced with <code>tauri-plugin-dialog</code> for a native Save-As picker, paired with a Rust command that writes the file via <code>std::fs::write</code> — here, the <code>invoke()</code> promise resolving is real proof the bytes were written, since it's the app's own code doing the write. That's what made an in-app "Saved" confirmation possible at all.</p>
       </div>
     </details>
   </div>
 
   <div class="story-card">
-    <h3>Investigated tracking AI-coding sessions directly — and chose not to build it</h3>
-    <p class="plain">Windows Terminal is where most AI-assisted coding sessions actually happen, but the tracker had no way to see which tab was active inside it — unlike Chrome or VS Code. Two different ways to close that gap got seriously investigated: reading Windows Terminal's tab state directly, and hooking into Claude Code's own session events. Both turned out to have real, structural problems once traced through an actual example, not just a hypothetical one.</p>
-    <p class="plain">Rather than force either approach to work, the honest call was to leave that gap where it is. The report now shows Windows Terminal as a single lump of time with no per-tab detail, and the user relies on their own memory to separate real work from procrastination inside that block — a real limitation, stated as one, instead of a debatable heuristic pretending to be data.</p>
+    <h3>Investigated tracking AI-coding sessions directly in terminal and chose not to build it</h3>
+    <p class="plain">Windows Terminal is where most AI-assisted coding sessions actually happen, but the tracker had no way to see which tab was active inside it unlike Chrome or VS Code. Two different ways to close that gap got seriously investigated: reading Windows Terminal's tab state directly, and hooking into Claude Code's own session events. Both turned out to have real, structural problems once traced through an actual example, not just a hypothetical one.</p>
+    <p class="plain">Rather than force either approach to work, the honest call was to leave that gap where it is. The report now shows Windows Terminal as a single lump of time with no per-tab detail, and the user relies on their own memory to separate real work from procrastination inside that block, a real limitation, stated as one, instead of a debatable heuristic pretending to be data.</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
@@ -215,30 +231,10 @@ title: AccountabilityApp — Notes (Tab Tracking)
   </div>
 
   <div class="story-card">
-    <h3>A tracking toggle that looked off, but was quietly still recording</h3>
-    <p class="plain">The app has a Start/Stop control meant to pause tracking entirely. It turned out to only ever pause half of it — browser and editor tab tracking kept being written to the database in the background regardless of what the toggle showed, for as long as the feature had existed.</p>
-    <p class="plain">The fix makes both tracking paths answer to the same switch, and — just as important — makes turning tracking back on resume cleanly without needing the browser extension to reconnect.</p>
+    <h3>"Today" quietly started at UTC 00:00:00 no matter the local timezone</h3>
+    <p class="plain">The very first generated report showed a window starting at 'the start of today aka midnight' despite the actual time. The report's fallback for "since the last report" is start-of-today when no checkpoint exists yet except "today" was being computed as UTC midnight, which in Melbourne lands mid-morning local time. The same bug quietly affected the pre-existing dashboard "today" stats too, not just the new report.</p>
     <details>
       <summary>Show the technical version</summary>
       <div class="techbody">
-        <p>The Start/Stop toggle only ever touched the app-level poller (<code>state.tracker</code>). The WebSocket server handling Chrome/VS Code events is spawned once at app launch, entirely independent of that toggle, so tab events kept being recorded regardless. Fixed with a shared <code>tab_tracking_enabled</code> flag checked inside the connection handler — while disabled, it skips recording but keeps the socket connection alive, so the extension doesn't need to reconnect once tracking resumes. Stopping tracking also now closes any currently-open tab session immediately, reusing the existing crash-recovery "close every open row" function rather than writing a new one.</p>
+        <p>Fixed with a <code>today_start_timestamp()</code> helper that computes local midnight via <code>chrono::Local</code> and resolves it back to a UTC instant properly, including the ambiguous-time case around a DST transition. Since <code>get_sessions_today</code> already delegated to this helper for the dashboard, the one fix corrected both call sites at once.</p>
       </div>
-    </details>
-  </div>
-
-  <div class="story-card">
-    <h3>Report generation at first try does not start on real time</h3>
-    <p class="plain">A generated report showed an obviously wrong number — 17 hours of elapsed time for a session that had only really been running for 25 minutes. Chasing that display bug turned up something much bigger: the app's local database had been silently discarded and recreated from scratch (based on local deployment and using the .exe file updated after each build), over and over, for months, without ever telling anyone.</p>
-    <p class="plain">The app already had a safety mechanism for a specific failure case — if its encryption key ever goes missing, it backs up the unreadable old database under a timestamped filename and quietly starts fresh, rather than crashing. That mechanism was working exactly as designed. The actual problem was upstream of it: whatever was supposed to keep that key in place wasn't managing to, again and again, since the very first release — and nothing surfaced that fact until a feature that exposed real history (the report) made the gap visible for the first time. Still to fix.</p>
-    <details>
-      <summary>Show the technical version</summary>
-      <div class="techbody">
-        <p>The app's encryption key is stored in the OS keyring; if <code>get_or_create_key()</code> can't find it, it renames the existing database aside as <code>accountability.db.unreadable.&lt;timestamp&gt;</code> and creates a new one with a fresh key — the documented, deliberate "safer key-loss handling" behavior from the first release. Checking the real app-data folder turned up 13 of these timestamped backup files dating back to April, meaning the key had been silently disappearing from the Windows keyring since launch. Root cause is still unconfirmed — it's an OS-level credential-storage question (antivirus interference, a Windows policy, or something about how the dev build launches are all still open possibilities), handed off for a direct check of Windows Credential Manager. Separately, the report's own display was fixed so a lost checkpoint can no longer produce a misleading window like "17h elapsed" — it now anchors to the first real tracked entry instead of the raw query boundary, even though the underlying query still searches the wider range so nothing is missed.</p>
-      </div>
-    </details>
-  </div>
-</section>
-
-<footer class="close">
-  <p>Built with Tauri, Rust, React, and SQLite — chosen specifically so tracking and blocking could run entirely offline, with no account and no data leaving the machine.</p>
-</footer>
