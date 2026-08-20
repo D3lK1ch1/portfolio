@@ -1,0 +1,191 @@
+---
+layout: case-study
+title: LibreCrawl — Agentic Fix Pipeline
+---
+<style>
+  :root {
+    --bg: #ffffff;
+    --fg: #1a1a1a;
+    --muted: #5a5a5a;
+    --border: #ddd;
+    --code-bg: #f5f5f5;
+    --accent: #2563eb;
+    --table-head: #f0f0f0;
+    --tag-bg: #eef2ff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1a1a1a;
+      --fg: #e6e6e6;
+      --muted: #a0a0a0;
+      --border: #3a3a3a;
+      --code-bg: #262626;
+      --accent: #7aa2f7;
+      --table-head: #2a2a2a;
+      --tag-bg: #22273a;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 6rem;
+    line-height: 1.6;
+  }
+  h1 { font-size: 2rem; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+  h2 { font-size: 1.4rem; margin: 0 0 0.9rem; }
+  h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+  code, pre { font-family: "SF Mono", Consolas, Menlo, monospace; font-size: 0.86rem; }
+  code { background: var(--code-bg); padding: 0.1rem 0.35rem; border-radius: 4px; }
+  pre {
+    background: var(--code-bg);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 0.9rem 1rem;
+    overflow-x: auto;
+  }
+  pre code { background: none; padding: 0; }
+  ul, ol { padding-left: 1.4rem; }
+  li { margin: 0.2rem 0; }
+  a { color: var(--accent); }
+
+  /* ---------- hero ---------- */
+  .eyebrow {
+    font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--accent); font-weight: 600; margin: 0 0 0.6rem;
+  }
+  .lede { color: var(--muted); font-size: 1.08rem; max-width: 62ch; margin: 0 0 1.6rem; }
+  .stat-row { display: flex; flex-wrap: wrap; gap: 1.6rem; padding: 1.1rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 0 0 2.6rem; }
+  .stat .n { display: block; font-size: 1.3rem; font-weight: 700; }
+  .stat .l { display: block; font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; margin-top: 0.15rem; }
+
+  /* ---------- sections ---------- */
+  section.block { margin: 0 0 3rem; }
+  section.block > p.sub { color: var(--muted); margin: -0.3rem 0 1.4rem; max-width: 62ch; }
+
+  /* ---------- story cards ---------- */
+  .story-card { border: 1px solid var(--border); border-radius: 10px; padding: 1.2rem 1.4rem; margin: 0 0 1rem; background: var(--code-bg); }
+  .story-card:last-child { margin-bottom: 0; }
+  .story-card h3 { color: var(--fg); }
+  .story-card p.plain { margin: 0 0 0.7rem; }
+  .story-card p.plain:last-of-type { margin-bottom: 0; }
+
+  details {
+    margin-top: 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    padding: 0.6rem 0.9rem; background: var(--bg);
+  }
+  details[open] { padding-bottom: 0.9rem; }
+  summary { cursor: pointer; font-size: 0.85rem; font-weight: 600; color: var(--accent); list-style: none; }
+  summary::-webkit-details-marker { display: none; }
+  summary::before { content: "▸ "; display: inline-block; }
+  details[open] summary::before { content: "▾ "; }
+  .techbody { margin-top: 0.7rem; font-size: 0.92rem; }
+  .techbody p { margin: 0 0 0.6rem; color: var(--muted); }
+  .techbody p:last-child { margin-bottom: 0; }
+
+  footer.close { border-top: 1px solid var(--border); padding-top: 1.6rem; color: var(--muted); font-size: 0.92rem; }
+</style>
+
+<p class="eyebrow">Contract project — agentic SEO fix pipeline</p>
+<h1>LibreCrawl — Agentic Fix Pipeline</h1>
+<p class="lede">LibreCrawl is a self-hosted SEO crawler: point it at a site, it lists what's wrong with broken links, missing meta tags, missing alt text, slow pages. On its own, that list is still manual work: someone has to read every issue and decide what to do about it. I built a three out of four-agent pipeline on top that reads the crawl results (deprioritize, still manually done), explains each issue, waits for a human to assign and approve before anything is created, writes real fixes back to the site where it safely can, and re-checks the live page afterward to confirm the fix actually took, double checked by human since it can never be assumed.</p>
+
+<div class="stat-row">
+  <div class="stat"><span class="n">3</span><span class="l">Agents in the pipeline</span></div>
+  <div class="stat"><span class="n">96 → 4</span><span class="l">LLM calls, after one redesign</span></div>
+  <div class="stat"><span class="n">~60%</span><span class="l">Token cost cut on one fix type</span></div>
+  <div class="stat"><span class="n">0</span><span class="l">Writes that ever skipped human approval</span></div>
+</div>
+
+<section class="block" id="why">
+  <h2>Why a crawler needed agents at all</h2>
+  <div class="story-card">
+    <p class="plain">A real site audit doesn't come back with five issues, it comes back with hundreds, and most of them are mechanically similar: a title tag too long, a meta description missing, an image with no alt text. Reading and triaging every one by hand doesn't scale, but auto-fixing all of them without a human in the loop is the fastest way to break a live site quietly. The brief was to close that gap without weakening the second half of it. Every fix still needs a person to see it coming before it's written, and that rule didn't move once across months of changes.</p>
+  </div>
+</section>
+
+<section class="block" id="what-it-does">
+  <h2>Three agents, one gate none of them cross alone</h2>
+  <p class="sub">Crawl (still manually done) → explain and wait for approval → fix and verify → recheck</p>
+
+  <div class="story-card">
+    <h3>The chain</h3>
+    <p class="plain">A crawl agent (planned and deprioritized) triggers on a URL and reports status. A review agent reads the issue list, explains each one in plain language, and stops because nothing gets created until a person approves the batch. A fix agent then writes the approved changes back to the site through its own REST API and, critically, re-fetches the live page afterward to confirm the change actually rendered rather than trusting a success response. A QA agent later rechecks each fixed URL independently and closes it out or leaves a comment explaining what's still wrong.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>A shared provider layer normalises Anthropic and OpenAI behind one <code>call_with_tools()</code> interface, so a rate limit or outage on one provider is a config flip, not a rewrite — proven live when a usage cap got hit mid-session and the pipeline kept running on the other provider with no code change. An MCP server wraps the same Flask routes the browser UI calls as agent tools, so there's exactly one implementation of what each action does, not a duplicate agent-facing path that could drift from the human-facing one. Long-running agent work executes on background threads rather than blocking the request cycle.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<section class="block" id="patterns">
+  <h2>Two patterns that held up across the whole build</h2>
+
+  <div class="story-card">
+    <h3>The LLM decides, the code loops</h3>
+    <p class="plain">The first version of the review agent asked the model to call one tool per issue (AI Check button) extracting fields from a large batch one at a time in a row until a user can get cross-eyed. It lost track of values mid-run: empty inputs, repeated retries, no real gain over just doing it in code. The fix was to stop asking the model to do mechanical repetition at all so one tool call selects which issues matter, the surrounding code runs the extraction in parallel and hands the model a clean result. Same outcome, four tool calls instead of ninety-six (example number of issues), and the model stopped losing state because it was never asked to hold state across a hundred calls in the first place.</p>
+  </div>
+
+  <div class="story-card">
+    <h3>A 200 response is not proof of anything</h3>
+    <p class="plain">One integration kept returning a clean success response on every write, but the change didn't always show up on the live page because the plugin that owned that field had its own internal save path that a plain REST call couldn't fully replicate. Rather than special-case that one plugin, the fix became a standing rule applied to every fix type from then on: after any write, re-fetch the actual live page and check the real output, don't trust the response code. Every later bug in that whole class including ones in completely unrelated fields and got caught by that same re-check instead of shipping as a silent false success.</p>
+  </div>
+</section>
+
+<section class="block" id="mistakes">
+  <h2>Mistakes worth keeping, and how each got closed</h2>
+  <p class="sub">None of these were caught by reading the code a second time where each one needed a real request, a real run, or an actual second look at what was already there.</p>
+
+  <div class="story-card">
+    <h3>An inert button, and three wasted rebuild cycles</h3>
+    <p class="plain">A "create fix" button did nothing on click: no error, nothing in the server logs, nothing in the target system. First guess was a stale container or missing environment variable, which led to several unnecessary rebuilds. The actual bug was much simpler: the button's click handler had never been wired up, so the request never left the browser at all. An empty server log isn't inconclusive because it's proof the problem is in the JavaScript, not the backend, and checking the browser console first would have found it in minutes.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>The generalized rule adopted from this: diagnose in layer order with browser console, then the network tab, then server logs instead of guessing at infrastructure first. It paid off directly later, when a separate integration bug got solved by going straight to a browser's network tab instead of guessing at an API shape a second and third time.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="story-card">
+    <h3>Two wrong APIs before capturing the real request</h3>
+    <p class="plain">Assigning a ticket to a specific person required finding the right lookup API. The first candidate worked but only returned a handful of people from one project team, not the wider organization. The second candidate looked more promising by name and returned a confident <code>200 success: true</code> with an empty result array, which is a worse failure than an error, because nothing about it looks broken until you actually check what came back. The real fix was to stop guessing entirely: open the target system's own UI, watch the network tab while using the feature natively, and copy the exact request it made.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>Even with the correct endpoint captured, it initially failed with a missing-API-version error — because that particular endpoint took its version through an <code>Accept</code> header instead of a query parameter, unlike every other call already in the codebase. Lesson kept going forward: for any third-party API whose shape isn't already proven in the codebase, capture a real request first rather than guessing a third time from documentation alone.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="story-card">
+    <h3>Placeholder text was shipping into live content</h3>
+    <p class="plain">Three of the fix functions for a meta description and two social-sharing tags turned out to be writing a literal placeholder string into real, customer-facing content with no model call happening at all. It had been live for a while before anyone noticed, because "a value got written" and "a value worth writing got written" look identical from the outside unless someone actually reads what shipped. Replaced with generation grounded in the page's real title and content, and re-checked against actual output like every other fix.</p>
+  </div>
+
+  <div class="story-card">
+    <h3>A security fix that closed the finding, but not the whole hole</h3>
+    <p class="plain">A scanner flagged that outbound requests built from crawled page content such as an image URL, a redirect target could be pointed at an internal address. The first fix validated the hostname once before the request. That closed the finding but left a real gap: the validation and the actual network call resolve the domain name separately, so a fast-changing DNS answer could show a safe address to the check and a different one to the real connection a moment later. Closed properly by pinning the exact IP address that was validated for the duration of that one request, then proven against a real request over live HTTPS — not just a synthetic test — to confirm the security check and the certificate/hostname verification both still worked correctly together.</p>
+  </div>
+
+  <div class="story-card">
+    <h3>Reverted an automated fix that would have broken the feature it "fixed"</h3>
+    <p class="plain">An automated code-suggestion bot proposed a fix for the same class of finding above: hardcode an allowed-hosts list defaulting to localhost. It looked reasonable and was well-commented and it would have broken the entire feature, since the whole point of that code path is reaching a different real external site every time, not a fixed local address. The pattern-match made sense in isolation and was wrong in context. Reverted after actually reading what it did rather than trusting that an automated, passing suggestion was automatically safe to accept.</p>
+  </div>
+</section>
+
+<section class="block" id="now">
+  <h2>Where it's honestly at</h2>
+  <div class="story-card">
+    <p class="plain">The most common fix types such as titles, meta descriptions, alt text, social tags are fixed and independently re-verified against the live page end to end. A meaningful set of issues is deliberately never auto-fixed at all: things that are genuinely a judgment call, or that live outside what a content edit can reach, get explained and routed to a human instead of guessed at. Two gaps are open and known rather than hidden: pages that don't map onto the site's standard content model don't resolve to anything fixable yet, so those tickets are correctly skipped rather than silently mishandled; and one plugin's rendering behavior on a specific field conflicts with the write path on a subset of pages with the write itself is proven correct and re-verified, the rendering isn't, and that one's tracked as a plugin-side question rather than chased further in this code.</p>
+  </div>
+</section>
+
+<footer class="close">
+  <p>Built with Python, Flask, and SQLite, with an Anthropic/OpenAI provider abstraction behind the agents and the target site's own REST API for reads, writes, and re-verification. Completed contract work, with finished milestones since mid-2026.</p>
+</footer>
