@@ -95,7 +95,7 @@ title: AccountabilityApp — Notes (Tab Tracking)
 
 <div class="stat-row">
   <div class="stat"><span class="n">0</span><span class="l">Cloud services involved</span></div>
-  <div class="stat"><span class="n">v0.2.0</span><span class="l">Current shipped version</span></div>
+  <div class="stat"><span class="n">v0.3.0</span><span class="l">Current shipped version</span></div>
   <div class="stat"><span class="n">1</span><span class="l">Full feature built, tested, then cut pre-release</span></div>
   <div class="stat"><span class="n">3</span><span class="l">Real bugs, caught only by real use</span></div>
 </div>
@@ -198,11 +198,11 @@ title: AccountabilityApp — Notes (Tab Tracking)
 
 <section class="block" id="since">
   <h2>Since then, a work-timer report, and a bigger discovery</h2>
-  <p class="sub">Four more sessions building a feature to turn the tracked data into something billable and along the way, finding a real data-integrity bug that had been running silently for months.</p>
+  <p class="sub">Six more sessions building a feature to turn the tracked data into something billable and along the way, finding a real data-integrity bug that had been running silently for months.</p>
 
   <div class="stat-row">
     <div class="stat"><span class="n">31/31</span><span class="l">Backend tests passing</span></div>
-    <div class="stat"><span class="n">13</span><span class="l">Silent database wipes found, since April</span></div>
+    <div class="stat"><span class="n">20</span><span class="l">Silent database wipes found, before the fix</span></div>
     <div class="stat"><span class="n">2</span><span class="l">Features investigated, then deliberately not built</span></div>
   </div>
 
@@ -238,3 +238,34 @@ title: AccountabilityApp — Notes (Tab Tracking)
       <div class="techbody">
         <p>Fixed with a <code>today_start_timestamp()</code> helper that computes local midnight via <code>chrono::Local</code> and resolves it back to a UTC instant properly, including the ambiguous-time case around a DST transition. Since <code>get_sessions_today</code> already delegated to this helper for the dashboard, the one fix corrected both call sites at once.</p>
       </div>
+    </details>
+  </div>
+
+  <div class="story-card">
+    <h3>A months-long silent data-loss bug, traced to one missing dependency flag</h3>
+    <p class="plain">While chasing down why the report's numbers looked wrong, found something much bigger: the app's encryption key kept disappearing, and every time it did, the database quietly reset itself into a blank one instead of failing loudly. By the time this was fully traced, 20 of these abandoned "unreadable" backups had piled up going back months, meaning real tracked history had been silently thrown away over and over, with the app behaving normally the entire time.</p>
+    <p class="plain">The cause turned out to be one missing setting on a dependency. The library responsible for storing the encryption key securely needed an extra flag to actually talk to Windows' real credential store; without it, it quietly fell back to a fake, memory-only version that forgets everything the moment the app closes. That fake version was already live in the app's first public release, and went unnoticed because the project's automated tests don't run on Windows, so nothing failed loudly anywhere those tests could see.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p><code>keyring = "3"</code> had no Cargo features enabled; without <code>windows-native</code>, <code>keyring-3.6.3</code> silently compiles in its <code>mock</code> backend (<code>CredentialPersistence::EntryOnly</code>, in-memory only) instead of the real Windows Credential Manager backend, with no compile-time or runtime error either way. <code>get_or_create_key</code> was working exactly as designed, detecting "no key found" and moving the undecryptable database aside; the actual bug was the crate silently substituting a fake backend underneath it. Fixed by enabling <code>windows-native</code>, verified with two consecutive real process restarts of the compiled binary, confirming the same key both times via <code>cmdkey</code> and zero new <code>.unreadable.*</code> files. A second, related bug caught in the same pass: <code>cargo test</code> used the same keyring entry as the real app, so once the real backend was enabled every test run would have overwritten the production key, fixed by giving tests their own separate service identifier. The equivalent macOS gap (<code>apple-native</code>) was prepped the same way in a later session but hasn't been verified on real Mac hardware yet.</p>
+      </div>
+    </details>
+  </div>
+
+  <div class="story-card">
+    <h3>The widget wasn't actually quitting, and a report inherited the consequences</h3>
+    <p class="plain">A generated report once showed "1h 27m" at the top but "121h 27m" in the subtotal at the bottom, a five-day discrepancy hiding inside one file. The cause: closing the widget's window (Alt+F4, the taskbar's close option) didn't quit the app at all, it just hid it, so the tracker kept running unattended in the background for days.</p>
+    <p class="plain">Fixed on both ends: closing the window now always fully exits, the same way the quit button already did, so there's no more silent background running to lose track of. Separately, the report itself now anchors its earliest possible time to when the app was actually opened, and prints the date on any row where a gap crosses midnight, so a multi-day stretch can no longer read as "the same afternoon."</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p><code>CloseRequested</code> called <code>prevent_close()</code> and hid the window rather than exiting, so the activity tracker kept polling regardless of window visibility; the <code>hide_to_tray</code> command and its tray menu item were removed entirely once confirmed nothing on the frontend still called it, and <code>CloseRequested</code> now stops the tracker and calls <code>app_handle.exit(0)</code>, the same path the ✖ button and tray Quit already used. Separately, <code>AppState</code> gained a <code>launched_at</code> timestamp, and <code>generate_session_report</code>'s window now floors at <code>checkpoint.max(launched_at)</code>, so a stale multi-day-old checkpoint can no longer pull a report's start earlier than the current run. The per-row <code>Time</code> column in the generated Markdown now gets a <code>YYYY-MM-DD</code> prefix on its first row, and again only when the date changes from the row before it.</p>
+      </div>
+    </details>
+  </div>
+</section>
+
+<footer class="close">
+  <p>AccountabilityApp is still just for me and whoever else wants to run it locally: no store listing, no account system, nothing tracked off-device. Most of what's shipped so far came from finding out a comfortable assumption was wrong: a download that looked broken wasn't, a database that looked fine had been quietly resetting itself for months, a window that looked closed hadn't actually quit. What's left open is honest rather than urgent: a macOS build that's written but never run on real Mac hardware, a key/database mismatch that should recover gracefully instead of panicking, and a fullscreen-widget quirk handed off as a Windows setting to test rather than a code fix.</p>
+</footer>
