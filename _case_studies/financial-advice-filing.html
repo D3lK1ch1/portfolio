@@ -1,0 +1,873 @@
+---
+layout: case-study
+title: Advice Filing Build Log
+---
+
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,440;9..144,560;9..144,640&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #eef1ef;
+    --surface: #fbfcfb;
+    --surface-raised: #ffffff;
+    --ink: #16222a;
+    --ink-soft: #47585f;
+    --ink-faint: #7c8b8d;
+    --border: #d5dbd7;
+    --border-soft: #e3e7e3;
+    --accent: #2b6d6f;
+    --accent-ink: #ffffff;
+    --accent-soft: #dcebea;
+    --accent-soft-border: #b9d6d4;
+    --done: #3c7a53;
+    --done-bg: #e3f1e6;
+    --done-border: #b7d9c0;
+    --flag: #a06a15;
+    --flag-bg: #f6ead0;
+    --flag-border: #e2c88f;
+    --blocked: #a6452f;
+    --blocked-bg: #f5e0da;
+    --blocked-border: #e3b8a9;
+    --idle: #6d7876;
+    --idle-bg: #e7eae7;
+    --idle-border: #d1d7d1;
+    --shadow: 0 1px 2px rgba(20, 30, 28, 0.06), 0 6px 20px -10px rgba(20, 30, 28, 0.18);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #10171a;
+      --surface: #172023;
+      --surface-raised: #1c262a;
+      --ink: #e8edec;
+      --ink-soft: #a9b7b6;
+      --ink-faint: #7d8c8b;
+      --border: #2a3538;
+      --border-soft: #212b2e;
+      --accent: #74c3c1;
+      --accent-ink: #0b1a1a;
+      --accent-soft: #1c3132;
+      --accent-soft-border: #2c4b4b;
+      --done: #79c294;
+      --done-bg: #1b2f22;
+      --done-border: #2e4a37;
+      --flag: #e2b562;
+      --flag-bg: #362a15;
+      --flag-border: #4d3c1e;
+      --blocked: #e38a71;
+      --blocked-bg: #37231d;
+      --blocked-border: #4d332a;
+      --idle: #97a3a1;
+      --idle-bg: #212a2b;
+      --idle-border: #303a3b;
+      --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+    }
+  }
+
+  :root[data-theme="dark"] {
+    --bg: #10171a;
+    --surface: #172023;
+    --surface-raised: #1c262a;
+    --ink: #e8edec;
+    --ink-soft: #a9b7b6;
+    --ink-faint: #7d8c8b;
+    --border: #2a3538;
+    --border-soft: #212b2e;
+    --accent: #74c3c1;
+    --accent-ink: #0b1a1a;
+    --accent-soft: #1c3132;
+    --accent-soft-border: #2c4b4b;
+    --done: #79c294;
+    --done-bg: #1b2f22;
+    --done-border: #2e4a37;
+    --flag: #e2b562;
+    --flag-bg: #362a15;
+    --flag-border: #4d3c1e;
+    --blocked: #e38a71;
+    --blocked-bg: #37231d;
+    --blocked-border: #4d332a;
+    --idle: #97a3a1;
+    --idle-bg: #212a2b;
+    --idle-border: #303a3b;
+    --shadow: 0 1px 2px rgba(0, 0, 0, 0.3), 0 10px 30px -12px rgba(0, 0, 0, 0.5);
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection { background: var(--accent-soft); color: var(--ink); }
+
+  a { color: var(--accent); text-decoration-thickness: 1.5px; text-underline-offset: 2px; }
+  a:focus-visible, button:focus-visible, summary:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  .wrap { max-width: 840px; margin: 0 auto; padding: 0 24px 96px; }
+
+  code, .mono {
+    font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-variant-numeric: tabular-nums;
+  }
+
+  code {
+    background: var(--surface);
+    border: 1px solid var(--border-soft);
+    padding: 0.1em 0.4em;
+    border-radius: 3px;
+    font-size: 0.88em;
+  }
+
+  h1, h2, h3 {
+    font-family: "Fraunces", Georgia, serif;
+    font-weight: 560;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    color: var(--ink);
+  }
+
+  /* ---------- masthead ---------- */
+
+  header.masthead {
+    padding: 72px 0 40px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .eyebrow {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+  }
+
+  .eyebrow::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+    display: inline-block;
+  }
+
+  h1.title {
+    font-size: clamp(32px, 4.4vw, 44px);
+    line-height: 1.12;
+    margin: 0 0 14px;
+  }
+
+  .dek {
+    font-size: 18px;
+    color: var(--ink-soft);
+    max-width: 62ch;
+    margin: 0 0 28px;
+  }
+
+  .meta-line {
+    font-size: 13px;
+    color: var(--ink-faint);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 10px;
+  }
+  .meta-line span:not(:last-child)::after { content: "·"; margin-left: 10px; color: var(--border); }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 32px;
+  }
+
+  .stat {
+    background: var(--surface);
+    padding: 16px 18px;
+  }
+
+  .stat .n {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--ink);
+    display: block;
+  }
+  .stat .l {
+    font-size: 12px;
+    color: var(--ink-faint);
+    margin-top: 2px;
+  }
+
+  @media (max-width: 640px) {
+    .stat-row { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ---------- section nav ---------- */
+
+  nav.jump {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 18px;
+    padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  nav.jump a {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-soft);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav.jump a:hover { color: var(--accent); }
+
+  /* ---------- sections ---------- */
+
+  section { padding: 56px 0; border-bottom: 1px solid var(--border); }
+  section:last-of-type { border-bottom: none; }
+
+  .section-head { display: flex; align-items: baseline; gap: 14px; margin-bottom: 22px; }
+  .section-num {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+  h2 { font-size: 25px; margin: 0; }
+
+  p { margin: 0 0 16px; max-width: 68ch; }
+  p:last-child { margin-bottom: 0; }
+  ul, ol { margin: 0 0 16px; padding-left: 22px; max-width: 66ch; }
+  li { margin-bottom: 6px; }
+  li:last-child { margin-bottom: 0; }
+
+  .lede { font-size: 17px; color: var(--ink-soft); }
+
+  .rule-list { list-style: none; padding: 0; margin: 20px 0 0; display: flex; flex-direction: column; gap: 10px; }
+  .rule-list li {
+    padding-left: 16px;
+    border-left: 2px solid var(--accent-soft-border);
+    color: var(--ink-soft);
+    font-size: 15px;
+  }
+  .rule-list b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- timeline ---------- */
+
+  .timeline { position: relative; margin-top: 8px; }
+  .timeline::before {
+    content: "";
+    position: absolute;
+    left: 86px;
+    top: 6px;
+    bottom: 6px;
+    width: 1.5px;
+    background: var(--border);
+  }
+
+  .entry { position: relative; display: grid; grid-template-columns: 86px 1fr; gap: 24px; padding-bottom: 40px; }
+  .entry:last-child { padding-bottom: 0; }
+
+  .entry .when {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 12.5px;
+    color: var(--ink-faint);
+    text-align: right;
+    padding-top: 3px;
+    padding-right: 14px;
+  }
+
+  .entry .node {
+    position: absolute;
+    left: 82px;
+    top: 5px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent);
+    border: 2px solid var(--bg);
+    box-shadow: 0 0 0 1.5px var(--accent);
+  }
+
+  .entry .body { padding-left: 4px; }
+  .entry h3 { font-size: 18px; margin: 0 0 8px; }
+  .entry p { font-size: 15px; }
+
+  .callout {
+    margin-top: 14px;
+    padding: 12px 16px;
+    border: 1px solid var(--flag-border);
+    background: var(--flag-bg);
+    border-left: 3px solid var(--flag);
+    font-size: 14px;
+    color: var(--ink);
+    max-width: 60ch;
+  }
+  .callout b { color: var(--ink); }
+  .callout.fixed { border-color: var(--done-border); background: var(--done-bg); border-left-color: var(--done); }
+  .callout.open { border-color: var(--blocked-border); background: var(--blocked-bg); border-left-color: var(--blocked); }
+  .callout .tag {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 4px;
+    color: var(--ink-soft);
+  }
+
+  @media (max-width: 560px) {
+    .timeline::before { left: 5px; }
+    .entry { grid-template-columns: 1fr; gap: 6px; padding-left: 20px; }
+    .entry .node { left: 0px; }
+    .entry .when { text-align: left; padding-top: 0; margin-bottom: 4px; }
+  }
+
+  /* ---------- tracks compare ---------- */
+
+  .tracks { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 8px; }
+  @media (max-width: 640px) { .tracks { grid-template-columns: 1fr; } }
+  .track {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    padding: 20px;
+  }
+  .track h3 { font-size: 16px; margin: 0 0 4px; font-family: "IBM Plex Sans", sans-serif; font-weight: 600; }
+  .track .sub { font-family: "IBM Plex Mono", monospace; font-size: 12px; color: var(--ink-faint); margin-bottom: 12px; }
+  .track ul { padding-left: 18px; margin: 0; font-size: 14px; color: var(--ink-soft); }
+
+  /* ---------- tables ---------- */
+
+  .table-scroll { overflow-x: auto; border: 1px solid var(--border); }
+  table { border-collapse: collapse; width: 100%; min-width: 560px; font-size: 14px; background: var(--surface); }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border-soft); vertical-align: top; }
+  thead th {
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    background: var(--border-soft);
+    font-weight: 600;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  td.mono, th.mono { font-family: "IBM Plex Mono", monospace; font-size: 13px; }
+
+  .pill {
+    display: inline-block;
+    font-family: "IBM Plex Mono", monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    padding: 2px 9px;
+    border: 1px solid;
+    white-space: nowrap;
+  }
+  .pill.done { color: var(--done); background: var(--done-bg); border-color: var(--done-border); }
+  .pill.flag { color: var(--flag); background: var(--flag-bg); border-color: var(--flag-border); }
+  .pill.blocked { color: var(--blocked); background: var(--blocked-bg); border-color: var(--blocked-border); }
+  .pill.idle { color: var(--idle); background: var(--idle-bg); border-color: var(--idle-border); }
+
+  /* ---------- gaps list ---------- */
+
+  .gap {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 12px;
+    padding: 14px 0;
+    border-top: 1px solid var(--border-soft);
+    font-size: 14.5px;
+  }
+  .gap:first-child { border-top: none; }
+  .gap .dot { width: 8px; height: 8px; margin-top: 6px; background: var(--blocked); }
+  .gap.intentional .dot { background: var(--flag); }
+  .gap b { color: var(--ink); }
+  .gap .note { color: var(--ink-soft); }
+
+  /* ---------- closing ---------- */
+
+  .closing {
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    padding: 32px;
+  }
+  .closing h2 { margin-bottom: 10px; }
+  .docmap { margin-top: 20px; display: grid; gap: 8px; font-size: 14.5px; }
+  .docmap div { display: grid; grid-template-columns: 190px 1fr; gap: 12px; padding: 8px 0; border-top: 1px solid var(--border-soft); }
+  .docmap div:first-child { border-top: none; }
+  .docmap code { justify-self: start; }
+
+  footer {
+    padding: 40px 0 0;
+    font-size: 13px;
+    color: var(--ink-faint);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .entry, .stat, .track { transition: none; }
+  }
+</style>
+
+<div class="wrap">
+
+  <header class="masthead">
+    <div class="eyebrow">Build log · not for filing, about filing</div>
+    <h1 class="title">Advice Document Classifier &amp; Filing System</h1>
+    <p class="dek">
+      Working notes on how this got built, in the order it actually happened —
+      what runs, what broke, what got fixed, and what's still open. Written to
+      be read alongside the code, one build session at a time. The idea and
+      domain spec came from a collaborator; the build, the bugs, and the
+      fixes below are mine.
+    </p>
+    <div class="meta-line">
+      <span>Snapshot: 4 Sep 2026</span>
+      <span>Build sequence: step 3 of 7</span>
+      <span>Public on GitHub — github.com/D3lK1ch1/FinancialAdviceProjectFiling</span>
+    </div>
+    <div class="stat-row">
+      <div class="stat"><span class="n">10</span><span class="l">sample PDFs, hand-labelled</span></div>
+      <div class="stat"><span class="n">4</span><span class="l">doc types in scope</span></div>
+      <div class="stat"><span class="n">40</span><span class="l">tests across 5 files</span></div>
+      <div class="stat"><span class="n">9</span><span class="l">issues logged as roadmap, not left unwritten</span></div>
+    </div>
+  </header>
+
+  <section id="what">
+    <div class="section-head"><span class="section-num">01</span><h2>What this is</h2></div>
+    <p class="lede">
+      A tool for Australian financial-advice firms. It reads client documents
+      (PDF/Word), works out what each one <em>is</em> :Statement of Advice,
+      Record of Advice, Financial Services Guide, Product Disclosure
+      Statement and proposes where to file it and what to rename it, and flags
+      anything it can't confidently place for a human to look at.
+    </p>
+    <p>
+      It classifies documents that already exist. It does not draft, suggest,
+      or generate financial advice.
+    </p>
+    <ul class="rule-list">
+      <li><b>The knowledge base is the source of truth.</b> Document rules live in <code>knowledge_base.json</code>, never hardcoded in Python.</li>
+      <li><b>Everything is a proposal.</b> Nothing files itself. Low confidence routes to <code>_Needs review</code>, visibly.</li>
+      <li><b>Storage stays abstracted.</b> Local folder today, a cloud bucket later — the classifier shouldn't know or care which.</li>
+      <li><b>Display mode, filing mode, and the classification engine stay independent</b> — none of the three may depend on the others.</li>
+      <li><b>ROAs have four legislative bases</b> (further advice, hold/no-action, small investment, no buy/sell) — an unresolved ROA is a "confirm which kind" flag, not an error.</li>
+    </ul>
+  </section>
+
+  <section id="process">
+    <div class="section-head"><span class="section-num">02</span><h2>How it's built</h2></div>
+    <p>
+      One unit at a time, each one run before the next starts. A unit is a
+      function, a test file, a documented decision — small enough to hold in
+      one head, evaluated by running it or explaining it back, not by trusting
+      a "looks good." Commits land at the end of an evaluated unit, not at the
+      end of a session, so a bad file never has to drag four good ones down
+      with it when something needs undoing.
+    </p>
+    <p>
+      That's why the timeline below reads the way it does: bug found, fix
+      made, verified against real samples, <em>then</em> move on — rather than
+      a block of "features added" with the reasoning stripped out.
+    </p>
+  </section>
+
+  <section id="timeline">
+    <div class="section-head"><span class="section-num">03</span><h2>Timeline</h2></div>
+    <div class="timeline">
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">20–21 Aug</div>
+        <div class="body">
+          <h3>Knowledge base &amp; sample set</h3>
+          <p>
+            <code>knowledge_base.json</code> (v0.3) — document types, classifier
+            hints, filing rules, and the 11-rule edge-case flag set — built
+            first, as the thing everything else reads from. Ten real,
+            verified-native-text sample PDFs sourced across SOA/ROA/FSG/PDS,
+            ground-truthed in <code>sample_documents.labelling.md</code>.
+            <code>harness.py</code> written as a first, keyword-matching
+            prototype of the full pipeline.
+          </p>
+          <div class="callout fixed">
+            <span class="tag">Caught &amp; fixed</span>
+            Two ROA samples were stale 2021 versions and one was mislabelled and
+            replaced with current ASIC versions, relabelled
+            <code>nochange</code> (was <code>further_advice</code>).
+          </div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">22 Aug</div>
+        <div class="body">
+          <h3>Live app track begins — parser + scope gate</h3>
+          <p>
+            <code>parser.py</code> (pypdf), <code>app.py</code> (FastAPI,
+            <code>POST /ingest</code>), <code>scope_gate.py</code> (deterministic
+            SOA/ROA/FSG/PDS title check), a drop-zone UI. First end-to-end run
+            of a real PDF through the live track.
+          </p>
+          <div class="callout fixed">
+            <span class="tag">Bug 1 — reading order</span>
+            pypdf's default extraction follows content-stream order, not
+            visual order — on <code>FSG_AustralianSuper.pdf</code> a footer
+            interleaved mid-sentence and split a word. Fixed with
+            <code>extraction_mode="layout"</code>, verified the title phrase
+            stayed intact across FSG/SOA/ROA/PDS before adopting it.
+          </div>
+          <div class="callout fixed">
+            <span class="tag">Bug 2 — cross-reference false positive</span>
+            <code>scope_gate.py</code> first labelled an FSG as <code>soa</code>,
+            because the FSG's own text explains what an SOA is — a legitimate
+            cross-reference, not noise. FSGs mention PDS and SOA; SOAs mention
+            ROA — this is routine in the domain. Fixed by scoring matches by
+            pattern length and restricting the check to the first 500
+            characters (the title region), not the whole document. Verified
+            against 6 real samples.
+          </div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">25 Aug</div>
+        <div class="body">
+          <h3>Real classifier — Ollama wired in</h3>
+          <p>
+            <code>classifier.py</code> — replaces the scope gate's title-only
+            guess with a real local <code>llama3.1</code> call via Ollama,
+            grounded in <code>knowledge_base.json</code>'s
+            <code>classifier_hints</code>, returning strict
+            <code>{doc_type, confidence, matched_signals}</code>. Verified live
+            against <code>PDS_AustralianSuper.pdf</code> at 100% confidence,
+            correct type.
+          </p>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">27 Aug</div>
+        <div class="body">
+          <h3>Status check — unit breakdown written</h3>
+          <p>
+            <code>TO_DO_LIST.md</code> rewritten against the architecture doc:
+            14 units, ordered by actual data-flow dependency. All 10 sample
+            PDFs re-verified as selectable text directly through
+            <code>parser.py</code>. The git-repo item was logged resolved here
+            — see the next entry.
+          </p>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">28 Aug — today</div>
+        <div class="body">
+          <h3>Test suite: 4 files, unit + real end-to-end</h3>
+          <p>
+            <code>tests/test_parser.py</code>, <code>test_scope_gate.py</code>,
+            <code>test_classifier.py</code> (mocked, no Ollama needed), and
+            <code>test_e2e.py</code> — the last one hitting live Ollama on
+            purpose, no mocking, because that's the only test that proves the
+            wired pipeline actually works end to end. <code>README.md</code>
+            updated with the run command and a Windows PATH gotcha
+            (<code>python -m pytest</code>, not bare <code>pytest</code>).
+          </p>
+          <div class="callout open">
+            <span class="tag">Discrepancy caught</span>
+            <code>TO_DO_LIST.md</code> logged the "no git repo" item as
+            resolved on 27 Aug. It wasn't — <code>git status</code> still
+            returns <em>not a git repository</em>. Flagged rather than
+            trusted; see Open gaps below.
+          </div>
+          <div class="callout fixed">
+            <span class="tag">Test bug, found and fixed</span>
+            The out-of-scope e2e fixture used a blank pypdf page with no
+            <code>/Contents</code> stream at all, which crashes layout-mode
+            extraction (<code>KeyError: '/Contents'</code>) — a real pypdf
+            edge case, but not the one under test. Fixed with an explicit
+            empty content stream instead.
+          </div>
+          <div class="callout fixed">
+            <span class="tag">Timeout fixed, not just changed</span>
+            Live-Ollama runs intermittently timed out at 60s — not cold-start
+            only, failure count varied run to run (1/4, 3/4, 3/4). Bumped
+            <code>classifier.py</code>'s <code>requests.post</code> timeout to
+            180s, then re-ran the full e2e suite to confirm rather than
+            assuming: 5/5 passed, ~2m37s, no timeouts.
+          </div>
+          <div class="callout fixed">
+            <span class="tag">Failure log built</span>
+            <code>failure_log.py</code> — <code>log_failure()</code> appends
+            JSON Lines to <code>failure_log.jsonl</code>, field names matching
+            <code>2_ARCHITECTURE.md</code>'s SQLite <code>failure_log</code>
+            table so it drops in later without a schema change. No review UI
+            exists yet to capture human corrections, so
+            <code>tests/test_e2e.py</code> is the current caller — it already
+            has a real prediction and a hand-labelled correct answer for
+            every sample. Unit-tested separately in
+            <code>test_failure_log.py</code>.
+          </div>
+          <div class="callout fixed">
+            <span class="tag">Frontend redesigned</span>
+            <code>static/index.html</code> restyled around the PRD's own
+            review vocabulary: confidence as a tiered meter (high / medium /
+            needs review), <code>matched_signals</code> surfaced as an
+            explicit "Why" list, "Proposed classification — confirm before
+            filing" stated up front rather than implied. <code>app.py</code>
+            now resolves doc types to their full names via
+            <code>knowledge_base.json</code> instead of the frontend
+            hardcoding them. Verified live in-browser against a real sample,
+            not just visually reviewed.
+          </div>
+          <div class="callout">
+            <span class="tag">Track decision made</span>
+            Live app track has explicit priority. <code>harness.py</code>'s
+            fate — kept as an offline validator, or replaced — is deliberately
+            deferred until the live track's results make that call obvious.
+          </div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">31 Aug</div>
+        <div class="body">
+          <h3>Repo goes public — history and backlog on the record</h3>
+          <p>
+            <code>git init</code>, <code>CHANGELOG.md</code> added,
+            <code>README.md</code> filled in with run instructions and a
+            dependency table, first two commits pushed to GitHub. The "no git
+            repo yet" gap logged below on 28 Aug is now closed for real —
+            checked against a fresh <code>git status</code>, not assumed.
+          </p>
+          <div class="callout open">
+            <span class="tag">Caught during this refresh</span>
+            <code>.gitignore</code> had a bare <code>docs</code> line meant to
+            keep client-filed output out of git, but it also matched this
+            planning folder — <code>docs/BUILD_LOG.html</code> itself
+            included. It was never actually on GitHub despite two pushes.
+            Fixed by scoping the ignore to <code>samples/</code> only, which
+            is what the "classified documents" comment was actually about.
+          </div>
+        </div>
+      </div>
+
+      <div class="entry">
+        <div class="node"></div>
+        <div class="when">4 Sep</div>
+        <div class="body">
+          <h3>Nine issues opened — the honest backlog, not a to-do buried in a file</h3>
+          <p>
+            Rather than let known gaps sit as prose in <code>TO_DO_LIST.md</code>
+            only, they're now filed as scoped GitHub issues — security
+            hardening, correctness bugs, format support, persistence
+            sequencing, and CI. See <a href="#roadmap">Roadmap</a> below for
+            the grouping.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <section id="tracks">
+    <div class="section-head"><span class="section-num">04</span><h2>Two build tracks, one now prioritised</h2></div>
+    <p>
+      Two parallel implementations of the same pipeline exist. As of 28 Aug,
+      the live app track has explicit priority — unit work happens there.
+      <code>harness.py</code>'s fate is a deliberately deferred decision, not
+      an accident: it gets made once the live track's results make it
+      obvious, not before.
+    </p>
+    <div class="tracks">
+      <div class="track">
+        <h3>Live app track</h3>
+        <div class="sub mono">app.py · parser.py · scope_gate.py · classifier.py</div>
+        <ul>
+          <li>Single-document, real FastAPI + drop-zone UI</li>
+          <li>Parser → scope gate → live Ollama classifier, all wired</li>
+          <li>Runs against real <code>samples/</code> PDFs</li>
+          <li>No filing, no flagging engine, no persistence yet</li>
+        </ul>
+      </div>
+      <div class="track">
+        <h3>Harness / validation track</h3>
+        <div class="sub mono">harness.py · harness_demo_fixture.json</div>
+        <ul>
+          <li>Batch, keyword-matcher prototype</li>
+          <li>Runs against synthetic fixture text, not real samples</li>
+          <li>Two known, unfixed bugs: KB-array-order tie-breaking; string-sorted (not date-parsed) event grouping</li>
+          <li>11-rule <code>edge_case_flags</code> engine exists in the KB but is read nowhere in code</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="tests">
+    <div class="section-head"><span class="section-num">05</span><h2>Test suite added this session</h2></div>
+    <p>
+      Zero tests existed before this session. Four files now cover the four
+      live-track modules, deliberately split by how much of the real world
+      each one needs to talk to.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>File</th><th>Covers</th><th>Needs</th><th>Result</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="mono">test_parser.py</td>
+            <td>All 10 real samples parse with selectable text; response shape</td>
+            <td>Nothing external</td>
+            <td><span class="pill done">11 / 11</span></td>
+          </tr>
+          <tr>
+            <td class="mono">test_scope_gate.py</td>
+            <td>All 10 samples classify by filename-prefix type; FSG/SOA regression pinned; out-of-scope text case</td>
+            <td>Nothing external</td>
+            <td><span class="pill done">12 / 12</span></td>
+          </tr>
+          <tr>
+            <td class="mono">test_classifier.py</td>
+            <td>JSON parsing (plain / fenced / malformed); success, defaulting, and all three exception paths</td>
+            <td><code>requests.post</code> mocked</td>
+            <td><span class="pill done">9 / 9</span></td>
+          </tr>
+          <tr>
+            <td class="mono">test_e2e.py</td>
+            <td>Full <code>POST /ingest</code>, one real sample per doc type, plus a text-less PDF; logs a failure-log entry on any misclassification</td>
+            <td>Live Ollama, <code>llama3.1</code></td>
+            <td><span class="pill done">5 / 5</span></td>
+          </tr>
+          <tr>
+            <td class="mono">test_failure_log.py</td>
+            <td><code>log_failure()</code> appends correctly-shaped JSON Lines; handles a <code>None</code> prediction; appends without overwriting</td>
+            <td>Nothing external</td>
+            <td><span class="pill done">3 / 3</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 16px; font-size: 14px; color: var(--ink-soft);">
+      Run everything: <code>python -m pytest</code> from the project root.
+      Details in <code>README.md</code>.
+    </p>
+  </section>
+
+  <section id="status">
+    <div class="section-head"><span class="section-num">06</span><h2>Where the project actually stands</h2></div>
+    <p>
+      Fourteen units, ordered by data-flow dependency rather than diagram
+      order, each sized for one build-and-stop cycle. This is the honest
+      version — most of it is still ahead.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th style="width:32px">#</th><th>Unit</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono">1</td><td>Parse PDF → text</td><td><span class="pill done">Done</span></td></tr>
+          <tr><td class="mono">2</td><td>Title-pattern pre-filter (scope gate)</td><td><span class="pill done">Done</span></td></tr>
+          <tr><td class="mono">3</td><td>LLM classify — 4 in-scope types</td><td><span class="pill done">Done, live-tested</span></td></tr>
+          <tr><td class="mono">4</td><td>Flag: low-confidence + unknown-type</td><td><span class="pill flag">Spec'd, not built</span></td></tr>
+          <tr><td class="mono">5</td><td>Date extraction</td><td><span class="pill idle">Not built</span></td></tr>
+          <tr><td class="mono">6</td><td>Client identity (manual, no DB)</td><td><span class="pill idle">Not built</span></td></tr>
+          <tr><td class="mono">7</td><td>Advice-event identity</td><td><span class="pill blocked">Blocked on 5, 6</span></td></tr>
+          <tr><td class="mono">8</td><td>Filing: naming + path proposal</td><td><span class="pill blocked">Blocked on 4, 7</span></td></tr>
+          <tr><td class="mono">9</td><td>Persistence: documents / classifications / flags</td><td><span class="pill idle">Not built</span></td></tr>
+          <tr><td class="mono">10</td><td>Persistence: clients / advice-events</td><td><span class="pill blocked">Extends 9</span></td></tr>
+          <tr><td class="mono">11</td><td>Real <code>_Needs review</code> queue</td><td><span class="pill blocked">Blocked on 9</span></td></tr>
+          <tr><td class="mono">12</td><td>Approve / Correct / Reflag + failure log</td><td><span class="pill flag">Log mechanism done, UI blocked on 11</span></td></tr>
+          <tr><td class="mono">13</td><td>Remaining 9 flagging rules</td><td><span class="pill blocked">Blocked on 10</span></td></tr>
+          <tr><td class="mono">14</td><td>Missing-record detection</td><td><span class="pill idle">Deferred (Phase 2)</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p style="margin-top: 16px; font-size: 14px; color: var(--ink-soft);">
+      Next unit is <b style="color: var(--ink);">#4</b> — the only one with zero blockers left.
+    </p>
+  </section>
+
+  <section id="gaps">
+    <div class="section-head"><span class="section-num">07</span><h2>Open gaps, on the record</h2></div>
+    <div class="gap">
+      <div class="dot"></div>
+      <div><b>No <code>requirements.txt</code> — tracked as <a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/3">issue #3</a>.</b>
+      <div class="note">What's actually installed and in use is documented in <code>README.md</code>'s dependency table for now.</div></div>
+    </div>
+  </section>
+
+  <section id="roadmap">
+    <div class="section-head"><span class="section-num">08</span><h2>Roadmap — nine issues, grouped</h2></div>
+    <p class="lede">
+      Filed on GitHub rather than left as prose, so the backlog is scoped,
+      linkable, and closeable one at a time — the same one-unit discipline
+      as the build itself, applied to planning.
+    </p>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th style="width:60px">#</th><th>Theme</th><th>What it covers</th></tr>
+        </thead>
+        <tbody>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/1">#1</a></td><td>Self-review</td><td>README-only PR documenting security, hygiene, and readiness findings before touching code — one branch, one reviewable change</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/2">#2</a></td><td>Security</td><td>Auth on <code>/ingest</code>, upload size limits, magic-byte validation, gating raw extracted text, documenting the local-Ollama privacy tradeoff</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/3">#3</a></td><td>File hygiene</td><td><code>requirements.txt</code>, tighter <code>.gitignore</code>, de-identification rule for <code>failure_log.jsonl</code>, harness-fate decision recorded in <code>CHANGELOG.md</code></td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/4">#4</a></td><td>Correctness</td><td>Case-insensitive scope gate, position-based tie-break, verifying matched signals actually appear in text, per-type review thresholds, wiring reviewer corrections into <code>log_failure()</code></td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/5">#5</a></td><td>Format support</td><td>OCR fallback, <code>.docx</code> handling, a real <code>parse_document()</code> dispatcher, confidence capping on OCR'd text</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/6">#6</a></td><td>Client identity</td><td>Multi-field identity resolution (name, DOB, address, account), scored candidates over silent picks, <code>ambiguous_client</code> flag, family-key grouping without merging records</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/7">#7</a></td><td>Reproducibility</td><td>Pinned Ollama model digest (not a floating tag), <code>engine_version</code> stamped on every classification, config moved to env vars, a single <code>kb.py</code> loader</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/8">#8</a></td><td>Statefulness</td><td>Single-document flags before cross-document ones, day-first date parsing for Australian dates, SQLite persistence sequenced deliberately behind that</td></tr>
+          <tr><td class="mono"><a href="https://github.com/D3lK1ch1/FinancialAdviceProjectFiling/issues/9">#9</a></td><td>CI</td><td>Tiered test suite (fixture-only vs full), LLM test marked non-deterministic and opt-in, GitHub Actions on PRs, a mechanical check rejecting any PR that adds PDFs or docs outside the policy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="next">
+    <div class="closing">
+      <h2>Reading this together</h2>
+      <p>
+        This file is meant to be walked through, not just skimmed because the goal
+        is that whoever reads it with me can point at a decision here, ask
+        "why," and get an answer that isn't "the AI decided." Start with the
+        timeline above in order; every entry names the bug or the reasoning,
+        not just the file that changed.
+      </p>
+      <div class="docmap">
+        <div><code>README.md</code><span>How to actually run it : server, Ollama, tests.</span></div>
+        <div><code>CLAUDE.md</code><span>Ground rules this build doesn't break.</span></div>
+        <div><code>docs/</code><span>Spec and architecture this build follows.</span></div>
+        <div><code>tests/</code><span>The suite this log describes — run it, don't take the numbers on trust.</span></div>
+        <div><code>GitHub Issues</code><span>The nine-item roadmap above, each one closeable on its own.</span></div>
+      </div>
+    </div>
+    <footer>
+      <p>Built with Python, FastAPI, pypdf, and a local Ollama (<code>llama3.1</code>) classifier. In progress with idea and domain spec from a collaborator, to build, detect issues and fix through PRs.</p>
+      <p>Build log · advice document classifier &amp; filing system · snapshot 4 Sep 2026 · update alongside the code</p>
+    </footer>
+  </section>
+
+</div>
