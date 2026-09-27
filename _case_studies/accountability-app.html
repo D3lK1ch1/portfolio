@@ -198,7 +198,7 @@ title: AccountabilityApp — Notes (Tab Tracking)
 
 <section class="block" id="since">
   <h2>Since then, a work-timer report, and a bigger discovery</h2>
-  <p class="sub">Six more sessions building a feature to turn the tracked data into something billable and along the way, finding a real data-integrity bug that had been running silently for months.</p>
+  <p class="sub">Seven more sessions building a feature to turn the tracked data into something billable and along the way, finding a real data-integrity bug that had been running silently for months.</p>
 
   <div class="stat-row">
     <div class="stat"><span class="n">31/31</span><span class="l">Backend tests passing</span></div>
@@ -264,8 +264,20 @@ title: AccountabilityApp — Notes (Tab Tracking)
       </div>
     </details>
   </div>
+
+  <div class="story-card">
+    <h3>The first time anyone opened it on a real Mac, macOS refused to launch it</h3>
+    <p class="plain">The macOS build had passed every automated check, but nobody had actually opened it on a Mac. The first person to do that was an outside contributor, who reported that it wouldn't launch. The app's own code never ran: macOS blocked it within about three seconds because the build had no developer identity that Apple could verify. The automated checks couldn't catch this. They confirmed the installer file wasn't corrupt, but macOS only applies its launch check to files downloaded through a browser, and a file built by CI never is.</p>
+    <p class="plain">The proper fix is Apple's developer program, at US$99 a year. For a free, non-commercial tool, I chose not to pay it. Instead, the build is now signed in a free "ad-hoc" way so that macOS's manual "Open Anyway" override works, and the README labels macOS experimental and walks through the bypass. Preparing that release also turned up a repeat mistake: the v0.3.0 release built an installer still labelled 0.2.0, because the version bump was missed for the second release in a row.</p>
+    <details>
+      <summary>Show the technical version</summary>
+      <div class="techbody">
+        <p>The system log from issue #7 (macOS 26.2, M3) showed <code>AMFI: ... has no CMS blob?</code> and <code>syspolicyd GK ... (team: (null))</code>, then <code>ASP: Security policy would not allow process</code>. The binary carried only the linker's automatic ad-hoc signature, and <code>tauri.conf.json</code> had no <code>macOS</code> signing section. CI's <code>hdiutil verify</code> only checks DMG integrity, and Gatekeeper only evaluates files with the <code>com.apple.quarantine</code> attribute, which browsers add on download. Fixed with <code>"macOS": { "signingIdentity": "-" }</code> so the whole <code>.app</code> bundle is ad-hoc signed. That doesn't remove the Gatekeeper prompt, but Open Anyway can now succeed. Accepted costs: the bypass is needed after every update, and permissions and the Keychain prompt may reset per build because the ad-hoc identity changes. A denied Keychain prompt does <em>not</em> wipe data: only <code>keyring::Error::NoEntry</code> triggers the move-aside path. Version drift: <code>tauri.conf.json</code>, <code>package.json</code> and <code>Cargo.toml</code> were still <code>0.2.0</code> (<code>package-lock.json</code> was still <code>0.1.0</code>), and Tauri names the DMG from <code>tauri.conf.json</code>, not the git tag, so all five were bumped. CI now writes the DMG's SHA-256 to the run summary. That hash matches GitHub's own digest on the release asset, which proves integrity (the download is the file CI built) but not authenticity: a compromised account would get a matching digest too. Still unverified: nobody has confirmed the new build launches on a real Mac, so issue #7 stays open until the reporter retests.</p>
+      </div>
+    </details>
+  </div>
 </section>
 
 <footer class="close">
-  <p>AccountabilityApp is still just for me and whoever else wants to run it locally: no store listing, no account system, nothing tracked off-device. Most of what's shipped so far came from finding out a comfortable assumption was wrong: a download that looked broken wasn't, a database that looked fine had been quietly resetting itself for months, a window that looked closed hadn't actually quit. What's left open is honest rather than urgent: a macOS build that's written but never run on real Mac hardware, a key/database mismatch that should recover gracefully instead of panicking, and a fullscreen-widget quirk handed off as a Windows setting to test rather than a code fix.</p>
+  <p>AccountabilityApp is still just for me and whoever else wants to run it locally: no store listing, no account system, nothing tracked off-device. Most of what's shipped so far came from finding out a comfortable assumption was wrong: a download that looked broken wasn't, a database that looked fine had been quietly resetting itself for months, a window that looked closed hadn't actually quit. What's left open is honest rather than urgent: a macOS build that failed its first real launch and has shipped a fix nobody has retested yet, a key/database mismatch that should recover gracefully instead of panicking, and a fullscreen-widget quirk handed off as a Windows setting to test rather than a code fix.</p>
 </footer>

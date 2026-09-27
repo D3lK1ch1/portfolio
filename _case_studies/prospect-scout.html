@@ -292,6 +292,12 @@ description: "A build log and case study for Prospect Scout: an evidence-only, l
   .stack-list { font-family: var(--mono); font-size: 14px; color: var(--ink-soft); line-height: 2; }
   .stack-list b { color: var(--ink); font-weight: 600; }
 
+  /* ---------- screenshots ---------- */
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; }
+  .shots figure { margin: 0; background: var(--paper-raised); border: 1px solid var(--rule-strong); box-shadow: var(--shadow); }
+  .shots img { display: block; width: 100%; height: auto; border-bottom: 1px solid var(--rule); }
+  .shots figcaption { font-family: var(--mono); font-size: 12.5px; color: var(--ink-faint); padding: 8px 12px; }
+
   footer { padding: 40px 0 60px; }
   footer .rule { border: none; border-top: 3px double var(--rule-strong); margin: 0 0 26px; }
   footer p { font-size: 14.5px; color: var(--ink-soft); max-width: 60ch; }
@@ -325,37 +331,54 @@ description: "A build log and case study for Prospect Scout: an evidence-only, l
     <h1>Prospect Scout</h1>
     <p class="dek">A locally-run research aid that finds companies worth a cold email — and refuses to tell you anything it can't cite. This page documents how it was built, what broke, and what's still honestly unsolved, using the same evidence discipline the tool itself is built around.</p>
     <div class="meta-grid">
-      <div><span class="k">Status</span><span class="v">Pre-release</span></div>
-      <div><span class="k">Sessions logged</span><span class="v">2026-07-26 → 08-07</span></div>
-      <div><span class="k">Tests passing</span><span class="v">131 / 131</span></div>
+      <div><span class="k">Status</span><span class="v">On hiatus</span></div>
+      <div><span class="k">Sessions logged</span><span class="v">2026-07-26 → 09-14</span></div>
+      <div><span class="k">Tests passing</span><span class="v">191 / 191</span></div>
       <div><span class="k">Live calls in suite</span><span class="v">0</span></div>
     </div>
   </div>
 
   <section aria-label="Sample output">
     <p class="section-label">Exhibit A — what it actually outputs</p>
-    <h2>One real result, unedited</h2>
-    <p>Not a mockup. This is a live finding from a real run against <code>itnetworks.com.au</code>, discovered during this session's own testing — reproduced here exactly as the tool wrote it, because a case study about an evidence-only tool should open with evidence, not a claim about one.</p>
+    <h2>What one result looks like</h2>
+    <p>Illustrative, not a live company result — a composite example built from this project's real, shipped output shape, kept generic on purpose so no real small business's name sits next to a tool-generated judgment call about it. The finding structure, field names, and wording style are exactly what the tool actually writes.</p>
     <div class="hero-card">
       <div class="card-head">
         <span class="kind">Team Contact Signal</span>
         <span class="stamp confirmed">confidence: medium</span>
       </div>
       <div class="card-body">
-        <blockquote>&ldquo;CTO&rdquo; found on this page, near the text: &ldquo;...About IT Networks. Meet the leadership team behind IT Networks&rsquo; managed IT support...&rdquo;</blockquote>
-        <div class="field"><span class="k">Source</span><span class="v"><a href="https://www.itnetworks.com.au/about-it-networks/" target="_blank" rel="noopener noreferrer">itnetworks.com.au/about-it-networks/</a></span></div>
-        <div class="field"><span class="k">Suggestion</span><span class="v">Possible contact: Jim Kay (CTO) — verify from the excerpt before reaching out; this is a best-effort match, not confirmed.</span></div>
+        <blockquote>&ldquo;CTO&rdquo; found on this page, near the text: &ldquo;...About the team. Meet the leadership behind our managed IT support...&rdquo;</blockquote>
+        <div class="field"><span class="k">Source</span><span class="v">example-msp.test/about-us/ <em>(illustrative domain)</em></span></div>
+        <div class="field"><span class="k">Suggestion</span><span class="v">Possible contact identified near this title — verify from the excerpt before reaching out; this is a best-effort match, not confirmed.</span></div>
       </div>
     </div>
-    <p class="hero-caption">That specific result didn't exist until this session fixed a false positive that pointed at a blog post about installing Microsoft Teams instead. See Case 01.</p>
+    <p class="hero-caption">A result shaped exactly like this didn't exist until a real session fixed a false positive that pointed at a blog post about installing Microsoft Teams instead. See Case 01.</p>
   </section>
+
+  <!--
+    Screenshots: uncomment once the images exist. Save them next to this page
+    under img/ (e.g. docs/img/search.png). Crop or blur any real small-business
+    names first, per the anonymising policy used throughout this page.
+
+  <section aria-label="Screenshots">
+    <p class="section-label">The app, running</p>
+    <h2>What it looks like</h2>
+    <div class="shots">
+      <figure><img src="img/search.png" alt="The widespread search form: city, state, country and optional role terms"><figcaption>Widespread search — a location in, no domain list needed.</figcaption></figure>
+      <figure><img src="img/result.png" alt="One ranked company result showing evidence, source, confidence and suggestion"><figcaption>One ranked result, with its reasons and every finding's source.</figcaption></figure>
+      <figure><img src="img/map.png" alt="Map of every researched company with a known coordinate"><figcaption>/map — everything researched so far, not just the last run.</figcaption></figure>
+      <figure><img src="img/inspect.png" alt="The specific-company search form, which takes a single URL"><figcaption>/inspect — skip discovery and check one company directly.</figcaption></figure>
+    </div>
+  </section>
+  -->
 
   <section aria-label="What it is">
     <p class="section-label">Brief</p>
-    <h2>The challenge to create the solution</h2>
-    <p>While there are many official and unofficial job boards out there, or else automation agents to make the job hunt easier, it focuses more on the 20% jobs posted seen rather than the 80% hidden job market through word of mouth, or the bold chance to reach out for them.</p>
-    <p>The idea stemmed with a piece of advice called 'why not search for the company, find the CTO / HR etc and then reach out via cold email? Find what you can solve for them, write it out and get that conversation'. Rather than job boards with the usual resume and cover letter fed to the ATS and 99% leading nowhere, why not that type of appeal?</p>
-    <p>The problem for me is finding those companies, especially 'small to mid-sized' companies more likely to hire junior / entry level candidates with international immigrant status even for just a bit and pay the bills than big companies that everyone covets. So, I reached out to spec this project, casting a net over the location for those companies, even non-tech as long as they have a tech team, and take my chances.</p>
+    <h2>The problem it set out to solve</h2>
+    <p>There are plenty of job boards, official and unofficial, and plenty of automation tools to make applying faster. But they all work the roughly 20% of jobs that get posted publicly, not the much larger hidden market filled through word of mouth — or through someone bold enough to reach out first.</p>
+    <p>The idea came from one piece of advice: search for the company, find the CTO or the hiring manager, work out a problem you could solve for them, and send a cold email to start a conversation. That's a different kind of appeal from a resume and cover letter fed into an ATS that mostly leads nowhere.</p>
+    <p>My problem was finding those companies — especially small to mid-sized ones, which are more likely than the big names everyone competes for to take on a junior, entry-level candidate on an international visa. So I specced this project to cast a net over a location for those companies, including non-tech businesses as long as they have a tech team, and take my chances.</p>
     <h2>What this actually is</h2>
     <p>Given a location and a technical interest, Prospect Scout finds publicly visible companies that are plausible prospects, collects verifiable case-study and hiring signals from their own sites, and writes a local report for a human to review before reaching out. It is deliberately not a lead-generation guarantee — a search can return zero eligible companies when public evidence doesn't support one, and that's treated as a correct answer, not a failure.</p>
     <p>The one rule everything else follows from: it must never invent a company, a case study, a problem, or a contact. Every finding ships with a source URL, an excerpt, and a confidence level the human is meant to actually distrust a little.</p>
@@ -393,15 +416,89 @@ description: "A build log and case study for Prospect Scout: an evidence-only, l
       <div class="log-date">2026-08-07</div>
       <div class="log-body">
         <p class="log-title">Live-testing the live tool, and fixing what it found</p>
-        <p>This session. Ran real searches, read every result by hand, and didn't like some of them — see the three cases below. Shipped from that: a word-boundary fix for a false-positive contact page, a minimum-evidence floor before the tool will assert a sector, contact-aware and MSP-language-aware wording on its weakest finding type, and a full redesign of outreach guidance — from a composed, sendable draft to personalized talking points, after a first attempt over-corrected into being generic.</p>
+        <p>This session. Ran real searches, read every result by hand, and didn't like some of them — see Cases 01–03 below. Shipped from that: a word-boundary fix for a false-positive contact page, a minimum-evidence floor before the tool will assert a sector, contact-aware and MSP-language-aware wording on its weakest finding type, and a full redesign of outreach guidance — from a composed, sendable draft to personalized talking points, after a first attempt over-corrected into being generic.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-11</div>
+      <div class="log-body">
+        <p class="log-title">Platform-detection and broken-link signals, an ATS lookup set aside, docs caught up</p>
+        <p>Platform-detection (<span class="filecite">detect_platform_signal()</span>) flags Shopify/Squarespace via confirmed literal fingerprints, closing gap #5. A broken-link signal surfaces a dead sitemap/homepage link as low-confidence evidence, deliberately excluding this project's own guessed fallback paths. A Greenhouse/Lever job-board lookup adapter was prototyped and deliberately left unwired — recorded as "deprioritized, not rejected," since ATS-hosted companies skew toward funded/scaled employers, the opposite of this project's small/informal focus. (Correction, 2026-09-26: that prototype was never committed, so the decision survives but the code doesn't.) A private research log and this page were both started this session to catch documentation up to code that had gotten ahead of it.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-13</div>
+      <div class="log-body">
+        <p class="log-title">A robots.txt parser that silently ignored real rules</p>
+        <p>stdlib's <code>urllib.robotparser</code> only implements the 1996 draft and has no support for the <code>*</code>/<code>$</code> wildcard syntax RFC 9309 requires — confirmed live via a real CPython tracker issue, then reproduced directly: a <code>Disallow: /*.pdf$</code> rule was silently ignored (fetch allowed) under stdlib and correctly honoured under Protego, the RFC 9309-compliant parser Scrapy itself switched to for the same reason. Swapped in <span class="filecite">scout/fetcher.py</span>; all 8 existing robots tests passed unchanged. Also evaluated and shelved a promising new discovery lead (tenders.vic.gov.au) after the whole domain started returning a Cloudflare challenge to every fetch — not ruled out permanently, just not viable to build against right now.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-21</div>
+      <div class="log-body">
+        <p class="log-title">A live crash, caught and fixed the same day it was found</p>
+        <p>The technology profile's 17 tag pairs were combined into one 68-clause Overpass request, which timed out outright against Melbourne's full metro bounding box — confirmed live via direct reproduction. The failure was silently swallowed and reported to the user as "no businesses found... double-check the spelling," which was actively misleading since geocoding had succeeded both times. Fixed by splitting into one request per tag pair, with per-request failure isolation so one slow tag doesn't blank out the rest. Verified live: the same search that previously returned 0 domains returned 190 afterward. Also replaced <span class="filecite">scout/sitemap.py</span>'s hand-rolled robots-sitemap parsing with the same Protego property used above, and formally recorded AAGE (gap #2) as considered and not pursued, closing out a recommendation the research log had left open.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-08-29</div>
+      <div class="log-body">
+        <p class="log-title">The fix for the fix: batching, and three more confirmed false positives from actually reading the output</p>
+        <p>The 2026-08-21 fix traded a crash for a real slowdown — 17 sequential Overpass requests, each individually safe, adds up. Live-trial-confirmed a batch size (4 tag pairs per request; 8 came in right at the timeout edge, 12+ failed outright) that cuts a technology-profile search to 4 requests instead of 16, with real margin, not a guess. Also dropped <code>office=software</code> from the technology tag list (confirmed zero Melbourne hits) and corrected a stale comment that misattributed the profile's wider, deliberately-generic tag set to research it didn't actually come from — that reasoning (catching BHP-shaped companies hiding behind a generic <code>office=company</code> tag) lived only in this page's Case 03 until now. Reading real results again surfaced Case 04 below, plus three fresh confirmed instances of gap #10 and three brand-new gaps (#14, #15, #16) — see the open ledger.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-09-02</div>
+      <div class="log-body">
+        <p class="log-title"><code>robots.txt</code> Crawl-delay finally honoured, and a real sector-language collision found via a specific-company check</p>
+        <p>Closed gap #4: <span class="filecite">scout/fetcher.py</span> now reads a site's declared <code>Crawl-delay</code> and waits, lock-guarded per host so concurrent company fetches (gap #7) can't both slip through the same delay window at once. Separately, a <code>scout inspect</code> run against a real Melbourne accounting firm surfaced a genuine terminology collision, confirmed across five of the firm's own pages: every use of the word "technical" in a professional-services job ad or careers page meant tax/audit domain depth, never software skill — the opposite of what the word means when the same tool is hunting for a developer role. <span class="filecite">hidden_need_finding()</span> now adds that caveat automatically whenever <code>result.sector == "professional services"</code>, and <span class="filecite">scout/outreach.py</span>'s weakest finding type stopped repeating its own "Suggested next step" verbatim as the "Outreach angle" — it now gives the one cold-email tip that actually fits a low-confidence, no-contact result (a small ask, not a job ask), drawn from a set of real cold-email tips collected for the project instead of restating itself. Also recorded a new, deliberately unsolved gap: word-of-mouth/internal-referral hiring — common at small startups and scaleups — produces no public text on any source, by design, which is a harder and different problem than any discovery-source coverage gap (see the open ledger).</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-09-04</div>
+      <div class="log-body">
+        <p class="log-title">Gap #17 confirmed a second time, and three real drifts caught by re-reading the project's own docs</p>
+        <p>A real, ongoing job-search conversation surfaced a second independent confirmation of gap #17, this time from the other side of the hiring process: a real small tech company's actual reasons for its hiring choices — cost, legislation, and first-time risk tolerance on one hand, "value compatibility" over demonstrated technical insight on the other — sat entirely in a private conversation and a subjective read of a candidate, with zero trace on the company's own site. Not a new gap; the same permanent ceiling gap #17 already named, confirmed against a second real case rather than left as a one-off. Company left unnamed here, same policy as Exhibit F's note on Cases 01–04.</p>
+        <p>Separately, re-reading <span class="filecite">README.md</span> and <span class="filecite">CHANGELOG.md</span> against the actual code found three real drifts: <span class="filecite">CHANGELOG.md</span> was three days behind four already-shipped changes (this page's own 2026-09-02 entry above had already caught up, the changelog hadn't); <span class="filecite">README.md</span> had accidentally lost its "Privacy and etiquette" section and its link to <span class="filecite">docs/MVP_SPEC.md</span> during an unrelated session-progress commit, and had never documented the <code>/inspect</code> specific-company search mode at all despite it being fully wired since <span class="filecite">scout/webapp.py</span>'s discovery-skip work; and <code>protego</code> — a real runtime dependency declared in <span class="filecite">requirements.txt</span> — was missing from the local <code>.venv</code>, silently failing 5 of 151 test modules at import time rather than surfacing as a clear dependency error. All three fixed this session; none were code bugs, all were the project's own record of itself falling behind its own code.</p>
+        <p>Two real evidence-extraction bugs were fixed the same day. A theme's mobile menu built as <code>&lt;div role="navigation"&gt;</code> instead of a real <code>&lt;nav&gt;</code> slipped past the chrome stripping, so the same site-wide menu text matched a role term on every page and produced identical excerpts for three different case studies. And location verification only ever checked the homepage, so a company whose address sat on its <code>/careers</code> or <code>/locations</code> page was wrongly marked as needs-review — now every page already fetched in the run is checked, with no extra requests.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-09-11</div>
+      <div class="log-body">
+        <p class="log-title">Research that survives a restart, and a use for sitemap dates</p>
+        <p>Every run had been throwaway: research a company, write a report, forget it. <span class="filecite">scout/store.py</span> added a local SQLite store where rerunning a company replaces its old entry instead of stacking duplicates, so the store always reflects the latest research. Separately, sitemap <code>&lt;lastmod&gt;</code> dates now travel with each finding as <code>observed_at</code>, and ranking uses them as a final tie-breaker — a fresher dated signal wins a tie, and a page with no declared date gets <code>None</code>, never a made-up fetch-time stamp.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-09-13 → 09-14</div>
+      <div class="log-body">
+        <p class="log-title">A map of everything researched so far</p>
+        <p>OpenStreetMap discovery already knew where each candidate was, then threw that away. Coordinates are now carried from discovery through to each result, and a new <code>/map</code> page plots every saved company with a coordinate on a Leaflet map (OSM tiles, no API key). Companies without one are listed underneath instead of silently dropped. For the specific-company mode, which skips discovery and so never had a coordinate, the tool now reads the company's own schema.org <code>geo</code> data if the homepage publishes it — a real but partial source, confirmed present on one of four sites checked, with no fuzzy geocoding fallback when it's missing. One bug caught by using it the same day: the results page had no link to the map at all.</p>
+      </div>
+    </div>
+
+    <div class="log-entry">
+      <div class="log-date">2026-09-26</div>
+      <div class="log-body">
+        <p class="log-title">Paused</p>
+        <p>Put on hiatus with 191 tests passing and nothing half-built. The reason is in the verdict below.</p>
       </div>
     </div>
   </section>
 
   <section aria-label="Case studies">
-    <p class="section-label">Exhibits B–D</p>
-    <h2>Three bugs, found by actually reading the output</h2>
-    <p>None of these came from a code review. They came from running real searches against real companies and refusing to accept a result just because it didn't crash.</p>
+    <p class="section-label">Exhibits B–E</p>
+    <h2>Four bugs, found by actually reading the output</h2>
+    <p>None of these came from a code review. They came from running real searches against real companies and refusing to accept a result just because it didn't crash. Company names below are illustrative, not the real domains this was found against — the bugs and fixes are real and unedited; the specific small businesses involved aren't named here on purpose (see the note under Exhibit F).</p>
 
     <div class="case">
       <div class="case-head">
@@ -414,7 +511,7 @@ description: "A build log and case study for Prospect Scout: an evidence-only, l
 "team" in path            → True   (substring match — wrong)
 re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
         <p>Fixed with a word-boundary match, deliberately scoped to team-page keywords only — the case-study keyword list keeps its existing substring behaviour on purpose, since one of its terms (<code>"success-stor"</code>) is an intentional truncation to catch both "story" and "stories." Re-ran the exact same company afterward: it found the real about page, and a real name.</p>
-        <div class="case-verdict"><span class="stamp confirmed">Live re-test</span><span>itnetworks.com.au now returns Jim Kay, CTO — the card at the top of this page.</span></div>
+        <div class="case-verdict"><span class="stamp confirmed">Live re-test</span><span>The same company now returns a real name and title — the illustrative card at the top of this page is shaped exactly like that real result.</span></div>
       </div>
     </div>
 
@@ -441,6 +538,21 @@ re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
         <p>The technology profile's OSM query only asks for <code>office=it</code>/<code>research</code>/<code>engineer</code> — not <code>office=company</code>, the tag every generic corporate HQ gets. BHP was findable and invisible to this profile at the same time. Filed as evidence for a real, separately-scoped question: tech work increasingly lives inside companies that don't look like tech companies at all — not something to patch into this session's fixes by accident.</p>
       </div>
     </div>
+
+    <div class="case">
+      <div class="case-head">
+        <h3>Case 04 — The image that wasn't broken</h3>
+        <span class="stamp confirmed">confirmed &amp; fixed</span>
+      </div>
+      <div class="case-body">
+        <p>The broken-link signal reported two real companies' own image URLs (<code>/wp-content/uploads/.../customer-service.png</code>-shaped paths) as dead links — evidence text literally read <em>&ldquo;failed to load.&rdquo;</em> Both images loaded fine. The fetcher treats any non-HTML response as an error, and that error was being reported using the same wording as an actual dead link, with no distinction between the two.</p>
+        <div class="case-trace">status=200, content-type=image/jpeg → FetchResult.ok = False (not HTML)
+old logic:  not page.ok               → reported as "failed to load"  (wrong)
+new logic:  status is None or >= 400  → reported as "failed to load"  (correct)</div>
+        <p>Fixed by checking the actual response status before calling something broken, not just whether the page turned out to be usable as evidence. A response that loaded successfully but isn't HTML is now silently skipped — not usable as page text, but not a dead link either.</p>
+        <div class="case-verdict"><span class="stamp confirmed">Regression test added</span><span>A sitemap-sourced image link returning 200 no longer produces a <code>broken_link_signal</code> finding.</span></div>
+      </div>
+    </div>
   </section>
 
   <section aria-label="The rules">
@@ -464,44 +576,110 @@ re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
   <section aria-label="Known limitations">
     <p class="section-label">Open ledger</p>
     <h2>What's still honestly unsolved</h2>
-    <p>Recorded on purpose, not discovered by a reader. A tool that only admits its limits when asked isn't actually being evidence-based about itself.</p>
+    <p>Recorded on purpose, not discovered by a reader. A tool that only admits its limits when asked isn't actually being evidence-based about itself. Seven of seventeen shown below, numbered as in the private gap log — the rest live in the project's private gap log, not repeated here to avoid two copies drifting apart.</p>
     <ul class="ledger">
       <li>
-        <span class="num">01</span>
+        <span class="num">02</span>
         <div>
           <p class="gap-title">OpenStreetMap doesn't have every company mapped</p>
-          <p>Confirmed real misses, including a large multinational. This is the ceiling on discovery today, not a bug — the fix is a second, name-verification-only source, not a bigger query.</p>
+          <p>Confirmed real misses, including a large multinational. This is the ceiling on discovery today, not a bug — the fix is a second, name-verification-only source, not a bigger query. That source (Australian Business Register lookups) was specced and then paused along with the project, before any code was written. One promising-looking candidate (AAGE's graduate-employer list) was researched and deliberately not pursued — it skews toward large companies running formal graduate programs, the opposite of the small/informal profile this gap is actually about. A live-trial-confirmed alternative exists (Wikidata's public SPARQL endpoint, 810+ Melbourne-headquartered organisations with a website property) but carries the same large/notable-organisation skew for a different reason — see gap #17 below for the harder problem neither one touches.</p>
         </div>
       </li>
       <li>
-        <span class="num">02</span>
+        <span class="num">09</span>
         <div>
           <p class="gap-title">A tagged site can outlive the business it was tagged for</p>
           <p>One confirmed case: an OSM record pointed at a domain since hijacked for SEO spam in another language. Nothing today tells "the fetch succeeded" apart from "this is still who OSM says it is."</p>
         </div>
       </li>
       <li>
-        <span class="num">03</span>
+        <span class="num">10</span>
         <div>
           <p class="gap-title">Keyword matching can't tell intent from coincidence</p>
-          <p>A university's own career-services page can contain the exact phrase you searched for as a degree name, not a hiring signal. Word-boundary matching fixed the false <em>certainty</em>; it can't fix the ambiguity itself — that's left to the human review step on purpose.</p>
+          <p>A university's own career-services page can contain the exact phrase you searched for as a degree name, not a hiring signal. Word-boundary matching fixed the false <em>certainty</em>; it can't fix the ambiguity itself — that's left to the human review step on purpose. Reconfirmed 2026-08-29 on three more real small-business sites, same reasoning, no new fix attempted.</p>
         </div>
       </li>
       <li>
-        <span class="num">04</span>
+        <span class="num">11</span>
         <div>
           <p class="gap-title">A real, currently-open role can still be invisible</p>
           <p>If a company only lists a vacancy on a third-party job board and nowhere on its own site, this tool won't find it — job-board scraping is explicitly out of scope, not an oversight.</p>
         </div>
       </li>
+      <li>
+        <span class="num">14</span>
+        <div>
+          <p class="gap-title">Selling tech isn't the same as needing tech talent</p>
+          <p>A Shopify storefront selling PCs matched via <code>shop=computer</code> — a correct tag that says nothing about whether the business hires engineers. No literal-text fix closes this; worth checking whether OSM even has a tag that draws this distinction before building anything.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">15</span>
+        <div>
+          <p class="gap-title">A blog title can satisfy a "real word" boundary check and still be the wrong page</p>
+          <p>A real company's own <code>/outsourced-it-vs-internal-team/</code> article — a genuine blog post, not a staff page — passed the same word-boundary check that correctly excludes "microsoft-teams." A real fix direction exists this time: the site's own sitemap already separates posts from pages.</p>
+        </div>
+      </li>
+      <li>
+        <span class="num">17</span>
+        <div>
+          <p class="gap-title">Word-of-mouth and internal-referral hiring is invisible to any public-evidence method, not just OSM</p>
+          <p>Prompted by a real case: a friend's own interview experience at a Melbourne accounting firm suggested a genuine internal technical need that no public page anywhere — the firm's own site, its job ads, its Seek listings — showed any trace of. A company that hires this way produces no public text to find, on any source, by design. This isn't a coverage gap a better discovery source closes (see gap #02) — it's a permanent ceiling on what public-evidence methodology can verify, and it disproportionately affects the exact small startup-to-scaleup company size this project is most interested in surfacing. Confirmed a second time, 2026-09-04, from the hiring side rather than the candidate side (see build log) — the real reason behind a real hiring decision again sat entirely in private conversation, nowhere on the company's own site.</p>
+        </div>
+      </li>
     </ul>
+  </section>
+
+  <section aria-label="Research trail">
+    <p class="section-label">Exhibit F — Research trail</p>
+    <h2>The companies behind the discovery research</h2>
+    <p>Pulled from the project's private research log. Small businesses are described rather than named, for the same reason as Cases 01&ndash;04. Not every row has its own URL &mdash; most small/mid companies were only ever surfaced through a shared list page, never fetched individually, and that distinction is kept honest below rather than implying a per-company check that didn't happen. Rows here are neutral, factual confirmations (membership lists, exchange status, public directories) about companies large or public enough that a factual mention carries no real characterization risk &mdash; a different bar from Cases 01&ndash;04 above, which involved a tool-generated <em>judgment</em> ("weaker lead," "no engineering language") about a real small business, and were made illustrative for that reason instead.</p>
+    <div class="table-scroll">
+      <table class="rules-table">
+        <thead><tr><th>Company</th><th>Live URL(s) actually fetched</th><th>Outcome &amp; match to this project</th></tr></thead>
+        <tbody>
+          <tr><td>Three small Melbourne tech companies</td><td>none &mdash; no mechanism found</td><td>The original discovery-gap examples: small and informal, too small for AAGE, ASX or government registers to catch. Still unsolved &mdash; the exact company size this project was built for.</td></tr>
+          <tr><td>Odoo</td><td>none &mdash; no mechanism found</td><td>Private multinational; no AAGE/ASX/government hit. Same gap, different company size.</td></tr>
+          <tr><td>Alcon</td><td>none &mdash; flagged only, never fetched</td><td>Large enough to plausibly run an AAGE grad program &mdash; named as worth checking, never actually checked.</td></tr>
+          <tr><td>NAB</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a></td><td>Confirmed AAGE member; also a current ASX-20 constituent. The strongest single hit in the set.</td></tr>
+          <tr><td>Suburban Rail Loop Authority</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a></td><td>Confirmed AAGE member; also a VIC statutory authority.</td></tr>
+          <tr><td>JBS</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> (as &ldquo;JBS Pork Australia&rdquo;)</td><td>Confirmed AAGE member. Never ASX-listed (lists on B3/NYSE instead).</td></tr>
+          <tr><td>Vicroads</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a></td><td>Confirmed AAGE member.</td></tr>
+          <tr><td>Ausnet</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> + <a href="https://www.thebigmeet.com.au/melbourne" target="_blank" rel="noopener noreferrer">thebigmeet.com.au/melbourne</a></td><td>Confirmed by two independent fetches, plus AER regulated-network status by secondary corroboration. Not currently ASX-listed &mdash; delisted 2022.</td></tr>
+          <tr><td>DuluxGroup</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a></td><td>Confirmed AAGE member. Delisted from ASX in 2019 &mdash; an ASX-only mechanism would have missed it entirely.</td></tr>
+          <tr><td>Essential Energy</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> + <a href="https://www.thebigmeet.com.au/melbourne" target="_blank" rel="noopener noreferrer">thebigmeet.com.au/melbourne</a></td><td>Confirmed both. HQ'd in NSW, not Melbourne &mdash; shows these mechanisms can surface a company that recruits into Melbourne without being based there.</td></tr>
+          <tr><td>Fulton Hogan</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a></td><td>Confirmed AAGE member. Privately held, never ASX-listed.</td></tr>
+          <tr><td>Jemena</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> (as &ldquo;Jemena/Zinfra&rdquo;)</td><td>Confirmed AAGE listing, plus AER regulated-network status by secondary corroboration.</td></tr>
+          <tr><td>Zinfra</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> (shared &ldquo;Jemena/Zinfra&rdquo; entry)</td><td>Weaker, shared hit &mdash; the AAGE list doesn't list it independently, flagged as an ambiguous name-mapping case.</td></tr>
+          <tr><td>Thoughtworks</td><td><a href="https://aage.com.au/employer-members" target="_blank" rel="noopener noreferrer">aage.com.au/employer-members</a> (as &ldquo;Thoughtworks Australia&rdquo;)</td><td>Confirmed AAGE member. Never ASX-listed (NASDAQ-listed US parent).</td></tr>
+          <tr><td>Sportsbet</td><td><a href="https://responsiblewagering.com.au/about/" target="_blank" rel="noopener noreferrer">responsiblewagering.com.au/about/</a></td><td>Confirmed niche industry-body member. Only found because the sector was already suspected &mdash; doesn't generalise.</td></tr>
+          <tr><td>Kinetic IT</td><td><a href="https://aiia.com.au/member_directory/kinetic-it-pty-ltd/" target="_blank" rel="noopener noreferrer">aiia.com.au/member_directory/kinetic-it-pty-ltd/</a></td><td>Confirmed individual member page; the full AIIA directory's login-free bulk access was never confirmed.</td></tr>
+          <tr><td>Viasat</td><td><a href="https://au.prosple.com/graduate-employers/viasat-australia" target="_blank" rel="noopener noreferrer">au.prosple.com/graduate-employers/viasat-australia</a></td><td>Noted but deliberately not counted &mdash; Prosple sits structurally adjacent to a job board, excluded per this project's own scraping rule.</td></tr>
+          <tr><td>Leica Biosystems</td><td>BioMelbourne Network directory &mdash; returned 403 Forbidden</td><td>Unconfirmed by direct access. Membership known only via a secondary Dun &amp; Bradstreet profile.</td></tr>
+          <tr><td>Culture Amp</td><td><a href="https://www.cultureamp.com/careers" target="_blank" rel="noopener noreferrer">cultureamp.com/careers</a></td><td>Contrast example: real engineering-team language (&ldquo;Engineering blog,&rdquo; a named grad program) &mdash; used to shape the MSP-vs-product-team scoring signal.</td></tr>
+          <tr><td>HotDoc</td><td><a href="https://practices.hotdoc.com.au/careers/" target="_blank" rel="noopener noreferrer">practices.hotdoc.com.au/careers/</a></td><td>Counter-example: a real target company whose careers page carries zero engineering language &mdash; the false-negative risk that blocked a hard MSP-exclusion filter.</td></tr>
+          <tr><td>BHP</td><td><a href="https://www.bhp.com" target="_blank" rel="noopener noreferrer">bhp.com</a> + Overpass node 2456680377</td><td>Case 03. Findable in OSM under the generic <code>office=company</code> tag, invisible to the technology profile's tag set.</td></tr>
+          <tr><td>Ferocia</td><td><a href="https://www.ferocia.com.au" target="_blank" rel="noopener noreferrer">ferocia.com.au</a> + <a href="https://www.ferocia.com.au/careers/" target="_blank" rel="noopener noreferrer">ferocia.com.au/careers/</a></td><td>No individual names anywhere on-site. CTO only confirmed off-site, via itnews.com.au trade-press coverage.</td></tr>
+          <tr><td>A small cloud consultancy</td><td>its own homepage</td><td>Run directly through <code>analyse_company()</code>, bypassing discovery entirely &mdash; same <code>location_verified: false</code> limitation later confirmed on BHP.</td></tr>
+          <tr><td>A Melbourne accounting firm</td><td>one job ad + four more of its own careers pages</td><td>Confirmed real terminology collision across every page checked: "technical" meant tax/audit domain depth, never software skill &mdash; the 2026-09-02 build-log entry above. Shipped as a sector-aware caveat in <code>hidden_need_finding()</code>.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section aria-label="Verdict">
+    <p class="section-label">Verdict</p>
+    <h2>Why it's on hiatus</h2>
+    <p>The tool works. It finds companies, cites everything it says about them, admits when it finds nothing, and puts what it has researched on a map. What it couldn't do was the job it was built for: finding and verifying small to mid-sized companies from public evidence failed more often than plain word of mouth did.</p>
+    <p>Gap #17 in the ledger above is the reason, and it isn't a bug. The companies I most wanted to reach are often the ones that hire through referrals and conversations, so they leave no public text for any tool to find. A better data source wouldn't close that — the ceiling belongs to public-evidence discovery itself, and a tool built on the rule "never claim what you can't cite" hits it head-on.</p>
+    <p>So it's paused rather than abandoned, with nothing half-built. If I pick it back up, the next step is already specced: use the business register to <em>verify</em> companies I hear about through people, rather than trying to <em>discover</em> them. That would make the tool a support for word of mouth instead of a replacement for it — which is what the evidence says it should have been.</p>
   </section>
 
   <section aria-label="Stack">
     <p class="section-label">Under the hood</p>
     <h2>Built with</h2>
     <div class="stat-strip">
-      <div><div class="num">131</div><div class="label">tests passing</div></div>
+      <div><div class="num">191</div><div class="label">tests passing</div></div>
       <div><div class="num">0</div><div class="label">live calls in suite</div></div>
       <div><div class="num">4</div><div class="label">focus profiles</div></div>
       <div><div class="num">250</div><div class="label">candidates / run</div></div>
@@ -512,6 +690,8 @@ re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
       <b>Fetching</b> — httpx, robots.txt-honouring, self-identifying user agent<br>
       <b>Parsing</b> — BeautifulSoup, hand-rolled sitemap XML discovery<br>
       <b>Discovery</b> — OpenStreetMap (Nominatim geocoding + Overpass queries)<br>
+      <b>Storage</b> — local SQLite, one row per company, replaced on rerun<br>
+      <b>Map</b> — Leaflet with OpenStreetMap tiles, no API key<br>
       <b>Tests</b> — stdlib <code>unittest</code>, fixture &amp; fake-based, zero live network calls<br>
       <b>Reports</b> — local Markdown + JSON, nothing leaves the machine
     </p>
@@ -520,7 +700,7 @@ re.search(r'\bteam\b')    → False  (word-boundary — correct)</div>
   <footer>
     <hr class="rule">
     <p>Everything above is drawn directly from this project's own <code>CHANGELOG.md</code> and <code>docs/</code> — dated, sourced, and written the same evidence-first way the tool writes about the companies it finds. No claim on this page describes a result that wasn't actually run.</p>
-    <p class="sign">Prospect Scout — a personal, locally-run project. Built, broken, fixed, and logged in the open.</p>
+    <p class="sign">Prospect Scout — a personal, locally-run project. Built, broken, fixed, and logged in the open. On hiatus since 2026-09-26.</p>
   </footer>
 
 </div>
